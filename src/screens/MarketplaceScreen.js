@@ -6,9 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Image,
   SafeAreaView,
   StatusBar,
+  Platform,
 } from 'react-native';
 import SafeImage from '../components/SafeImage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
@@ -78,13 +78,19 @@ export default function MarketplaceScreen({ navigation: rawNav }) {
         <Search size={20} color="#9CB8A6" />
         <TextInput
           style={styles.searchInput}
+          value={query}
           onChangeText={setQuery}
           placeholder="Search land, cars, items..."
           placeholderTextColor="#9CB8A6"
         />
       </View>
-<ScrollView style={styles.scrollView} contentContainerStyle={[styles.catalog, styles.grow]} showsVerticalScrollIndicator={false}>
 
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.catalog}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Category chips */}
         <View style={styles.categoryRow}>
           {CATEGORIES.map(cat => (
@@ -125,7 +131,7 @@ export default function MarketplaceScreen({ navigation: rawNav }) {
                     <ShoppingBag size={34} color="#A7F3D0" />
                   )}
                   <TouchableOpacity onPress={() => toggleFavorite(item.id)} style={styles.favBtn}>
-                    <Heart size={18} color={fav ? '#C0392B' : '#9CB8A6'} />
+                    <Heart size={18} color={fav ? '#C0392B' : '#9CB8A6'} fill={fav ? '#C0392B' : 'transparent'} />
                   </TouchableOpacity>
                 </View>
                 <View style={styles.cardBody}>
@@ -151,32 +157,151 @@ export default function MarketplaceScreen({ navigation: rawNav }) {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
-  scrollView: { flex: 1 },
-  grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
-  topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0F2A19', justifyContent: 'center', alignItems: 'center' },
-  topBarTitle: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold', marginLeft: 12 },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0F2A19', borderRadius: 12, marginHorizontal: 16, paddingHorizontal: 12, marginBottom: 12 },
-  searchInput: { flex: 1, color: '#FFFFFF', fontSize: 14, paddingVertical: 10, marginLeft: 8 },
-  catalog: { paddingHorizontal: 16, paddingBottom: 24 },
-  categoryRow: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 },
-  chip: { backgroundColor: '#0F2A19', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, marginRight: 8, marginBottom: 6 },
-  chipActive: { backgroundColor: '#4CAF50' },
-  chipText: { color: '#9CB8A6', fontSize: 12 },
-  chipTextActive: { color: '#FFFFFF', fontWeight: 'bold' },
-  resultCount: { color: '#9CB8A6', fontSize: 11, marginBottom: 10 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  card: { width: '48%', backgroundColor: '#0F2A19', borderRadius: 14, borderWidth: 1, borderColor: '#1C4A2E', marginBottom: 10, overflow: 'hidden' },
-  cardMedia: { height: 110, backgroundColor: '#123B24', justifyContent: 'center', alignItems: 'center' },
-  cardMediaImage: { width: '100%', height: '100%' },
-  favBtn: { position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(20,10,9,0.6)', justifyContent: 'center', alignItems: 'center' },
-  cardBody: { padding: 10 },
-  cardTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
-  cardPrice: { color: '#A7F3D0', fontSize: 13, fontWeight: 'bold', marginTop: 4 },
-  cardLocRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  cardLoc: { color: '#9CB8A6', fontSize: 11, marginLeft: 4 },
-  empty: { alignItems: 'center', paddingVertical: 40 },
-  emptyText: { color: '#9CB8A6', fontSize: 13, marginTop: 10 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#0B2211' 
+  },
+  topBar: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 16, 
+    paddingVertical: 12 
+  },
+  backBtn: { 
+    width: 40, 
+    height: 40, 
+    borderRadius: 20, 
+    backgroundColor: '#0F2A19', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  topBarTitle: { 
+    color: '#FFFFFF', 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    marginLeft: 12 
+  },
+  searchBar: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#0F2A19', 
+    borderRadius: 12, 
+    marginHorizontal: 16, 
+    paddingHorizontal: 12, 
+    marginBottom: 12 
+  },
+  searchInput: { 
+    flex: 1, 
+    color: '#FFFFFF', 
+    fontSize: 14, 
+    paddingVertical: 10, 
+    marginLeft: 8 
+  },
+  scrollView: { 
+    flex: 1 
+  },
+  catalog: { 
+    paddingHorizontal: 16, 
+    paddingBottom: Platform.OS === 'web' ? 110 : 40,
+    flexGrow: 1,
+  },
+  categoryRow: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    marginBottom: 8 
+  },
+  chip: { 
+    backgroundColor: '#0F2A19', 
+    borderRadius: 16, 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    marginRight: 8, 
+    marginBottom: 6 
+  },
+  chipActive: { 
+    backgroundColor: '#4CAF50' 
+  },
+  chipText: { 
+    color: '#9CB8A6', 
+    fontSize: 12 
+  },
+  chipTextActive: { 
+    color: '#FFFFFF', 
+    fontWeight: 'bold' 
+  },
+  resultCount: { 
+    color: '#9CB8A6', 
+    fontSize: 11, 
+    marginBottom: 10 
+  },
+  grid: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    justifyContent: 'space-between' 
+  },
+  card: { 
+    width: '48%', 
+    backgroundColor: '#0F2A19', 
+    borderRadius: 14, 
+    borderWidth: 1, 
+    borderColor: '#1C4A2E', 
+    marginBottom: 10, 
+    overflow: 'hidden' 
+  },
+  cardMedia: { 
+    height: 110, 
+    backgroundColor: '#123B24', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  cardMediaImage: { 
+    width: '100%', 
+    height: '100%' 
+  },
+  favBtn: { 
+    position: 'absolute', 
+    top: 8, 
+    right: 8, 
+    width: 28, 
+    height: 28, 
+    borderRadius: 14, 
+    backgroundColor: 'rgba(20,10,9,0.6)', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  cardBody: { 
+    padding: 10 
+  },
+  cardTitle: { 
+    color: '#FFFFFF', 
+    fontSize: 13, 
+    fontWeight: '600' 
+  },
+  cardPrice: { 
+    color: '#A7F3D0', 
+    fontSize: 13, 
+    fontWeight: 'bold', 
+    marginTop: 4 
+  },
+  cardLocRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginTop: 4 
+  },
+  cardLoc: { 
+    color: '#9CB8A6', 
+    fontSize: 11, 
+    marginLeft: 4 
+  },
+  empty: { 
+    alignItems: 'center', 
+    paddingVertical: 40 
+  },
+  emptyText: { 
+    color: '#9CB8A6', 
+    fontSize: 13, 
+    marginTop: 10 
+  },
 });

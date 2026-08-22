@@ -9,6 +9,7 @@ import {
   StatusBar,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { PiggyBank, Send, CheckCircle2 } from 'lucide-react-native';
@@ -51,7 +52,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
       return;
     }
     if (breakdown.principal > maxEligible) {
-      Alert.alert('Above limit', `Your maximum eligible loan is ₦${fmt(maxEligible)}.`);
+      Alert.alert('Above limit', 'Your maximum eligible loan is ₦' + fmt(maxEligible) + '.');
       return;
     }
     if (!/^\d{11}$/.test(bvn)) {
@@ -68,7 +69,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
     }
     Alert.alert(
       'Application submitted',
-      `Loan of ₦${fmt(breakdown.principal)} over ${tenureMonths} month(s). Total repayment ₦${fmt(breakdown.totalRepayment)}.`,
+      'Loan of ₦' + fmt(breakdown.principal) + ' over ' + tenureMonths + ' month(s). Total repayment ₦' + fmt(breakdown.totalRepayment) + '.'
     );
     navigation.goBack();
   };
@@ -82,7 +83,12 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.grow]} showsVerticalScrollIndicator={true}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Eligibility */}
         <View style={styles.eligibleCard}>
           <PiggyBank size={20} color="#4CAF50" />
@@ -216,10 +222,18 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
-  scrollView: { flex: 1 },
-  grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
-  content: { padding: 16, paddingBottom: 32 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#F4F7F5' 
+  },
+  scrollView: { 
+    flex: 1 
+  },
+  content: { 
+    padding: 16, 
+    paddingBottom: Platform.OS === 'web' ? 110 : 50,
+    flexGrow: 1,
+  },
   eligibleCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -437,6 +451,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
+    marginBottom: 20,
   },
   submitBtnText: {
     color: '#FFFFFF',

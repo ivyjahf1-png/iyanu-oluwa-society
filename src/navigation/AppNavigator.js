@@ -1,7 +1,8 @@
 import React from 'react';
+import { View, StyleSheet, Platform, SafeAreaView } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, PiggyBank, Landmark, Users, Menu } from 'lucide-react-native';
+import { Home, PiggyBank, Users, Menu } from 'lucide-react-native';
 
 import HomeScreen from '../screens/HomeScreen';
 import SavingsScreen from '../screens/SavingsScreen';
@@ -93,27 +94,44 @@ function BottomTabs() {
 
 export default function AppNavigator() {
   return (
-    <Stack.Navigator initialRouteName="MainTabs" screenOptions={fullScreenOptions}>
-      <Stack.Screen name="MainTabs" component={BottomTabs} />
-      <Stack.Screen name="MeetingChat" component={MeetingChatScreen} />
-      <Stack.Screen name="CallScreen" component={CallScreen} />
-      <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
-      <Stack.Screen name="MarketplaceDetail" component={MarketplaceDetailScreen} />
-      <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
-      <Stack.Screen name="AirtimeData" component={AirtimeDataScreen} />
-      <Stack.Screen name="CoopContribution" component={CoopContributionScreen} />
-      <Stack.Screen name="RepayLoan" component={RepayLoanScreen} />
-      <Stack.Screen name="RequestLoan" component={RequestLoanScreen} />
-      <Stack.Screen name="FundWallet" component={FundWalletScreen} />
-      <Stack.Screen name="AdminDeposits" component={AdminDepositsScreen} />
-      <Stack.Screen name="ProfileSettings" component={ProfileSettingsScreen} />
-      <Stack.Screen name="Notifications" component={NotificationsScreen} />
-      <Stack.Screen name="AddFunds" component={AddFundsScreen} />
-      <Stack.Screen name="BankTransfer" component={BankTransferScreen} />
-      <Stack.Screen name="AdminMarketplace" component={AdminMarketplaceScreen} />
-      <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
-      <Stack.Screen name="AccountStatement" component={AccountStatementScreen} />
-      <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
-    </Stack.Navigator>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.webWrapper}>
+        <Stack.Navigator initialRouteName="MainTabs" screenOptions={fullScreenOptions}>
+          <Stack.Screen name="MainTabs" component={BottomTabs} />
+          <Stack.Screen name="MeetingChat" component={MeetingChatScreen} />
+          <Stack.Screen name="CallScreen" component={CallScreen} />
+          <Stack.Screen name="Marketplace" component={MarketplaceScreen} />
+          <Stack.Screen name="MarketplaceDetail" component={MarketplaceDetailScreen} />
+          <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
+          <Stack.Screen name="AirtimeData" component={AirtimeDataScreen} />
+          <Stack.Screen name="CoopContribution" component={CoopContributionScreen} />
+          <Stack.Screen name="RepayLoan" component={RepayLoanScreen} />
+          <Stack.Screen name="RequestLoan" component={RequestLoanScreen} />
+          <Stack.Screen name="FundWallet" component={FundWalletScreen} />
+          <Stack.Screen name="AdminDeposits" component={AdminDepositsScreen} />
+          <Stack.Screen name="ProfileSettings" component={ProfileSettingsScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="AddFunds" component={AddFundsScreen} />
+          <Stack.Screen name="BankTransfer" component={BankTransferScreen} />
+          <Stack.Screen name="AdminMarketplace" component={AdminMarketplaceScreen} />
+          <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
+          <Stack.Screen name="AccountStatement" component={AccountStatementScreen} />
+          <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
+        </Stack.Navigator>
+      </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0F2A19',
+    paddingTop: Platform.OS === 'android' ? 25 : 0,
+  },
+  webWrapper: {
+    flex: 1,
+    height: Platform.OS === 'web' ? '100vh' : '100%',
+    overflow: Platform.OS === 'web' ? 'auto' : 'hidden',
+  },
+});

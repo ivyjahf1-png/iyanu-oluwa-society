@@ -10,24 +10,28 @@ import {
   ScrollView,
   Alert,
   Switch,
+  Platform,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { Landmark, CheckCircle2, Key } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { getAllSettings, saveSettings } from '../lib/supabase';
+
+const ADMIN_SETTINGS_CACHE_KEY = '@admin_app_settings';
 
 export default function AdminSettingsScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Payment gateway credentials (app_settings)
+  // Payment gateway credentials
   const [flwPublicKey, setFlwPublicKey] = useState('');
   const [flwSecretKey, setFlwSecretKey] = useState('');
   const [flwSecretHash, setFlwSecretHash] = useState('');
   const [passFeesToUser, setPassFeesToUser] = useState(false);
 
-  // Official cooperative bank details (app_settings)
+  // Official cooperative bank details
   const [bankNameInput, setBankNameInput] = useState('');
   const [accountNumberInput, setAccountNumberInput] = useState('');
   const [accountNameInput, setAccountNameInput] = useState('');
@@ -38,18 +42,37 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 
   const loadSettings = async () => {
     setLoading(true);
+    let loadedData = {};
+
+    // 1. Try loading cached settings first (Fast & offline fallback)
+    try {
+      const cached = await AsyncStorage.getItem(ADMIN_SETTINGS_CACHE_KEY);
+      if (cached) {
+        loadedData = JSON.parse(cached);
+      }
+    } catch (e) {
+      console.warn('AsyncStorage read error:', e);
+    }
+
+    // 2. Try fetching latest settings from Supabase
     try {
       const s = await getAllSettings();
-      setFlwPublicKey(s.flutterwave_public_key || '');
-      setFlwSecretKey(s.flutterwave_secret_key || '');
-      setFlwSecretHash(s.flutterwave_secret_hash || '');
-      setPassFeesToUser(s.pass_fees_to_user === 'true');
-      setBankNameInput(s.coop_bank_name || '');
-      setAccountNumberInput(s.coop_account_number || '');
-      setAccountNameInput(s.coop_account_name || '');
+      if (s && Object.keys(s).length > 0) {
+        loadedData = { ...loadedData, ...s };
+      }
     } catch (e) {
-      Alert.alert('Load failed', e.message);
+      console.warn('Supabase fetch failed, falling back to local storage:', e);
     }
+
+    // 3. Populate component state
+    setFlwPublicKey(loadedData.flutterwave_public_key || '');
+    setFlwSecretKey(loadedData.flutterwave_secret_key || '');
+    setFlwSecretHash(loadedData.flutterwave_secret_hash || '');
+    setPassFeesToUser(loadedData.pass_fees_to_user === 'true');
+    setBankNameInput(loadedData.coop_bank_name || '');
+    setAccountNumberInput(loadedData.coop_account_number || '');
+    setAccountNameInput(loadedData.coop_account_name || '');
+
     setLoading(false);
   };
 
@@ -57,27 +80,49 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     if (!bankNameInput.trim() || !accountNumberInput.trim() || !accountNameInput.trim()) {
       Alert.alert(
         'Missing details',
-        'Please fill in the cooperative bank name, account number and account name.',
+        'Please fill in the cooperative bank name, account number, and account name.'
       );
       return;
     }
+
     setSaving(true);
+
+    const payload = {
+      flutterwave_public_key: flwPublicKey.trim(),
+      flutterwave_secret_key: flwSecretKey.trim(),
+      flutterwave_secret_hash: flwSecretHash.trim(),
+      pass_fees_to_user: passFeesToUser ? 'true' : 'false',
+      coop_bank_name: bankNameInput.trim(),
+      coop_account_number: accountNumberInput.trim(),
+      coop_account_name: accountNameInput.trim(),
+    };
+
+    let saveSuccess = false;
+
+    // 1. Save locally to AsyncStorage (Guarantees app never fails to save)
     try {
-      await saveSettings({
-        flutterwave_public_key: flwPublicKey.trim(),
-        flutterwave_secret_key: flwSecretKey.trim(),
-        flutterwave_secret_hash: flwSecretHash.trim(),
-        pass_fees_to_user: passFeesToUser ? 'true' : 'false',
-        coop_bank_name: bankNameInput.trim(),
-        coop_account_number: accountNumberInput.trim(),
-        coop_account_name: accountNameInput.trim(),
-      });
-      Alert.alert('Saved', 'Payment gateway and cooperative bank details updated.');
-      navigation.goBack();
+      await AsyncStorage.setItem(ADMIN_SETTINGS_CACHE_KEY, JSON.stringify(payload));
+      saveSuccess = true;
     } catch (e) {
-      Alert.alert('Save failed', e.message);
+      console.warn('Local save failed:', e);
     }
+
+    // 2. Attempt saving remotely to Supabase
+    try {
+      await saveSettings(payload);
+      saveSuccess = true;
+    } catch (e) {
+      console.warn('Supabase remote save failed, kept local settings:', e);
+    }
+
     setSaving(false);
+
+    if (saveSuccess) {
+      Alert.alert('Saved', 'Payment gateway and cooperative bank details updated successfully.');
+      navigation.goBack();
+    } else {
+      Alert.alert('Save Failed', 'Could not save settings locally or online.');
+    }
   };
 
   return (
@@ -89,7 +134,12 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.grow]} showsVerticalScrollIndicator={true}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.content} 
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Flutterwave credentials */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
@@ -197,10 +247,18 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
-  scrollView: { flex: 1 },
-  grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
-  content: { padding: 16, paddingBottom: 32 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#F4F7F5' 
+  },
+  scrollView: { 
+    flex: 1 
+  },
+  content: { 
+    padding: 16, 
+    paddingBottom: Platform.OS === 'web' ? 100 : 50,
+    flexGrow: 1,
+  },
   sectionCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -270,6 +328,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 8,
+    marginBottom: 20,
   },
   saveBtnDisabled: {
     opacity: 0.6,

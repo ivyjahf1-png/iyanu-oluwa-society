@@ -126,7 +126,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
     }
     if (themeMode === 'light') {
       const alpha = Math.max(0.15, lightBrightness / 100);
-            return `rgba(255,255,255,${alpha})`;
+                  return `rgba(255,255,255,${alpha})`;
     }
     const currentHour = new Date().getHours();
     return currentHour >= 18 || currentHour < 6 ? '#0B2211' : '#FFFFFF';
