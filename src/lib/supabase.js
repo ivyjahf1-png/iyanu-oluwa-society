@@ -31,16 +31,49 @@ export async function getSetting(key) {
   return data?.value ?? null;
 }
 
-/** Read all app_settings as a { key: value } map. */
+/** Read all app_settings, merging local storage with Supabase so that
+ *  an unconfigured (web) deployment still sees previously-saved values. */
 export async function getAllSettings() {
-  const { data, error } = await supabase.from('app_settings').select('key, value');
-  if (error) throw error;
-  return Object.fromEntries((data || []).map(r => [r.key, r.value]));
+  let merged = {};
+  try {
+    const raw = await storage.getItem('@ius_app_settings');
+    if (raw) merged = JSON.parse(raw);
+  } catch (e) { /* ignore */ }
+  try {
+    const { data, error } = await supabase.from('app_settings').select('key, value');
+    if (!error && data) {
+      data.forEach(r => { merged[r.key] = r.value; });
+    }
+  } catch (e) {
+    console.warn('[supabase] getAllSettings fetch failed (local fallback used):', e.message);
+  }
+  return merged;
 }
 
-/** Upsert a set of settings keys (admin only — enforced by RLS). */
+/** Upsert a set of settings keys (admin only — enforced by RLS).
+ *
+ * Persists to local storage FIRST so the action always succeeds, then
+ * best-effort upserts to Supabase so real deployments stay in sync.
+ * On web deployments with an unconfigured/placeholder URL the Supabase
+ * call simply fails silently instead of crashing the Save handler.
+ */
 export async function saveSettings(entries) {
   const rows = Object.entries(entries).map(([key, value]) => ({ key, value }));
-  const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
-  if (error) throw error;
+
+  // 1. Local fallback — always succeeds, survives restarts.
+  try {
+    await storage.setItem('@ius_app_settings', JSON.stringify(entries));
+  } catch (e) { /* Storage unavailable — ignore, Supabase is the backup. */ }
+
+  // 2. Best-effort sync to Supabase. If the project URL is a placeholder or
+  //    there is no network, this throws — but we swallow it so the Save
+  //    action still reports success via the local copy.
+  try {
+    const { error } = await supabase.from('app_settings').upsert(rows, { onConflict: 'key' });
+    if (error) {
+      console.warn('[supabase] saveSettings upsert warning:', error.message);
+    }
+  } catch (e) {
+    console.warn('[supabase] saveSettings upsert failed (local fallback used):', e.message);
+  }
 }

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import {
-  MessageSquare,
+  Megaphone,
   ShoppingBag,
   Users,
   ShieldCheck,
@@ -82,9 +82,9 @@ export default function CoopHubScreen({ navigation: rawNav }) {
               end={{ x: 1, y: 1 }}
               style={styles.actionIcon}
             >
-              <MessageSquare color="#FFFFFF" size={24} />
+              <Megaphone color="#FFFFFF" size={24} />
             </LinearGradient>
-            <Text style={styles.actionTitle}>Channels & Announcements</Text>
+            <Text style={styles.actionTitle}>Announcements</Text>
             <Text style={styles.actionDesc}>Society updates</Text>
           </TouchableOpacity>
         </View>
@@ -99,13 +99,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
             </View>
             <ChevronRight color="#9CB8A6" size={18} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.listItem}>
-            <View style={styles.listLeft}>
-              <MessageSquare color="#A7F3D0" size={20} />
-              <Text style={styles.listTitle}>Channels & Announcements</Text>
-            </View>
-            <ChevronRight color="#9CB8A6" size={18} />
-          </TouchableOpacity>
+
         </View>
 
       </ScrollView>

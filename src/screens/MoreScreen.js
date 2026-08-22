@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, SafeAreaView, StatusBar, TouchableOpacity } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Menu, Settings, ChevronRight, CheckCircle2, PackageOpen } from 'lucide-react-native';
+import { Menu, Settings, ChevronRight, CheckCircle2, PackageOpen, Megaphone } from 'lucide-react-native';
 
 export default function MoreScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
@@ -44,7 +44,7 @@ export default function MoreScreen({ navigation: rawNav }) {
           <ChevronRight size={18} color="#9CB8A6" />
         </TouchableOpacity>
 
-        <TouchableOpacity
+                <TouchableOpacity
           style={styles.adminRow}
           onPress={() => navigation.navigate('AdminMarketplace')}
         >
@@ -54,6 +54,21 @@ export default function MoreScreen({ navigation: rawNav }) {
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Marketplace Dashboard</Text>
             <Text style={styles.adminSub}>Upload & manage marketplace inventory</Text>
+          </View>
+          <ChevronRight size={18} color="#9CB8A6" />
+        </TouchableOpacity>
+
+        {/* Admin exclusive: Channels & Announcements broadcast */}
+        <TouchableOpacity
+          style={styles.adminRow}
+          onPress={() => navigation.navigate('Announcements')}
+        >
+          <View style={[styles.adminIcon, { backgroundColor: '#10B981' }]}>
+            <Megaphone size={20} color="#FFFFFF" />
+          </View>
+          <View style={styles.adminTextGroup}>
+            <Text style={styles.adminTitle}>Channels & Announcements</Text>
+            <Text style={styles.adminSub}>Broadcast announcements to members</Text>
           </View>
           <ChevronRight size={18} color="#9CB8A6" />
         </TouchableOpacity>
