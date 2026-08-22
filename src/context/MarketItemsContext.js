@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from '../lib/storage';
 
 /**
  * Shared marketplace inventory.
@@ -17,7 +17,7 @@ export function MarketItemsProvider({ children }) {
   useEffect(() => {
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+                const raw = await storage.getItem(STORAGE_KEY);
         if (raw) setItems(JSON.parse(raw));
       } catch (e) {
         // Corrupt storage — start empty.
@@ -26,9 +26,9 @@ export function MarketItemsProvider({ children }) {
     })();
   }, []);
 
-  const persist = next => {
+    const persist = next => {
     setItems(next);
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+    storage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
   };
 
   const addItem = item => {

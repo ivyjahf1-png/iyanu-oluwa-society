@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from '../lib/storage';
 
 /**
  * Global user profile & settings context.
@@ -39,7 +39,7 @@ export function UserProvider({ children }) {
   useEffect(() => {
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+                const raw = await storage.getItem(STORAGE_KEY);
         if (raw) setUser({ ...DEFAULTS, ...JSON.parse(raw) });
       } catch (e) {
         // Corrupt storage — fall back to defaults.
@@ -51,7 +51,7 @@ export function UserProvider({ children }) {
   const updateUser = async patch => {
     setUser(prev => {
       const next = { ...prev, ...patch };
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+            storage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
       return next;
     });
   };

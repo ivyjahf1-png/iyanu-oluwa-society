@@ -295,7 +295,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         Alert.alert('Download', 'Saving is not supported on this device.');
       }
     } catch (e) {
-      Alert.alert('Download failed', e.message || 'Could not save the file.');
+ Alert.alert('Download failed', (e as Error).message || 'Could not save the file.');
     }
   };
   // Overflow menu actions — every target is a registered route.
