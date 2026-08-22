@@ -22,6 +22,7 @@ const DEFAULTS = {
   reminderDaysBefore: '3',
   soundAlertsEnabled: true,
   alertSound: 'Chime',
+  alertSoundUri: null,
   // Appearance / theme settings
   themeMode: 'light', // 'automatic' | 'light' | 'dark'
   lightBrightness: 100, // 0–100 (higher = brighter light mode)

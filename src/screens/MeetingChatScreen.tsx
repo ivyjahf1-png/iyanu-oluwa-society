@@ -30,6 +30,8 @@ import {
   Camera,
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import * as Sharing from 'expo-sharing';
+import { storage } from '../lib/storage';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -46,6 +48,7 @@ interface ChatMessage {
   isFile?: boolean;
   fileName?: string;
   fileSize?: string;
+  fileUri?: string;
   isImage?: boolean;
   imageUri?: string;
 }
@@ -113,6 +116,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
   const [showChatSettings, setShowChatSettings] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
 
   // Voice note drag gesture
   const [voiceState, setVoiceState] = useState<VoiceState>({
@@ -140,6 +144,33 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     if (scrollRef.current) {
       scrollRef.current.scrollToEnd({ animated: true });
     }
+  }, [messages]);
+
+  // ------------------------------------------------------------------
+  // Persistence — chat history survives refreshes and log-outs.
+  // ------------------------------------------------------------------
+  const CHAT_KEY = '@ius_chat_messages';
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await storage.getItem(CHAT_KEY);
+        if (!raw) return;
+        const saved: ChatMessage[] = JSON.parse(raw);
+        if (Array.isArray(saved) && saved.length > 0) {
+          setMessages(saved);
+        }
+      } catch (e) {
+        console.log('[chat] failed to restore history:', e);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    storage.setItem(CHAT_KEY, JSON.stringify(messages)).catch(e => {
+      console.log('[chat] failed to persist:', e);
+    });
   }, [messages]);
 
   // ------------------------------------------------------------------
@@ -219,6 +250,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         isMe: true,
         isFile: true,
         fileName: file.name,
+        fileUri: file.uri,
         fileSize: `${Math.max(1, Math.round((file.size || 0) / 1024))} KB`,
       });
     } catch (e) {
@@ -249,6 +281,23 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     });
   };
 
+  // Download / save a photo or file locally (web triggers a browser
+  // download; native opens the system share-save sheet).
+  const downloadMedia = async (uri: string, name?: string): Promise<void> => {
+    try {
+      if (!uri) throw new Error('No file location');
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          mimeType: name && name.endsWith('.pdf') ? 'application/pdf' : undefined,
+          dialogTitle: name ? `Save ${name}` : 'Save file',
+        });
+      } else {
+        Alert.alert('Download', 'Saving is not supported on this device.');
+      }
+    } catch (e) {
+      Alert.alert('Download failed', e.message || 'Could not save the file.');
+    }
+  };
   // Overflow menu actions — every target is a registered route.
   const overflowActions: OverflowAction[] = [
     {
@@ -385,8 +434,9 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
           ) : null}
 
           <ScrollView
+            style={styles.scrollView}
             ref={scrollRef}
-            contentContainerStyle={styles.messageList}
+            contentContainerStyle={[styles.messageList, styles.grow]}
             showsVerticalScrollIndicator={false}
           >
             {visibleMessages.length === 0 ? (
@@ -422,17 +472,24 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
                     <Text style={styles.voiceDuration}>{msg.duration ?? '0:00'}</Text>
                   </View>
                 ) : msg.isFile ? (
-                  <View style={styles.fileRow}>
-                    <FileText size={20} color="#A7F3D0" />
-                    <View style={{ marginLeft: 8 }}>
+                  <TouchableOpacity
+                    style={styles.fileDownloadCard}
+                    onPress={() => downloadMedia(msg.fileUri || '', msg.fileName)}
+                  >
+                    <FileText size={22} color="#A7F3D0" />
+                    <View style={{ flex: 1, marginLeft: 8 }}>
                       <Text style={styles.msgText} numberOfLines={1}>
                         {msg.fileName ?? 'Attachment'}
                       </Text>
                       <Text style={styles.fileSize}>{msg.fileSize ?? ''}</Text>
                     </View>
-                  </View>
+                    <Text style={styles.downloadBtn}>Download</Text>
+                  </TouchableOpacity>
                 ) : msg.isImage && msg.imageUri ? (
-                  <Image source={{ uri: msg.imageUri }} style={styles.stickerImage} />
+                  <TouchableOpacity onPress={() => setViewerUri(msg.imageUri as string)}>
+                    <Image source={{ uri: msg.imageUri }} style={styles.stickerImage} />
+                    <Text style={styles.mediaHint}>Tap to view full size</Text>
+                  </TouchableOpacity>
                 ) : (
                   <Text style={styles.msgText}>{msg.text ?? ''}</Text>
                 )}
@@ -605,10 +662,19 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+
+    {/* Attachment image viewer */}
+    <Modal transparent visible={!!viewerUri} animationType="fade" onRequestClose={() => setViewerUri(null)}>
+      <TouchableOpacity style={styles.viewerBackdrop} activeOpacity={1} onPress={() => setViewerUri(null)}>
+        <Image source={{ uri: viewerUri || '' }} style={styles.viewerImage} resizeMode="contain" />
+      </TouchableOpacity>
+    </Modal>
+  </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#0B2211' },
   header: { flexDirection: 'row', alignItems: 'center', padding: 10 },
   backBtn: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center', marginRight: 4 },
@@ -637,6 +703,16 @@ const styles = StyleSheet.create({
   chatContainer: { flex: 1 },
   wallpaper: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.25 },
   messageList: { padding: 14 },
+  mediaHint: { color: '#A7F3D0', fontSize: 9, marginTop: 4, textAlign: 'center' },
+  fileDownloadCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C4A2E',
+    borderRadius: 10,
+    padding: 10,
+    minWidth: 180,
+  },
+  downloadBtn: { color: '#4CAF50', fontWeight: 'bold', fontSize: 11, marginLeft: 10 },
   noResults: { color: '#9CB8A6', fontSize: 12, textAlign: 'center', marginTop: 20 },
   msgBubble: { borderRadius: 12, padding: 10, marginBottom: 10, maxWidth: '82%' },
   myMsg: { alignSelf: 'flex-end' },
@@ -651,6 +727,15 @@ const styles = StyleSheet.create({
   voiceDuration: { color: '#A7F3D0', fontSize: 10, marginLeft: 6 },
   fileRow: { flexDirection: 'row', alignItems: 'center' },
   stickerImage: { width: 120, height: 120, borderRadius: 10 },
+  viewerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewerClose: { position: 'absolute', top: 40, right: 20 },
+  viewerCloseText: { color: '#FFFFFF', fontSize: 28 },
+  viewerImage: { width: '90%', height: '80%' },
   recordingBar: {
     flexDirection: 'row',
     alignItems: 'center',

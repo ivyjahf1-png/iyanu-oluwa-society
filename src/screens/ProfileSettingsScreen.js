@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,12 +10,10 @@ import {
   ScrollView,
   Alert,
   Switch,
-  Image,
 } from 'react-native';
 import SafeImage from '../components/SafeImage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import {
-  ChevronLeft,
   Camera,
   Fingerprint,
   Lock,
@@ -33,26 +31,46 @@ import { useUser } from '../context/UserContext';
 export default function ProfileSettingsScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { user, updateUser } = useUser();
+  const isInitialRender = useRef(true);
 
-  const [fullName, setFullName] = useState(user.fullName);
-  const [email, setEmail] = useState(user.email);
-  const [phone, setPhone] = useState(user.phone);
-  const [biometric, setBiometric] = useState(user.biometricEnabled);
+  // Initialize state directly with user data
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [biometric, setBiometric] = useState(Boolean(user?.biometricEnabled));
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [transferPin, setTransferPin] = useState(user.transferPin);
-  const [userBankName, setUserBankName] = useState(user.userBankName);
-  const [userAccountNumber, setUserAccountNumber] = useState(user.userAccountNumber);
-  const [userAccountName, setUserAccountName] = useState(user.userAccountName);
+  const [transferPin, setTransferPin] = useState(user?.transferPin || '');
+  const [userBankName, setUserBankName] = useState(user?.userBankName || '');
+  const [userAccountNumber, setUserAccountNumber] = useState(user?.userAccountNumber || '');
+  const [userAccountName, setUserAccountName] = useState(user?.userAccountName || '');
 
-  // Appearance / theme settings
-  const [themeMode, setThemeMode] = useState(user.themeMode || 'light');
+  // Appearance settings
+  const [themeMode, setThemeMode] = useState(user?.themeMode || 'light');
   const [lightBrightness, setLightBrightness] = useState(
-    typeof user.lightBrightness === 'number' ? user.lightBrightness : 100,
+    typeof user?.lightBrightness === 'number' ? user.lightBrightness : 100
   );
   const [darkContrast, setDarkContrast] = useState(
-    typeof user.darkContrast === 'number' ? user.darkContrast : 60,
+    typeof user?.darkContrast === 'number' ? user.darkContrast : 60
   );
+
+  // Sync state ONLY if user context was loading when screen mounted
+  useEffect(() => {
+    if (user && isInitialRender.current) {
+      setFullName(user.fullName || '');
+      setEmail(user.email || '');
+      setPhone(user.phone || '');
+      setBiometric(Boolean(user.biometricEnabled));
+      setTransferPin(user.transferPin || '');
+      setUserBankName(user.userBankName || '');
+      setUserAccountNumber(user.userAccountNumber || '');
+      setUserAccountName(user.userAccountName || '');
+      setThemeMode(user.themeMode || 'light');
+      if (typeof user.lightBrightness === 'number') setLightBrightness(user.lightBrightness);
+      if (typeof user.darkContrast === 'number') setDarkContrast(user.darkContrast);
+      isInitialRender.current = false;
+    }
+  }, [user]);
 
   const pickAvatar = async () => {
     try {
@@ -60,7 +78,8 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
         type: 'image/*',
         copyToCacheDirectory: true,
       });
-      if (!result.canceled && result.assets && result.assets.length > 0) {
+
+      if (!result.canceled && result.assets && result.assets[0]?.uri) {
         updateUser({ avatarUri: result.assets[0].uri });
       }
     } catch (e) {
@@ -77,8 +96,9 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
       Alert.alert('Invalid PIN', 'Transfer PIN must be exactly 4 digits.');
       return;
     }
+
     updateUser({
-      fullName: fullName.trim() || user.fullName,
+      fullName: fullName.trim() || user?.fullName || '',
       email: email.trim(),
       phone: phone.trim(),
       biometricEnabled: biometric,
@@ -90,8 +110,45 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
       lightBrightness,
       darkContrast,
     });
+
     Alert.alert('Saved', 'Your profile and security settings have been updated.');
-    navigation.goBack();
+    
+    if (navigation?.goBack) {
+      navigation.goBack();
+    }
+  };
+
+  // Helper function to derive preview background color
+  const getPreviewBg = () => {
+    if (themeMode === 'dark') {
+      const alpha = 0.4 + (darkContrast / 100) * 0.6;
+            return `rgba(11,34,17,${alpha})`;
+    }
+    if (themeMode === 'light') {
+      const alpha = Math.max(0.15, lightBrightness / 100);
+            return `rgba(255,255,255,${alpha})`;
+    }
+    const currentHour = new Date().getHours();
+    return currentHour >= 18 || currentHour < 6 ? '#0B2211' : '#FFFFFF';
+  };
+
+  // Helper function to derive preview text color
+  const getPreviewTextColor = () => {
+    if (themeMode === 'dark') return '#FFFFFF';
+    if (themeMode === 'automatic') {
+      const currentHour = new Date().getHours();
+      return currentHour >= 18 || currentHour < 6 ? '#FFFFFF' : '#0B2211';
+    }
+    return '#0B2211';
+  };
+
+  // Helper function to render text string cleanly
+  const getPreviewLabel = () => {
+    if (themeMode === 'automatic') {
+      const isNight = new Date().getHours() >= 18 || new Date().getHours() < 6;
+            return `Auto (${isNight ? 'Dark' : 'Light'} by time)`;
+    }
+        return `${themeMode.charAt(0).toUpperCase()}${themeMode.slice(1)} Mode`;
   };
 
   return (
@@ -100,14 +157,18 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
       <ScreenHeader
         title="Profile Settings"
         subtitle="Manage your account & security"
-        onBack={() => navigation.goBack()}
+        onBack={() => (navigation?.goBack ? navigation.goBack() : null)}
       />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.content, styles.grow]}
+        showsVerticalScrollIndicator={true}
+      >
         {/* Profile picture */}
         <View style={styles.avatarSection}>
           <TouchableOpacity style={styles.avatarWrap} onPress={pickAvatar}>
-            {user.avatarUri ? (
+            {user?.avatarUri ? (
               <SafeImage source={{ uri: user.avatarUri }} style={styles.avatarImage} />
             ) : (
               <User size={40} color="#4CAF50" />
@@ -120,7 +181,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
         </View>
 
         {/* Account & personal details */}
-        <Text style={styles.sectionTitle}>Account &amp; Personal Details</Text>
+        <Text style={styles.sectionTitle}>Account & Personal Details</Text>
         <TextInput
           style={styles.input}
           value={fullName}
@@ -148,13 +209,13 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
         />
 
         {/* Security */}
-        <Text style={styles.sectionTitle}>Password &amp; Security</Text>
+        <Text style={styles.sectionTitle}>Password & Security</Text>
         <View style={styles.settingRow}>
           <Fingerprint size={20} color="#2563EB" />
           <Text style={styles.settingLabel}>Biometric Login (Fingerprint / Face ID)</Text>
           <Switch
             value={biometric}
-            onValueChange={v => setBiometric(v)}
+            onValueChange={setBiometric}
             trackColor={{ false: '#E5E7EB', true: '#4CAF50' }}
             thumbColor="#FFFFFF"
           />
@@ -185,7 +246,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
         </TouchableOpacity>
 
         {/* Appearance — theme & brightness controls */}
-        <Text style={styles.sectionTitle}>Appearance &amp; Theme</Text>
+        <Text style={styles.sectionTitle}>Appearance & Theme</Text>
 
         {/* Automatic Theme */}
         <TouchableOpacity
@@ -195,11 +256,11 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           <View style={styles.themeCardHeader}>
             <Sparkles size={18} color="#4CAF50" />
             <Text style={styles.themeCardTitle}>Automatic Theme</Text>
-            {themeMode === 'automatic' ? (
+            {themeMode === 'automatic' && (
               <View style={styles.activePill}>
                 <Text style={styles.activePillText}>ACTIVE</Text>
               </View>
-            ) : null}
+            )}
           </View>
           <Text style={styles.themeCardDesc}>
             Switches between Light/Dark automatically based on ambient time and weather.
@@ -214,22 +275,22 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           <View style={styles.themeCardHeader}>
             <Sun size={18} color="#F59E0B" />
             <Text style={styles.themeCardTitle}>Light Theme</Text>
-            {themeMode === 'light' ? (
+            {themeMode === 'light' && (
               <View style={styles.activePill}>
                 <Text style={styles.activePillText}>ACTIVE</Text>
               </View>
-            ) : null}
+            )}
           </View>
           <Text style={styles.themeCardDesc}>Clean, bright interface styling.</Text>
         </TouchableOpacity>
-        {themeMode === 'light' ? (
+        {themeMode === 'light' && (
           <BrightnessControl
             label="Brightness Reduction"
             hint="Lower the percentage to dim light mode intensity."
             value={100 - lightBrightness}
-            onChange={v => setLightBrightness(100 - v)}
+            onChange={val => setLightBrightness(100 - val)}
           />
-        ) : null}
+        )}
 
         {/* Dark Theme */}
         <TouchableOpacity
@@ -239,15 +300,15 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           <View style={styles.themeCardHeader}>
             <Moon size={18} color="#2563EB" />
             <Text style={styles.themeCardTitle}>Dark Theme</Text>
-            {themeMode === 'dark' ? (
+            {themeMode === 'dark' && (
               <View style={styles.activePill}>
                 <Text style={styles.activePillText}>ACTIVE</Text>
               </View>
-            ) : null}
+            )}
           </View>
           <Text style={styles.themeCardDesc}>Deep green dark mode styling.</Text>
         </TouchableOpacity>
-        {themeMode === 'dark' ? (
+        {themeMode === 'dark' && (
           <>
             <BrightnessControl
               label="Contrast Increase"
@@ -259,51 +320,20 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
               label="Contrast Decrease"
               hint="Soften the dark contrast level."
               value={100 - darkContrast}
-              onChange={v => setDarkContrast(100 - v)}
+              onChange={val => setDarkContrast(100 - val)}
             />
           </>
-        ) : null}
+        )}
 
         {/* Live preview of the selected appearance */}
-        <View
-          style={[
-            styles.previewBox,
-            {
-              backgroundColor:
-                themeMode === 'dark'
-                  ? `rgba(11,34,17,${0.4 + (darkContrast / 100) * 0.6})`
-                  : themeMode === 'light'
-                  ? `rgba(255,255,255,${Math.max(0.15, lightBrightness / 100)})`
-                  : new Date().getHours() >= 18 || new Date().getHours() < 6
-                  ? '#0B2211'
-                  : '#FFFFFF',
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.previewText,
-              {
-                color:
-                  themeMode === 'dark' ||
-                  (themeMode === 'automatic' &&
-                    (new Date().getHours() >= 18 || new Date().getHours() < 6))
-                    ? '#FFFFFF'
-                    : '#0B2211',
-              },
-            ]}
-          >
-            Preview —{' '}
-            {themeMode === 'automatic'
-              ? `Auto (${
-                  new Date().getHours() >= 18 || new Date().getHours() < 6 ? 'Dark' : 'Light'
-                } by time)`
-              : `${themeMode.charAt(0).toUpperCase()}${themeMode.slice(1)} Mode`}
+        <View style={[styles.previewBox, { backgroundColor: getPreviewBg() }]}>
+          <Text style={[styles.previewText, { color: getPreviewTextColor() }]}>
+            Preview — {getPreviewLabel()}
           </Text>
         </View>
 
         {/* Bank account & transfer credentials */}
-        <Text style={styles.sectionTitle}>Bank Account &amp; Transfer Credentials</Text>
+        <Text style={styles.sectionTitle}>Bank Account & Transfer Credentials</Text>
         <TextInput
           style={styles.input}
           value={userBankName}
@@ -349,6 +379,8 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   avatarSection: { alignItems: 'center', marginBottom: 20 },
@@ -411,7 +443,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 10,
   },
-  // Theme selection cards
   themeCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 14,

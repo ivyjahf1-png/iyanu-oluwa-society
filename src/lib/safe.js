@@ -8,7 +8,6 @@ export const KNOWN_ROUTES = new Set([
   'MainTabs',
   'Home',
   'Savings',
-  'Loans',
   'Co-op Hub',
   'More',
   'MeetingChat',

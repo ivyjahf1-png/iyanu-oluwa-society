@@ -8,7 +8,7 @@ export default function MoreScreen({ navigation: rawNav }) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={true} contentContainerStyle={[styles.scrollContent, styles.grow]}>
         <View style={styles.headerCard}>
           <Menu size={40} color="#A7F3D0" />
           <Text style={styles.title}>More</Text>
@@ -63,6 +63,8 @@ export default function MoreScreen({ navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: {
     flex: 1,
     backgroundColor: '#0B2211',

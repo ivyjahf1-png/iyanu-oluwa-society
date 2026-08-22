@@ -16,6 +16,7 @@ import {
   ArrowUpRight,
   Printer,
   Share2,
+  FileText,
 } from 'lucide-react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
@@ -199,7 +200,7 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.grow]} showsVerticalScrollIndicator={true}>
         {/* Summary card */}
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Closing Balance</Text>
@@ -252,6 +253,8 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
   actionRow: {
     flexDirection: 'row',

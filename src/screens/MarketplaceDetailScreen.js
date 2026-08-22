@@ -67,7 +67,7 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.grow]}>
         {/* Media */}
         <View style={styles.media}>
           {item.imageUri ? (
@@ -111,6 +111,8 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
   );
 }
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#0B2211' },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0F2A19', justifyContent: 'center', alignItems: 'center' },

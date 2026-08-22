@@ -5,7 +5,6 @@ import { Home, PiggyBank, Landmark, Users, Menu } from 'lucide-react-native';
 
 import HomeScreen from '../screens/HomeScreen';
 import SavingsScreen from '../screens/SavingsScreen';
-import LoansScreen from '../screens/LoansScreen';
 import CoopHubScreen from '../screens/CoopHubScreen';
 import MoreScreen from '../screens/MoreScreen';
 import MeetingChatScreen from '../screens/MeetingChatScreen';
@@ -19,13 +18,13 @@ import CoopContributionScreen from '../screens/CoopContributionScreen';
 import RepayLoanScreen from '../screens/RepayLoanScreen';
 import RequestLoanScreen from '../screens/RequestLoanScreen';
 import FundWalletScreen from '../screens/FundWalletScreen';
-import ProfileSettingsScreen from '../screens/ProfileSettingsScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import AddFundsScreen from '../screens/AddFundsScreen';
 import BankTransferScreen from '../screens/BankTransferScreen';
 import AdminMarketplaceScreen from '../screens/AdminMarketplaceScreen';
 import AIAssistantScreen from '../screens/AIAssistantScreen';
 import AccountStatementScreen from '../screens/AccountStatementScreen';
+import AnnouncementsScreen from '../screens/AnnouncementsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -72,14 +71,6 @@ function BottomTabs() {
         }}
       />
       <Tab.Screen
-        name="Loans"
-        component={LoansScreen}
-        options={{
-          title: 'Loans',
-          tabBarIcon: ({ color, size }) => <Landmark size={size} color={color} />,
-        }}
-      />
-      <Tab.Screen
         name="Co-op Hub"
         component={CoopHubScreen}
         options={{
@@ -121,6 +112,7 @@ export default function AppNavigator() {
       <Stack.Screen name="AdminMarketplace" component={AdminMarketplaceScreen} />
       <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
       <Stack.Screen name="AccountStatement" component={AccountStatementScreen} />
+      <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
     </Stack.Navigator>
   );
 }

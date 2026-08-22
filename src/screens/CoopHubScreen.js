@@ -23,7 +23,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollContent, styles.grow]} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
         <Text style={styles.headerTitle}>Co-op Hub</Text>
@@ -73,7 +73,9 @@ export default function CoopHubScreen({ navigation: rawNav }) {
             <Text style={styles.actionDesc}>Browse all members</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionCard}>
+          <TouchableOpacity style={styles.actionCard}
+            onPress={() => navigation.navigate('Announcements')}
+          >
             <LinearGradient
               colors={['#10B981', '#0D9488']}
               start={{ x: 0, y: 0 }}
@@ -112,6 +114,8 @@ export default function CoopHubScreen({ navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
 container: { flex: 1, backgroundColor: '#0B2211' },
   scrollContent: { paddingHorizontal: 16, paddingVertical: 16, paddingBottom: 24 },
   headerTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },

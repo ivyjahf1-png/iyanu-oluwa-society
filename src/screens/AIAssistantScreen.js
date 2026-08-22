@@ -97,9 +97,9 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
-        <ScrollView
+        <ScrollView style={styles.scrollView}
           ref={scrollRef}
-          contentContainerStyle={styles.messageList}
+          contentContainerStyle={[styles.messageList, styles.grow]}
           showsVerticalScrollIndicator={false}
         >
           {/* Suggestion chips */}
@@ -161,6 +161,8 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
   );
 }
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
   flex: { flex: 1 },
   messageList: { padding: 16, paddingBottom: 12 },

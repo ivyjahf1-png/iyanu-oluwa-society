@@ -17,15 +17,18 @@ import {
   ShieldCheck,
   History,
   TrendingUp,
+  Eye,
+  EyeOff,
 } from 'lucide-react-native';
 
 export default function SavingsScreen() {
   const [activeTab, setActiveTab] = useState('monthly');
+  const [savingsVisible, setSavingsVisible] = useState(true);
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollContent, styles.grow]} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
         <Text style={styles.headerTitle}>Savings & Vault</Text>
@@ -33,8 +36,22 @@ export default function SavingsScreen() {
 
         {/* Savings Balance Card */}
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Total Savings Balance</Text>
-          <Text style={styles.balanceAmount}>₦ 360,466.78</Text>
+          <View style={styles.balanceHeaderRow}>
+            <Text style={styles.balanceLabel}>Total Savings Balance</Text>
+            <TouchableOpacity
+              style={styles.eyeToggleBtn}
+              onPress={() => setSavingsVisible(!savingsVisible)}
+            >
+              {savingsVisible ? (
+                <Eye size={18} color="#FFFFFF" />
+              ) : (
+                <EyeOff size={18} color="#FFFFFF" />
+              )}
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.balanceAmount}>
+            {savingsVisible ? '₦ 360,466.78' : '₦ ••••••••'}
+          </Text>
           <View style={styles.badgeRow}>
             <View style={styles.interestBadge}>
               <TrendingUp color="#4CAF50" size={14} />
@@ -145,12 +162,20 @@ export default function SavingsScreen() {
   );
 }
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#0B2211' },
   scrollContent: { padding: 16 },
   headerTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
   headerSub: { color: '#9CB8A6', fontSize: 12, marginBottom: 16, marginTop: 4 },
   balanceCard: { backgroundColor: '#123B24', borderRadius: 16, padding: 20, marginBottom: 16 },
   balanceLabel: { color: '#D3F99D', fontSize: 13 },
+  balanceHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  eyeToggleBtn: { padding: 4 },
   balanceAmount: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold', marginVertical: 6 },
   badgeRow: { flexDirection: 'row', marginBottom: 16 },
   interestBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, gap: 4 },

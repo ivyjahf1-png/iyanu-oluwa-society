@@ -76,7 +76,7 @@ export default function AirtimeDataScreen({ navigation: rawNav, route }) {
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.grow]} showsVerticalScrollIndicator={true}>
         {/* Provider selector */}
         <Text style={styles.label}>Select Network Provider</Text>
         <View style={styles.providerRow}>
@@ -200,6 +200,8 @@ export default function AirtimeDataScreen({ navigation: rawNav, route }) {
 }
 
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   label: {

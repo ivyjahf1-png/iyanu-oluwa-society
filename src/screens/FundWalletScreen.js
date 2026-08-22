@@ -162,7 +162,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.grow]} showsVerticalScrollIndicator={true}>
 
         {/* Incoming transaction metadata banner */}
         {incomingAmount ? (
@@ -309,6 +309,8 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
   );
 }
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   metaBanner: {

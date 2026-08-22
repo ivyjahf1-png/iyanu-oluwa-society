@@ -9,9 +9,11 @@ import {
   StatusBar,
   ScrollView,
   Switch,
+  Alert,
 } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { Bell, CalendarClock, Volume2, Music } from 'lucide-react-native';
+import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
 import { useUser } from '../context/UserContext';
 
@@ -25,6 +27,28 @@ export default function NotificationsScreen({ navigation: rawNav }) {
   const [reminderDaysBefore, setReminderDaysBefore] = useState(user.reminderDaysBefore);
   const [soundAlertsEnabled, setSoundAlertsEnabled] = useState(user.soundAlertsEnabled);
   const [alertSound, setAlertSound] = useState(user.alertSound);
+  const [alertSoundUri, setAlertSoundUri] = useState(user.alertSoundUri ?? null);
+  const [alertSoundName, setAlertSoundName] = useState(
+    user.alertSoundUri ? 'Custom sound' : '',
+  );
+
+  // Pick a custom notification audio file from device storage.
+  const pickDeviceAudio = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'audio/*',
+        copyToCacheDirectory: true,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const picked = result.assets[0];
+        setAlertSoundUri(picked.uri);
+        setAlertSoundName(picked.name || 'Custom sound');
+        updateUser({ alertSoundUri: picked.uri });
+      }
+    } catch (e) {
+      Alert.alert('Import error', 'Could not open the audio picker.');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -35,7 +59,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.grow]} showsVerticalScrollIndicator={true}>
         {/* Payment consistency scheduler */}
         <Text style={styles.sectionTitle}>Payment Consistency Scheduler</Text>
         <View style={styles.card}>
@@ -126,7 +150,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                     style={[styles.soundChip, alertSound === s && styles.chipActive]}
                     onPress={() => {
                       setAlertSound(s);
-                      updateUser({ alertSound: s });
+                      updateUser({ alertSound: s, alertSoundUri: null });
                     }}
                   >
                     <Music size={14} color={alertSound === s ? '#FFFFFF' : '#4CAF50'} />
@@ -136,6 +160,19 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                   </TouchableOpacity>
                 ))}
               </View>
+
+              {/* Custom audio from device storage */}
+              <TouchableOpacity
+                style={styles.deviceAudioBtn}
+                onPress={() => pickDeviceAudio()}
+              >
+                <Music size={16} color="#FFFFFF" />
+                <Text style={styles.deviceAudioText}>
+                  {alertSoundUri
+                    ? `Custom: ${alertSoundName}`
+                    : 'Choose audio file from device'}
+                </Text>
+              </TouchableOpacity>
             </>
           )}
         </View>
@@ -152,6 +189,8 @@ export default function NotificationsScreen({ navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   sectionTitle: {
@@ -237,6 +276,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginBottom: 12,
+  },
+  deviceAudioBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#0B2211',
+    borderRadius: 12,
+    paddingVertical: 11,
+    marginTop: 4,
+  },
+  deviceAudioText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   soundChip: {
     flexDirection: 'row',

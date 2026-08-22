@@ -127,9 +127,9 @@ export default function HomeScreen({ navigation: rawNav }) {
         </View>
 
         {/* ===== SCROLLABLE DASHBOARD CONTENT (scrolls under sticky header) ===== */}
-        <ScrollView
+        <ScrollView style={styles.scrollView}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, styles.grow]}
         >
         {/* ============ WHITE CONTENT CONTAINER ============ */}
         <View style={styles.whiteSection}>
@@ -407,6 +407,8 @@ export default function HomeScreen({ navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   // Page — deep-green matching the reference
   container: {
     flex: 1,

@@ -83,7 +83,7 @@ export default function MarketplaceScreen({ navigation: rawNav }) {
           placeholderTextColor="#9CB8A6"
         />
       </View>
-<ScrollView contentContainerStyle={styles.catalog} showsVerticalScrollIndicator={false}>
+<ScrollView style={styles.scrollView} contentContainerStyle={[styles.catalog, styles.grow]} showsVerticalScrollIndicator={false}>
 
         {/* Category chips */}
         <View style={styles.categoryRow}>
@@ -152,6 +152,8 @@ export default function MarketplaceScreen({ navigation: rawNav }) {
   );
 }
 const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+  grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#0B2211' },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0F2A19', justifyContent: 'center', alignItems: 'center' },
