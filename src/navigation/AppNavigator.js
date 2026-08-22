@@ -25,6 +25,7 @@ import AdminMarketplaceScreen from '../screens/AdminMarketplaceScreen';
 import AIAssistantScreen from '../screens/AIAssistantScreen';
 import AccountStatementScreen from '../screens/AccountStatementScreen';
 import AnnouncementsScreen from '../screens/AnnouncementsScreen';
+import ProfileSettingsScreen from '../screens/ProfileSettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
