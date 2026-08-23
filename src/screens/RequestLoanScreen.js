@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,6 +15,8 @@ import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { PiggyBank, Send, CheckCircle2 } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import useLoanInterest from '../hooks/useLoanInterest';
+import { useTransactions } from '../context/TransactionsContext';
+import { getAllSettings } from '../lib/supabase';
 
 const TENURES = [
   { label: '1 Month', months: 1 },
@@ -25,9 +27,37 @@ const TENURES = [
 
 export default function RequestLoanScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
-  // Max eligible loan limit computed from the member's savings balance.
-  const [savingsBalance] = useState(360466.78);
-  const maxEligible = savingsBalance * 2; // up to 200% of total savings
+  // Savings come from the member's real transaction ledger.
+  const { totalSavings } = useTransactions();
+
+  // Max eligible loan limit is ADMIN-CONTROLLED (Admin Settings → Loan
+  // Eligibility): either a fixed amount or a percentage of total savings
+  // (default cooperative rule = 200% of savings).
+  const [limitMode, setLimitMode] = useState('percent'); // 'percent' | 'fixed'
+  const [limitPercent, setLimitPercent] = useState(200);
+  const [limitFixed, setLimitFixed] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const s = await getAllSettings();
+        if (s?.loan_limit_mode === 'fixed') {
+          setLimitMode('fixed');
+          setLimitFixed(Number(s.loan_limit_fixed) || 0);
+        } else if (s?.loan_limit_percent) {
+          setLimitMode('percent');
+          setLimitPercent(Number(s.loan_limit_percent) || 200);
+        }
+      } catch (e) {
+        // Fall back to the default cooperative rule (200% of savings).
+      }
+    })();
+  }, []);
+
+  const maxEligible =
+    limitMode === 'fixed'
+      ? limitFixed
+      : Math.round(totalSavings * (limitPercent / 100) * 100) / 100;
 
   const {
     amount,

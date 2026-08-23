@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, SafeAreaView, StatusBar, TouchableOpacity } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Menu, Settings, ChevronRight, CheckCircle2, PackageOpen, Megaphone, RefreshCw } from 'lucide-react-native';
+import { Menu, Settings, ChevronRight, CheckCircle2, PackageOpen, Megaphone, Users, Trash2 } from 'lucide-react-native';
 import { Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,9 +9,9 @@ export default function MoreScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { resetAllAccounts } = useAuth();
 
-  const confirmResetAccounts = () => {
+  const confirmClearAllData = () => {
     Alert.alert(
-      'Reset All Accounts',
+      'Clear All Data (Dev)',
       'This permanently deletes every account, passcode and biometric setting on this device. Previously used emails become available for fresh sign-ups. Continue?',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -95,14 +95,26 @@ export default function MoreScreen({ navigation: rawNav }) {
           <ChevronRight size={18} color="#9CB8A6" />
         </TouchableOpacity>
 
-        {/* Developer utility: clear all accounts */}
-        <TouchableOpacity style={styles.adminRow} onPress={confirmResetAccounts}>
-          <View style={[styles.adminIcon, { backgroundColor: '#C0392B' }]}>
-            <RefreshCw size={20} color="#FFFFFF" />
+        
+        <TouchableOpacity style={styles.adminRow} onPress={() => navigation.navigate('AdminUserManagement')}>
+          <View style={[styles.adminIcon, { backgroundColor: '#2563EB' }]}>
+            <Users size={20} color="#FFFFFF" />
           </View>
           <View style={styles.adminTextGroup}>
-            <Text style={styles.adminTitle}>Reset All Accounts</Text>
-            <Text style={styles.adminSub}>Clear every account on this device (dev tool)</Text>
+            <Text style={styles.adminTitle}>User Management</Text>
+            <Text style={styles.adminSub}>Monitor members, reset passwords & suspend accounts</Text>
+          </View>
+          <ChevronRight size={18} color="#9CB8A6" />
+        </TouchableOpacity>
+
+        {/* Developer: clear all local data */}
+        <TouchableOpacity style={styles.adminRow} onPress={confirmClearAllData}>
+          <View style={[styles.adminIcon, { backgroundColor: '#C0392B' }]}>
+            <Trash2 size={20} color="#FFFFFF" />
+          </View>
+          <View style={styles.adminTextGroup}>
+            <Text style={styles.adminTitle}>Clear All Data (Dev)</Text>
+            <Text style={styles.adminSub}>Developer reset — wipes local accounts</Text>
           </View>
           <ChevronRight size={18} color="#9CB8A6" />
         </TouchableOpacity>

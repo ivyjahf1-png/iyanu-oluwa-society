@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
+import { useTransactions } from '../context/TransactionsContext';
 import { Calendar, Upload, Send, CheckCircle, XCircle } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
@@ -19,6 +20,7 @@ import BankDetailsCard from '../components/BankDetailsCard';
 
 export default function CoopContributionScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
+  const { addTransaction } = useTransactions();
   const [schedule, setSchedule] = useState('monthly');
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
@@ -72,6 +74,15 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
     const formattedAmount = parsedAmount.toLocaleString('en-NG', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
+    });
+
+    // Record the contribution in the member's audit trail so every balance,
+    // history and statement updates automatically.
+    addTransaction({
+      type: 'contribution',
+      label: `${schedule.charAt(0).toUpperCase()}${schedule.slice(1)} Co-op Contribution`,
+      amount: parsedAmount,
+      reference: reference.trim(),
     });
 
     Alert.alert(

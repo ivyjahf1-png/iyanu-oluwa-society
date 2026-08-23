@@ -21,38 +21,33 @@ import {
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import ScreenHeader from '../components/ScreenHeader';
+import { useTransactions } from '../context/TransactionsContext';
 
 // ---------------------------------------------------------------------------
-// Transaction ledger engine — structures debits, credits, dates & balance
-// snapshots. In production this would hydrate from the deposits table; here it
-// reflects the member's live loan/savings state.
+// Transaction ledger engine — built ENTIRELY from the real audit-trail
+// transactions (contributions, deposits, withdrawals, loan disbursements &
+// repayments). New members start with an empty ledger (₦0.00 everywhere).
 // ---------------------------------------------------------------------------
-function buildLedger() {
-  const entries = [
-    { id: 1, date: '2026-07-01', label: 'Monthly Co-op Contribution', type: 'credit', amount: 20000 },
-    { id: 2, date: '2026-07-15', label: 'Loan Disbursement', type: 'debit', amount: 150000 },
-    { id: 3, date: '2026-07-20', label: 'Monthly Co-op Contribution', type: 'credit', amount: 20000 },
-    { id: 4, date: '2026-08-01', label: 'Monthly Co-op Contribution', type: 'credit', amount: 20000 },
-    { id: 5, date: '2026-08-15', label: 'Loan Repayment (Instalment 1)', type: 'debit', amount: 50000 },
-    { id: 6, date: '2026-08-20', label: 'Target Savings Top-up', type: 'credit', amount: 35000 },
-  ];
-
+function buildLedger(transactions) {
   let running = 0;
-  return entries
+  const isCredit = t => ['contribution', 'deposit', 'loan_repayment'].includes(t.type);
+  return transactions
     .slice()
-    .sort((a, b) => a.date.localeCompare(b.date))
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
     .map(e => {
-      running += e.type === 'credit' ? e.amount : -e.amount;
-      return { ...e, running };
+      running += isCredit(e) ? e.amount : -e.amount;
+      return { ...e, running, type: isCredit(e) ? 'credit' : 'debit' };
     });
 }
 
 const fmt = n =>
-  n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function AccountStatementScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
-  const ledger = useMemo(() => buildLedger(), []);
+  const { transactions } = useTransactions();
+
+  const ledger = useMemo(() => buildLedger(transactions), [transactions]);
 
   const totals = useMemo(() => {
     const credits = ledger.filter(l => l.type === 'credit').reduce((s, l) => s + l.amount, 0);

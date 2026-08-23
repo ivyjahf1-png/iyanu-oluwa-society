@@ -37,6 +37,10 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
   const [bankNameInput, setBankNameInput] = useState('');
   const [accountNumberInput, setAccountNumberInput] = useState('');
   const [accountNameInput, setAccountNameInput] = useState('');
+  // Loan eligibility (admin-controlled): fixed limit OR % of savings (default 200%).
+  const [loanLimitMode, setLoanLimitMode] = useState('percent'); // 'percent' | 'fixed'
+  const [loanLimitPercent, setLoanLimitPercent] = useState('200');
+  const [loanLimitFixed, setLoanLimitFixed] = useState('');
 
   useEffect(() => {
     loadSettings();
@@ -74,6 +78,9 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     setBankNameInput(loadedData.coop_bank_name || '');
     setAccountNumberInput(loadedData.coop_account_number || '');
     setAccountNameInput(loadedData.coop_account_name || '');
+    setLoanLimitMode(loadedData.loan_limit_mode || 'percent');
+    setLoanLimitPercent(loadedData.loan_limit_percent || '200');
+    setLoanLimitFixed(loadedData.loan_limit_fixed || '');
 
     setLoading(false);
   };
@@ -97,6 +104,9 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
       coop_bank_name: bankNameInput.trim(),
       coop_account_number: accountNumberInput.trim(),
       coop_account_name: accountNameInput.trim(),
+      loan_limit_mode: loanLimitMode,
+      loan_limit_percent: loanLimitPercent.trim() || '200',
+      loan_limit_fixed: loanLimitFixed.trim(),
     };
 
     let saveSuccess = false;
@@ -242,6 +252,62 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           />
         </View>
 
+        {/* Loan Eligibility — admin-controlled limit (Nigerian coop rule) */}
+        <View style={styles.loanSection}>
+          <View style={styles.loanHeader}>
+            <Landmark size={18} color="#4CAF50" />
+            <Text style={styles.sectionTitle}>Loan Eligibility</Text>
+          </View>
+          <Text style={styles.sectionHint}>
+            Set the maximum loan members can request. Choose a fixed amount or a percentage of savings (default 200%).
+          </Text>
+
+          <View style={styles.modeRow}>
+            <TouchableOpacity
+              style={[styles.modeBtn, loanLimitMode === 'percent' && styles.modeBtnActive]}
+              onPress={() => setLoanLimitMode('percent')}
+            >
+              <Text style={[styles.modeBtnText, loanLimitMode === 'percent' && styles.modeBtnTextActive]}>
+                % of Savings
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.modeBtn, loanLimitMode === 'fixed' && styles.modeBtnActive]}
+              onPress={() => setLoanLimitMode('fixed')}
+            >
+              <Text style={[styles.modeBtnText, loanLimitMode === 'fixed' && styles.modeBtnTextActive]}>
+                Fixed Amount
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {loanLimitMode === 'percent' ? (
+            <>
+              <Text style={styles.label}>Percent of Savings</Text>
+              <TextInput
+                style={styles.input}
+                value={loanLimitPercent}
+                onChangeText={(t) => setLoanLimitPercent(t.replace(/[^0-9]/g, ''))}
+                placeholder="e.g. 200 (% of total savings)"
+                placeholderTextColor="#6B7280"
+                keyboardType="number-pad"
+              />
+            </>
+          ) : (
+            <>
+              <Text style={styles.label}>Fixed Maximum Amount (₦)</Text>
+              <TextInput
+                style={styles.input}
+                value={loanLimitFixed}
+                onChangeText={(t) => setLoanLimitFixed(t.replace(/[^0-9.]/g, ''))}
+                placeholder="e.g. 500000"
+                placeholderTextColor="#6B7280"
+                keyboardType="decimal-pad"
+              />
+            </>
+          )}
+        </View>
+
         <TouchableOpacity
           style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
           onPress={saveSettingsHandler}
@@ -347,4 +413,30 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
+  loanSection: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 14,
+    padding: 14,
+    marginTop: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  loanHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  modeRow: {
+    flexDirection: 'row',
+    backgroundColor: '#E5E7EB',
+    borderRadius: 10,
+    padding: 4,
+    marginVertical: 10,
+  },
+  modeBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
+  modeBtnActive: { backgroundColor: '#4CAF50' },
+  modeBtnText: { color: '#6B7280', fontSize: 12, fontWeight: '600' },
+  modeBtnTextActive: { color: '#FFFFFF' },
 });

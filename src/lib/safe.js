@@ -32,6 +32,7 @@ export const KNOWN_ROUTES = new Set([
   'AIAssistant',
   'AccountStatement',
   'Announcements',
+  'AdminUserManagement',
 ]);
 
 /**

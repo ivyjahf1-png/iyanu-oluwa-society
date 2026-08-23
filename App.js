@@ -26,6 +26,7 @@ function ThemedContainer({ children }) {
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AppLockScreen from './src/components/AppLockScreen';
+import { TransactionsProvider } from './src/context/TransactionsContext';
 import { View, ActivityIndicator } from 'react-native';
 
 /** Shows the app once auth state is restored; gates on the lock screen. */
@@ -52,7 +53,8 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <AuthGate>
+        <TransactionsProvider>
+          <AuthGate>
           <UserProvider>
             <AnnouncementsProvider>
               <MarketItemsProvider>
@@ -66,7 +68,8 @@ export default function App() {
               </MarketItemsProvider>
             </AnnouncementsProvider>
           </UserProvider>
-        </AuthGate>
+          </AuthGate>
+        </TransactionsProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

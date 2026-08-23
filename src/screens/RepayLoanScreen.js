@@ -15,13 +15,14 @@ import { Upload, Send, TrendingDown } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
 import BankDetailsCard from '../components/BankDetailsCard';
+import { useTransactions } from '../context/TransactionsContext';
 
 export default function RepayLoanScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
-  // Current loan metrics (bound to the member's live loan state).
-  const [totalOutstanding] = useState(150000.0);
-  const [totalPaid] = useState(50000.0);
-  const remainingBalance = totalOutstanding - totalPaid;
+  const { loanOutstanding, totalPaid, addTransaction } = useTransactions();
+  // Current loan metrics derived from the real transaction ledger only.
+  const totalOutstanding = loanOutstanding + totalPaid; // gross disbursed
+  const remainingBalance = loanOutstanding;
 
   const [mode, setMode] = useState('full'); // 'full' | 'custom'
   const [customAmount, setCustomAmount] = useState('');
@@ -53,6 +54,13 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
       Alert.alert('Proof required', 'Upload a payment receipt or enter the transaction reference.');
       return;
     }
+    // Record the repayment in the member's audit trail (updates all figures).
+    addTransaction({
+      type: 'loan_repayment',
+      label: 'Loan Repayment',
+      amount: repaymentAmount,
+      reference: reference.trim(),
+    });
     Alert.alert(
       'Repayment submitted',
       `Your loan repayment of ₦${repaymentAmount.toLocaleString()} has been submitted for verification.`,

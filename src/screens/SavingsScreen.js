@@ -20,10 +20,22 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react-native';
+import { useTransactions } from '../context/TransactionsContext';
 
 export default function SavingsScreen() {
   const [activeTab, setActiveTab] = useState('monthly');
   const [savingsVisible, setSavingsVisible] = useState(true);
+  const { transactions, totalSavings } = useTransactions();
+
+  const fmt = n => '₦ ' + Number(n || 0).toLocaleString('en-NG', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  // Contribution history derived from the real transaction ledger only.
+  const history = transactions
+    .filter(t => ['contribution', 'deposit', 'withdrawal'].includes(t.type))
+    .slice(0, 10);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -50,7 +62,7 @@ export default function SavingsScreen() {
             </TouchableOpacity>
           </View>
           <Text style={styles.balanceAmount}>
-            {savingsVisible ? '₦ 360,466.78' : '₦ ••••••••'}
+            {savingsVisible ? fmt(totalSavings) : '₦ ••••••••'}
           </Text>
           <View style={styles.badgeRow}>
             <View style={styles.interestBadge}>
@@ -106,7 +118,7 @@ export default function SavingsScreen() {
               <Text style={styles.infoTitle}>Next Due Date</Text>
               <Text style={styles.infoSub}>1st of Next Month</Text>
             </View>
-            <Text style={styles.infoAmount}>₦ 20,000</Text>
+            <Text style={styles.infoAmount}>{fmt(0)}</Text>
           </View>
 
           <View style={styles.divider} />
@@ -130,31 +142,38 @@ export default function SavingsScreen() {
         </View>
 
         <View style={styles.historyList}>
-          <View style={styles.historyItem}>
-            <View style={styles.historyLeft}>
-              <View style={styles.histIconWrapper}>
-                <PiggyBank color="#4CAF50" size={18} />
+          {history.length === 0 ? (
+            <View style={styles.historyItem}>
+              <View style={styles.historyLeft}>
+                <View style={styles.histIconWrapper}>
+                  <PiggyBank color="#4CAF50" size={18} />
+                </View>
+                <View>
+                  <Text style={styles.histTitle}>No contributions yet</Text>
+                  <Text style={styles.histDate}>Your deposits will appear here</Text>
+                </View>
               </View>
-              <View>
-                <Text style={styles.histTitle}>Monthly Co-op Deposit</Text>
-                <Text style={styles.histDate}>Aug 01, 2026</Text>
-              </View>
+              <Text style={styles.histAmount}>{fmt(0)}</Text>
             </View>
-            <Text style={styles.histAmount}>+₦ 20,000.00</Text>
-          </View>
-
-          <View style={styles.historyItem}>
-            <View style={styles.historyLeft}>
-              <View style={styles.histIconWrapper}>
-                <PiggyBank color="#4CAF50" size={18} />
+          ) : (
+            history.map(t => (
+              <View key={t.id} style={styles.historyItem}>
+                <View style={styles.historyLeft}>
+                  <View style={styles.histIconWrapper}>
+                    <PiggyBank color="#4CAF50" size={18} />
+                  </View>
+                  <View>
+                    <Text style={styles.histTitle}>{t.label}</Text>
+                    <Text style={styles.histDate}>{t.date}</Text>
+                  </View>
+                </View>
+                <Text style={styles.histAmount}>
+                  {t.type === 'withdrawal' ? '-' : '+'}
+                  {fmt(t.amount)}
+                </Text>
               </View>
-              <View>
-                <Text style={styles.histTitle}>Monthly Co-op Deposit</Text>
-                <Text style={styles.histDate}>Jul 01, 2026</Text>
-              </View>
-            </View>
-            <Text style={styles.histAmount}>+₦ 20,000.00</Text>
-          </View>
+            ))
+          )}
         </View>
 
       </ScrollView>

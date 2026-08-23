@@ -39,6 +39,7 @@ import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 import { deriveDisplayName } from '../auth/authService';
 import { useAnnouncements } from '../context/AnnouncementsContext';
+import { useTransactions } from '../context/TransactionsContext';
 
 export default function HomeScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
@@ -61,12 +62,13 @@ export default function HomeScreen({ navigation: rawNav }) {
   const [showSavings, setShowSavings] = useState(true);
   const [showLoan, setShowLoan] = useState(false);
 
-  // Dynamic (non-hardcoded) account amounts — default to ₦0.00 until the backend
-  // provides live values. Bound to the screen so values are never static.
-  const [balance, setBalance] = useState('0.00');
-  const [savings, setSavings] = useState('0.00');
-  const [loan, setLoan] = useState('0.00');
-  const [paid, setPaid] = useState('0.00');
+  // Dynamic (non-hardcoded) account amounts — derived from the real
+  // transaction ledger (start at ₦0.00 for new members).
+  const { totalSavings, loanOutstanding, totalPaid } = useTransactions();
+  const balance = Number(totalSavings).toFixed(2);
+  const savings = Number(totalSavings).toFixed(2);
+  const loan = Number(loanOutstanding).toFixed(2);
+  const paid = Number(totalPaid).toFixed(2);
 
   // Expanded "View All" states for Financial Services & Co-op Hub.
   const [showAllServices, setShowAllServices] = useState(false);
