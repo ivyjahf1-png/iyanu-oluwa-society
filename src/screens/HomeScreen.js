@@ -38,6 +38,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 import { deriveDisplayName } from '../auth/authService';
+import { useAnnouncements } from '../context/AnnouncementsContext';
 
 export default function HomeScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
@@ -49,6 +50,11 @@ export default function HomeScreen({ navigation: rawNav }) {
   const displayName = userEmail
     ? deriveDisplayName(userEmail)
     : user?.fullName || 'Member';
+
+  // Announcements: badge on the bell + drop-down banner for the latest unread.
+  const { unreadAnnouncements, dismissAnnouncement } = useAnnouncements();
+  const latestAnnouncement = unreadAnnouncements[0] || null;
+  const hasUnread = unreadAnnouncements.length > 0;
 
   // Existing state handlers preserved: visibility toggles for each balance area.
   const [showBalance, setShowBalance] = useState(false);
@@ -87,7 +93,7 @@ export default function HomeScreen({ navigation: rawNav }) {
             <View style={styles.greetingIcons}>
               <TouchableOpacity style={styles.notifBtn} onPress={() => navigation.navigate('Notifications')}>
                 <Bell size={18} color="#FFFFFF" />
-                <View style={styles.notifDot} />
+                {hasUnread ? <View style={styles.notifDot} /> : null}
               </TouchableOpacity>
               <TouchableOpacity style={styles.avatarBtn} onPress={() => navigation.navigate('ProfileSettings')}>
                 {user.avatarUri ? (
@@ -134,6 +140,30 @@ export default function HomeScreen({ navigation: rawNav }) {
             </View>
           </View>
         </View>
+
+        {/* ===== ANNOUNCEMENT DROP-DOWN BANNER (stays until dismissed) ===== */}
+        {latestAnnouncement && (
+          <View style={styles.announceBanner}>
+            <View style={styles.announceIconWrap}>
+              <Bell size={18} color="#4CAF50" />
+            </View>
+            <View style={styles.announceTextGroup}>
+              <Text style={styles.announceTitle} numberOfLines={1}>
+                {latestAnnouncement.title}
+              </Text>
+              <Text style={styles.announceMessage} numberOfLines={2}>
+                {latestAnnouncement.message}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={styles.announceDismiss}
+              onPress={() => dismissAnnouncement(latestAnnouncement.id)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.announceDismissText}>Dismiss</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* ===== SCROLLABLE DASHBOARD CONTENT (scrolls under sticky header) ===== */}
         <ScrollView style={styles.scrollView}
@@ -426,6 +456,51 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 24,
   },
+  // Announcement drop-down banner
+  announceBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFFFFF',
+      borderRadius: 14,
+      padding: 12,
+      marginHorizontal: 16,
+      marginTop: 10,
+      borderWidth: 1,
+      borderColor: '#4CAF50',
+      elevation: 6,
+      shadowColor: '#000',
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 3 },
+    },
+    announceIconWrap: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: '#E8F5E9',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
+    },
+    announceTextGroup: { flex: 1 },
+    announceTitle: {
+      color: '#0B2211',
+      fontSize: 13,
+      fontWeight: 'bold',
+    },
+    announceMessage: {
+      color: '#374151',
+      fontSize: 11,
+      marginTop: 2,
+    },
+    announceDismiss: {
+      backgroundColor: '#4CAF50',
+      borderRadius: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      marginLeft: 8,
+    },
+    announceDismissText: { color: '#FFFFFF', fontSize: 11, fontWeight: '600' },
   // Sticky header section (deep green) — pinned above the scrolling dashboard
   headerSection: {
     paddingHorizontal: 14,

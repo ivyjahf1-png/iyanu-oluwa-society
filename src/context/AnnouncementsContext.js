@@ -9,9 +9,11 @@ import { storage } from '../lib/storage';
  */
 const AnnouncementsContext = createContext(null);
 const STORAGE_KEY = '@ius_announcements';
+const SEEN_KEY = '@ius_announcements_dismissed';
 
 export function AnnouncementsProvider({ children }) {
   const [announcements, setAnnouncements] = useState([]);
+  const [dismissedIds, setDismissedIds] = useState([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -19,6 +21,8 @@ export function AnnouncementsProvider({ children }) {
       try {
         const raw = await storage.getItem(STORAGE_KEY);
         if (raw) setAnnouncements(JSON.parse(raw));
+        const seenRaw = await storage.getItem(SEEN_KEY);
+        if (seenRaw) setDismissedIds(JSON.parse(seenRaw));
       } catch (e) {
         // Corrupt payload — start empty rather than crash.
       }
@@ -29,6 +33,11 @@ export function AnnouncementsProvider({ children }) {
   const persist = next => {
     setAnnouncements(next);
     storage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+  };
+
+  const persistSeen = next => {
+    setDismissedIds(next);
+    storage.setItem(SEEN_KEY, JSON.stringify(next)).catch(() => {});
   };
 
   const addAnnouncement = announcement => {
@@ -47,9 +56,24 @@ export function AnnouncementsProvider({ children }) {
     persist(announcements.filter(a => a.id !== id));
   };
 
+  /** Member dismisses the drop-down banner; the announcement itself remains. */
+  const dismissAnnouncement = id => {
+    if (!dismissedIds.includes(id)) persistSeen([...dismissedIds, id]);
+  };
+
+  /** Announcements the member has not dismissed yet (newest first). */
+  const unreadAnnouncements = announcements.filter(a => !dismissedIds.includes(a.id));
+
   return (
     <AnnouncementsContext.Provider
-      value={{ announcements, addAnnouncement, removeAnnouncement, hydrated }}
+      value={{
+        announcements,
+        unreadAnnouncements,
+        dismissAnnouncement,
+        addAnnouncement,
+        removeAnnouncement,
+        hydrated,
+      }}
     >
       {children}
     </AnnouncementsContext.Provider>
