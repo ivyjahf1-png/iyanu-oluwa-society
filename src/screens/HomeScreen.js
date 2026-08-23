@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -101,7 +101,7 @@ export default function HomeScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="dark-content" backgroundColor="#0A1412" />
 
       {/* ===== STICKY HEADER & BALANCE SECTION (pinned above the scroll) ===== */}
       <View style={styles.headerSection}>
@@ -129,47 +129,57 @@ export default function HomeScreen({ navigation: rawNav }) {
             </View>
           </View>
 
-          {/* Available Balance Card — diagonal green→white split */}
-          <View style={styles.balanceCard}>
-            {/* Diagonal white split panel (right side) */}
-            <View style={styles.cardSplit} />
-
-            {/* Watermark (classical building pillar) over the split */}
-            <View style={styles.watermark}>
-              <Landmark size={150} color="#0B2211" />
-            </View>
-
-            <View style={styles.balanceHeader}>
+          {/* Available Balance Card — metallic diagonal gradient */}
+          <LinearGradient
+            colors={['#142521', '#2C3E3A', '#81938E', '#1B2C28']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.metallicCard}
+          >
+            <View style={styles.cardLeft}>
               <Text style={styles.balanceLabel}>Available Balance</Text>
-              <TouchableOpacity onPress={() => setShowBalance(!showBalance)} style={styles.eyeToggle}>
-                {showBalance ? <EyeOff size={18} color="#FFFFFF" /> : <Eye size={18} color="#FFFFFF" />}
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.balanceAmount}>{showBalance ? `₦${balance ?? "0.00"}` : '₦ **'}</Text>
-            <Text style={styles.balanceTag}>Iyanu Oluwa Society</Text>
-
-            <View style={styles.balanceActions}>
+              <Text style={styles.balanceAmount}>
+                {showBalance ? `₦${balance ?? '0.00'}` : '₦ **'}
+              </Text>
               <TouchableOpacity
                 style={styles.addFundBtn}
                 onPress={() => Alert.alert('Coming Soon', 'Online funding will be available soon. Please use the Coop Contribution option to deposit.')}
               >
-                <Lock size={15} color="#FFFFFF" />
+                <Lock size={14} color="#FFFFFF" />
                 <Text style={styles.addFundText}>+ Add Fund</Text>
               </TouchableOpacity>
-              <Text style={styles.addFundCaption}>Fund your account to save or pay</Text>
-              <TouchableOpacity onPress={() => setShowBalance(!showBalance)} style={styles.hideBtn}>
-                <EyeOff size={15} color="#0B2211" />
-                <Text style={styles.hideText}>Hide</Text>
+            </View>
+
+            <View style={styles.cardRight}>
+              <View style={styles.watermarkContainer}>
+                <Landmark size={36} color="#A0AEC0" />
+                <Text style={styles.watermarkTitle}>Iyanu Oluwa Society</Text>
+                <Text style={styles.watermarkSub}>Community</Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.showBalanceBtn}
+                onPress={() => setShowBalance(!showBalance)}
+              >
+                {showBalance ? (
+                  <Eye size={14} color="#FFFFFF" />
+                ) : (
+                  <EyeOff size={14} color="#FFFFFF" />
+                )}
+                <Text style={styles.showBalanceText}>
+                  {showBalance ? 'Hide Balance' : 'Show Balance'}
+                </Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </LinearGradient>
+
         </View>
 
         {/* ===== ANNOUNCEMENT DROP-DOWN BANNER (stays until dismissed) ===== */}
         {latestAnnouncement && (
           <View style={styles.announceBanner}>
             <View style={styles.announceIconWrap}>
-              <Bell size={18} color="#4CAF50" />
+              <Bell size={18} color="#00D084" />
             </View>
             <View style={styles.announceTextGroup}>
               <Text style={styles.announceTitle} numberOfLines={1}>
@@ -204,7 +214,7 @@ export default function HomeScreen({ navigation: rawNav }) {
               <View style={styles.summaryHeader}>
                 <Text style={styles.summaryTitle}>Savings</Text>
                 <TouchableOpacity onPress={() => setShowSavings(!showSavings)}>
-                  {showSavings ? <EyeOff size={16} color="#98A2B3" /> : <Eye size={16} color="#98A2B3" />}
+                  {showSavings ? <EyeOff size={16} color="#94A3B8" /> : <Eye size={16} color="#94A3B8" />}
                 </TouchableOpacity>
                 <View style={styles.summaryBadge}>
                   <PiggyBank size={18} color="#FFFFFF" />
@@ -220,7 +230,7 @@ export default function HomeScreen({ navigation: rawNav }) {
               <View style={styles.summaryHeader}>
                 <Text style={styles.summaryTitle}>Active Loan</Text>
                 <TouchableOpacity onPress={() => setShowLoan(!showLoan)}>
-                  {showLoan ? <EyeOff size={16} color="#98A2B3" /> : <Eye size={16} color="#98A2B3" />}
+                  {showLoan ? <EyeOff size={16} color="#94A3B8" /> : <Eye size={16} color="#94A3B8" />}
                 </TouchableOpacity>
                 <View style={styles.summaryBadge}>
                   <Wallet size={18} color="#FFFFFF" />
@@ -264,7 +274,7 @@ export default function HomeScreen({ navigation: rawNav }) {
                 title: 'Repay Loan',
                 desc: 'Make loan repayments',
                 Icon: CreditCard,
-                colors: ['#F59E0B', '#EA580C'],
+                colors: ['#D97706', '#78350F'],
                 route: 'RepayLoan',
               },
               {
@@ -319,7 +329,7 @@ export default function HomeScreen({ navigation: rawNav }) {
                 </LinearGradient>
                 <Text style={styles.expandedTitle}>Data</Text>
                 <Text style={styles.expandedHint}>Purchase data bundles</Text>
-                <ChevronRight size={18} color="#A7F3D0" />
+                <ChevronRight size={18} color="#94A3B8" />
               </TouchableOpacity>
             </View>
           )}
@@ -375,7 +385,7 @@ export default function HomeScreen({ navigation: rawNav }) {
               <View style={styles.hubThumb}>
                 <MapPin size={16} color="#FFFFFF" />
               </View>
-              <ChevronRight size={18} color="#A7F3D0" />
+              <ChevronRight size={18} color="#94A3B8" />
             </TouchableOpacity>
 
             {/* Vehicles */}
@@ -398,7 +408,7 @@ export default function HomeScreen({ navigation: rawNav }) {
               <View style={styles.hubThumbCar}>
                 <Car size={16} color="#FFFFFF" />
               </View>
-              <ChevronRight size={18} color="#A7F3D0" />
+              <ChevronRight size={18} color="#94A3B8" />
             </TouchableOpacity>
 
             {/* Preserved route: Meeting Chat */}
@@ -418,7 +428,7 @@ export default function HomeScreen({ navigation: rawNav }) {
                 <Text style={styles.hubTitle}>Meeting Chat</Text>
                 <Text style={styles.hubDesc}>Discuss &amp; decide with members</Text>
               </View>
-              <ChevronRight size={18} color="#A7F3D0" />
+              <ChevronRight size={18} color="#94A3B8" />
             </TouchableOpacity>
           </View>
         </View>
@@ -511,7 +521,7 @@ const styles = StyleSheet.create({
   // Page — deep-green matching the reference
   container: {
     flex: 1,
-    backgroundColor: '#0B2211',
+    backgroundColor: '#0A1412',
   },
   scrollContent: {
     paddingBottom: 24,
@@ -520,13 +530,13 @@ const styles = StyleSheet.create({
   announceBanner: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: '#0F2A19',
+      backgroundColor: '#12201D',
       borderRadius: 14,
       padding: 12,
       marginHorizontal: 16,
       marginTop: 10,
       borderWidth: 1,
-      borderColor: '#4CAF50',
+      borderColor: '#00D084',
       elevation: 6,
       shadowColor: '#000',
       shadowOpacity: 0.15,
@@ -544,17 +554,17 @@ const styles = StyleSheet.create({
     },
     announceTextGroup: { flex: 1 },
     announceTitle: {
-      color: '#0B2211',
+      color: '#0A1412',
       fontSize: 13,
       fontWeight: 'bold',
     },
     announceMessage: {
-      color: '#C9D6CE',
+      color: '#E2E8F0',
       fontSize: 11,
       marginTop: 2,
     },
     announceDismiss: {
-      backgroundColor: '#4CAF50',
+      backgroundColor: '#00D084',
       borderRadius: 10,
       paddingHorizontal: 10,
       paddingVertical: 6,
@@ -566,7 +576,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 10,
     paddingBottom: 12,
-    backgroundColor: '#0B2211',
+    backgroundColor: '#0A1412',
     borderBottomLeftRadius: 18,
     borderBottomRightRadius: 18,
     shadowColor: '#000',
@@ -585,23 +595,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greetingLine: {
-    color: '#A7F3D0',
+    color: '#94A3B8',
     fontSize: 15,
     fontWeight: '600',
   },
-  greetingName: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 2,
-  },
+  greetingName: { color: '#FFFFFF', fontSize: 24, fontWeight: '700', marginTop: 2 },
   societyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 6,
   },
   societyText: {
-    color: '#A7F3D0',
+    color: '#94A3B8',
     fontSize: 12,
     marginLeft: 4,
   },
@@ -625,119 +630,76 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#22C55E',
+    backgroundColor: '#00D084',
   },
   avatarBtn: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#12201D',
     justifyContent: 'center',
     alignItems: 'center',
   },
   // Available Balance Card — distinct neon green outline so it stands apart
-  balanceCard: {
-    backgroundColor: '#0B2A15',
+  metallicCard: {
     borderRadius: 20,
     padding: 18,
     marginTop: 8,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#4ADE80',
-  },
-  cardSplit: {
-    position: 'absolute',
-    top: -60,
-    bottom: -60,
-    right: -70,
-    width: '62%',
-    backgroundColor: '#0F2A19',
-    transform: [{ rotate: '16deg' }],
-  },
-  watermark: {
-    position: 'absolute',
-    right: -14,
-    top: 24,
-    opacity: 0.35,
-  },
-  balanceHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
+  cardLeft: { justifyContent: 'space-between' },
   balanceLabel: {
-    color: '#D3F99D',
+    color: '#CBD5E1',
     fontSize: 13,
-    fontWeight: '600',
-  },
-  eyeToggle: {
-    padding: 4,
+    fontWeight: '500',
   },
   balanceAmount: {
     color: '#FFFFFF',
-    fontSize: 30,
-    fontWeight: 'bold',
-    marginTop: 8,
-  },
-  balanceTag: {
-    color: '#1F5C39',
-    fontSize: 11,
-    marginTop: 2,
-    alignSelf: 'flex-end',
-    fontWeight: '600',
-  },
-  balanceActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 14,
+    fontSize: 26,
+    fontWeight: '700',
+    marginVertical: 10,
   },
   addFundBtn: {
-    backgroundColor: '#22C55E',
-    borderRadius: 22,
-    paddingVertical: 11,
-    paddingHorizontal: 16,
+    backgroundColor: '#005F4B',
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    alignSelf: 'flex-start',
   },
   addFundText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: '600',
   },
-  addFundCaption: {
-    flex: 1,
-    color: '#A7F3D0',
-    fontSize: 10,
-    lineHeight: 13,
-    marginHorizontal: 2,
-  },
-  hideBtn: {
-    backgroundColor: '#F1F5F9',
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#3E5C4C',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+  cardRight: { alignItems: 'flex-end', justifyContent: 'space-between' },
+  watermarkContainer: { alignItems: 'center', opacity: 0.75 },
+  watermarkTitle: { color: '#E2E8F0', fontSize: 10, fontWeight: '600', marginTop: 4 },
+  watermarkSub: { color: '#94A3B8', fontSize: 9 },
+  showBalanceBtn: {
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  hideText: {
-    color: '#0B2211',
-    fontWeight: '600',
-    fontSize: 12,
-  },
+  showBalanceText: { color: '#FFFFFF', fontSize: 12 },
   avatarImage: {
     width: '100%',
     height: '100%',
   },
   // White rounded content container — inverted to deep forest green per design
   whiteSection: {
-    backgroundColor: '#0B2211',
+    backgroundColor: '#0A1412',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 16,
@@ -751,12 +713,12 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   summaryCard: {
-    backgroundColor: '#0B2211',
+    backgroundColor: '#0A1412',
     borderRadius: 16,
     padding: 14,
     width: '48%',
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#1C2E2A',
   },
   summaryHeader: {
     flexDirection: 'row',
@@ -772,7 +734,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#00D084',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -784,11 +746,11 @@ const styles = StyleSheet.create({
   },
   summaryDivider: {
     height: 1,
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#1C2E2A',
     marginVertical: 8,
   },
   summarySub: {
-    color: '#A7F3D0',
+    color: '#94A3B8',
     fontSize: 10,
   },
   // Financial Services
@@ -804,7 +766,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   viewAllText: {
-    color: '#A7F3D0',
+    color: '#94A3B8',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -814,14 +776,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   serviceCard: {
-    backgroundColor: '#0B2211',
+    backgroundColor: '#0A1412',
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 4,
     width: '24%',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#1C2E2A',
   },
   serviceIconBadge: {
     width: 38,
@@ -834,7 +796,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -5,
     right: -7,
-    backgroundColor: '#22C55E',
+    backgroundColor: '#00D084',
     borderRadius: 6,
     paddingHorizontal: 3,
     paddingVertical: 1,
@@ -851,25 +813,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   serviceDesc: {
-    color: '#A7F3D0',
+    color: '#94A3B8',
     fontSize: 8,
     marginTop: 2,
     textAlign: 'center',
   },
   expandedServices: {
-    backgroundColor: '#0B2211',
+    backgroundColor: '#0A1412',
     borderRadius: 14,
     paddingHorizontal: 12,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#1C2E2A',
   },
   expandedRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C4A2E',
+    borderBottomColor: '#1C2E2A',
   },
   expandedBadge: {
     width: 36,
@@ -885,13 +847,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   expandedHint: {
-    color: '#A7F3D0',
+    color: '#94A3B8',
     fontSize: 10,
     marginLeft: 8,
   },
   // AI Assistant Banner — deep green monochrome with light green accents
   aiBanner: {
-    backgroundColor: '#0B2A15',
+    backgroundColor: '#0A1412',
     borderRadius: 16,
     padding: 14,
     flexDirection: 'row',
@@ -899,13 +861,13 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#00D084',
   },
   aiIconWrap: {
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#00D084',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -924,7 +886,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   betaPill: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#00D084',
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -935,19 +897,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   aiSub: {
-    color: '#A7F3D0',
+    color: '#94A3B8',
     fontSize: 11,
     marginTop: 2,
   },
   askNowBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#00D084',
     borderRadius: 16,
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginLeft: 8,
   },
-  askNowText: {
-    color: '#FFFFFF',
+  askNowText: { color: '#0A1412',
     fontSize: 11,
     fontWeight: 'bold',
   },
@@ -958,18 +919,18 @@ const styles = StyleSheet.create({
   hubRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0B2211',
+    backgroundColor: '#0A1412',
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#1C2E2A',
     marginBottom: 10,
   },
   hubIconWrap: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#00D084',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -983,7 +944,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   hubDesc: {
-    color: '#A7F3D0',
+    color: '#94A3B8',
     fontSize: 10,
     marginTop: 2,
   },
@@ -994,18 +955,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   networkSheet: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#12201D',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
   },
   networkTitle: {
-    color: '#0B2211',
+    color: '#0A1412',
     fontSize: 16,
     fontWeight: 'bold',
   },
   networkSub: {
-    color: '#93A69B',
+    color: '#64748B',
     fontSize: 11,
     marginTop: 4,
     marginBottom: 12,
@@ -1015,7 +976,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C4A2E',
+    borderBottomColor: '#1C2E2A',
   },
   networkLogo: {
     width: 42,
@@ -1030,7 +991,7 @@ const styles = StyleSheet.create({
   },
   networkName: {
     flex: 1,
-    color: '#0B2211',
+    color: '#0A1412',
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 12,
@@ -1041,7 +1002,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   networkCancelText: {
-    color: '#93A69B',
+    color: '#64748B',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -1058,7 +1019,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 34,
     borderRadius: 6,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#12201D',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
@@ -1074,25 +1035,25 @@ const styles = StyleSheet.create({
   bannerPopupCard: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#12201D',
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: '#00D084',
   },
   bannerPopupImage: { width: '100%', height: 160 },
   bannerPopupPhoto: { width: '100%', height: 260 },
   bannerPopupBody: { padding: 16 },
-  bannerPopupTitle: { color: '#0B2211', fontSize: 18, fontWeight: 'bold' },
-  bannerPopupDesc: { color: '#C9D6CE', fontSize: 13, marginTop: 6, lineHeight: 19 },
+  bannerPopupTitle: { color: '#0A1412', fontSize: 18, fontWeight: 'bold' },
+  bannerPopupDesc: { color: '#E2E8F0', fontSize: 13, marginTop: 6, lineHeight: 19 },
   bannerPopupCategory: {
-    color: '#4CAF50', fontSize: 11, fontWeight: '600', marginTop: 8,
+    color: '#00D084', fontSize: 11, fontWeight: '600', marginTop: 8,
     backgroundColor: '#E8F5E9', alignSelf: 'flex-start',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, overflow: 'hidden',
   },
   bannerDismissBtn: {
     margin: 14, marginTop: 6,
-    backgroundColor: '#4CAF50', borderRadius: 12, paddingVertical: 12,
+    backgroundColor: '#00D084', borderRadius: 12, paddingVertical: 12,
     alignItems: 'center',
   },
   bannerDismissText: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' },

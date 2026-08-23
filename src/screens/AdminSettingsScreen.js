@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Landmark, CheckCircle2, Key } from 'lucide-react-native';
+import { Landmark, CheckCircle2, Key, Megaphone, ChevronRight } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { getAllSettings, saveSettings } from '../lib/supabase';
 import { useBankDetails } from '../context/BankContext';

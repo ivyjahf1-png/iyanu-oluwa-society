@@ -38,15 +38,15 @@ const Stack = createStackNavigator();
 
 const tabBarOptions = {
   headerShown: false,
-  tabBarActiveTintColor: '#4CAF50',
-  tabBarInactiveTintColor: '#8E8E93',
+  tabBarActiveTintColor: '#00D084',
+  tabBarInactiveTintColor: '#64748B',
   tabBarLabelStyle: {
     fontSize: 10,
     fontWeight: '600',
   },
   tabBarStyle: {
-    backgroundColor: '#0F2A19',
-    borderTopColor: 'transparent',
+    backgroundColor: '#0A1412',
+    borderTopColor: '#162522',
     borderTopWidth: 0,
     height: 65,
     paddingTop: 11,
