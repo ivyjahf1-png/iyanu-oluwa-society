@@ -11,10 +11,13 @@ import {
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ChevronLeft } from 'lucide-react-native'
+import { useAuth } from '../context/AuthContext'
 
 export default function SignInScreen({ navigation }) {
+  const { loginWithPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const validate = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,10 +32,17 @@ export default function SignInScreen({ navigation }) {
     return true;
   };
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     if (!validate()) return;
-    // Placeholder for real auth logic
-    console.log('Sign in:', email);
+    setSubmitting(true);
+    // Verifies against the hashed credentials created at sign-up.
+    // A wrong password surfaces as "Wrong password".
+    const res = await loginWithPassword(email, password);
+    setSubmitting(false);
+    if (!res.ok) {
+      Alert.alert('Sign In Failed', res.error || 'Could not sign you in.');
+      return;
+    }
     navigation.replace('MainTabs');
   };
 
@@ -73,8 +83,16 @@ export default function SignInScreen({ navigation }) {
             />
           </View>
 
-          <TouchableOpacity style={styles.primaryBtn} onPress={handleSignIn}>
-            <Text style={styles.primaryBtnTxt}>Sign In</Text>
+          <TouchableOpacity
+            style={[styles.primaryBtn, submitting && { opacity: 0.7 }]}
+            onPress={handleSignIn}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.primaryBtnTxt}>Sign In</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.footer}>

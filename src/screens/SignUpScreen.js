@@ -8,14 +8,20 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
+import { useAuth } from '../context/AuthContext';
 
 export default function SignUpScreen({ navigation }) {
+  const { registerAccount } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const validate = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -28,16 +34,22 @@ export default function SignUpScreen({ navigation }) {
       return false;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Password Mismatch', 'Passwords do not match.');
+      Alert.alert('Passwords do not match', 'Please make sure both passwords are the same.');
       return false;
     }
     return true;
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     if (!validate()) return;
-    // Placeholder for real auth logic
-    console.log('Sign up:', email);
+    setSubmitting(true);
+    // Registers via AuthContext — password is hashed + stored securely.
+    const res = await registerAccount(email, password);
+    setSubmitting(false);
+    if (!res.ok) {
+      Alert.alert('Sign Up Failed', res.error || 'Could not create your account.');
+      return;
+    }
     navigation.replace('MainTabs');
   };
 
@@ -68,30 +80,64 @@ export default function SignUpScreen({ navigation }) {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor="#6B7280"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor="#6B7280"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeBtn}
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                {showPassword ? (
+                  <EyeOff size={18} color="#A7F3D0" />
+                ) : (
+                  <Eye size={18} color="#A7F3D0" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Confirm Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor="#6B7280"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-            />
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor="#6B7280"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!showConfirmPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeBtn}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={18} color="#A7F3D0" />
+                ) : (
+                  <Eye size={18} color="#A7F3D0" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <TouchableOpacity style={styles.primaryBtn} onPress={handleSignUp}>
-            <Text style={styles.primaryBtnTxt}>Create Account</Text>
+          <TouchableOpacity
+            style={[styles.primaryBtn, submitting && { opacity: 0.7 }]}
+            onPress={handleSignUp}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.primaryBtnTxt}>Create Account</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.footer}>
@@ -141,6 +187,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1C4A2E',
   },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C4A2E',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#1C4A2E',
+  },
+  eyeBtn: { paddingHorizontal: 12 },
   primaryBtn: {
     backgroundColor: '#4CAF50',
     borderRadius: 14,

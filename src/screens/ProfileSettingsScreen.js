@@ -27,10 +27,18 @@ import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
 import BrightnessControl from '../components/BrightnessControl';
 import { useUser } from '../context/UserContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProfileSettingsScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { user, updateUser } = useUser();
+  const {
+    methods,
+    enableBiometric,
+    disableBiometric,
+    setPasscode,
+    setPasscodeEnabled,
+  } = useAuth();
   const isInitialRender = useRef(true);
 
   // Initialize state directly with user data
@@ -47,6 +55,52 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
 
   // Appearance settings
   const [themeMode, setThemeMode] = useState(user?.themeMode || 'light');
+
+  // Passcode (app lock) state
+  const [newPasscode, setNewPasscode] = useState('');
+  const [confirmPasscode, setConfirmPasscode] = useState('');
+
+  const handleBiometricToggle = async (enabled) => {
+    if (enabled) {
+      const res = await enableBiometric();
+      if (!res.ok) {
+        Alert.alert('Biometric Unavailable', res.error || 'Could not enable biometrics.');
+        return; // switch stays off
+      }
+      Alert.alert('Biometric Enabled', 'You can now unlock the app with Face ID / Fingerprint.');
+    } else {
+      await disableBiometric();
+    }
+  };
+
+  const handleSavePasscode = async () => {
+    if (!/^\d{4}$|^\d{6}$/.test(newPasscode)) {
+      Alert.alert('Invalid Passcode', 'Passcode must be exactly 4 or 6 digits.');
+      return;
+    }
+    if (newPasscode !== confirmPasscode) {
+      Alert.alert('Passcodes do not match', 'Please make sure both passcodes are the same.');
+      return;
+    }
+    const res = await setPasscode(newPasscode);
+    if (!res.ok) {
+      Alert.alert('Error', res.error || 'Could not save passcode.');
+      return;
+    }
+    setNewPasscode('');
+    setConfirmPasscode('');
+    Alert.alert('Passcode Set', 'App lock is enabled. You can now unlock with this passcode.');
+  };
+
+  const handleTogglePasscodeLock = async (enabled) => {
+    await setPasscodeEnabled(enabled);
+    Alert.alert(
+      enabled ? 'App Lock On' : 'App Lock Off',
+      enabled
+        ? 'The app will require your passcode or biometrics on reopen.'
+        : 'The app will no longer ask for your passcode.'
+    );
+  };
   const [lightBrightness, setLightBrightness] = useState(
     typeof user?.lightBrightness === 'number' ? user.lightBrightness : 100
   );
@@ -214,12 +268,52 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           <Fingerprint size={20} color="#2563EB" />
           <Text style={styles.settingLabel}>Biometric Login (Fingerprint / Face ID)</Text>
           <Switch
-            value={biometric}
-            onValueChange={setBiometric}
+            value={methods.biometric}
+            onValueChange={handleBiometricToggle}
             trackColor={{ false: '#E5E7EB', true: '#4CAF50' }}
             thumbColor="#FFFFFF"
           />
         </View>
+
+        {/* Passcode / App Lock */}
+        <Text style={styles.sectionTitle}>Passcode</Text>
+        <View style={styles.settingRow}>
+          <Lock size={20} color="#4CAF50" />
+          <Text style={styles.settingLabel}>App Lock (require on reopen)</Text>
+          <Switch
+            value={methods.passcode && methods.passcodeLockEnabled}
+            onValueChange={handleTogglePasscodeLock}
+            disabled={!methods.passcode}
+            trackColor={{ false: '#E5E7EB', true: '#4CAF50' }}
+            thumbColor="#FFFFFF"
+          />
+        </View>
+        <TextInput
+          style={styles.input}
+          value={newPasscode}
+          onChangeText={(t) => setNewPasscode(t.replace(/[^0-9]/g, ''))}
+          placeholder={methods.passcode ? 'Change passcode (4 or 6 digits)' : 'Set passcode (4 or 6 digits)'}
+          placeholderTextColor="#6B7280"
+          keyboardType="number-pad"
+          secureTextEntry
+          maxLength={6}
+        />
+        <TextInput
+          style={styles.input}
+          value={confirmPasscode}
+          onChangeText={(t) => setConfirmPasscode(t.replace(/[^0-9]/g, ''))}
+          placeholder="Confirm passcode"
+          placeholderTextColor="#6B7280"
+          keyboardType="number-pad"
+          secureTextEntry
+          maxLength={6}
+        />
+        <TouchableOpacity style={styles.linkBtn} onPress={handleSavePasscode}>
+          <KeyRound size={16} color="#4CAF50" />
+          <Text style={styles.linkBtnText}>
+            {methods.passcode ? 'Change Passcode' : 'Set Passcode'}
+          </Text>
+        </TouchableOpacity>
 
         <TextInput
           style={styles.input}

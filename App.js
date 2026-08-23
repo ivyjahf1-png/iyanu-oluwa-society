@@ -24,23 +24,50 @@ function ThemedContainer({ children }) {
   return <NavigationContainer theme={navTheme}>{children}</NavigationContainer>;
 }
 import ErrorBoundary from './src/components/ErrorBoundary';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import AppLockScreen from './src/components/AppLockScreen';
+import { View, ActivityIndicator } from 'react-native';
+
+/** Shows the app once auth state is restored; gates on the lock screen. */
+function AuthGate({ children }) {
+  const { restoring, userEmail, isLocked } = useAuth();
+
+  if (restoring) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B2211' }}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+      </View>
+    );
+  }
+
+  // Signed-in user + a lock method enabled → show the unlock gate.
+  if (userEmail && isLocked) {
+    return <AppLockScreen />;
+  }
+
+  return children;
+}
 
 export default function App() {
   return (
     <ErrorBoundary>
-      <UserProvider>
-        <AnnouncementsProvider>
-          <MarketItemsProvider>
-            <BankProvider>
-              <ThemeProvider>
-                <ThemedContainer>
-                  <AppNavigator />
-                </ThemedContainer>
-              </ThemeProvider>
-            </BankProvider>
-          </MarketItemsProvider>
-        </AnnouncementsProvider>
-      </UserProvider>
+      <AuthProvider>
+        <AuthGate>
+          <UserProvider>
+            <AnnouncementsProvider>
+              <MarketItemsProvider>
+                <BankProvider>
+                  <ThemeProvider>
+                    <ThemedContainer>
+                      <AppNavigator />
+                    </ThemedContainer>
+                  </ThemeProvider>
+                </BankProvider>
+              </MarketItemsProvider>
+            </AnnouncementsProvider>
+          </UserProvider>
+        </AuthGate>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

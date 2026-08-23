@@ -9,16 +9,17 @@ import {
   StatusBar,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Calendar, Upload, Send } from 'lucide-react-native';
+import { Calendar, Upload, Send, CheckCircle, XCircle } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
 import BankDetailsCard from '../components/BankDetailsCard';
 
 export default function CoopContributionScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
-  const [schedule, setSchedule] = useState('monthly'); // 'weekly' | 'monthly'
+  const [schedule, setSchedule] = useState('monthly');
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
   const [senderName, setSenderName] = useState('');
@@ -30,7 +31,8 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
         type: ['image/*', 'application/pdf'],
         copyToCacheDirectory: true,
       });
-      if (!result.canceled && result.assets && result.assets.length > 0) {
+
+      if (!result.canceled && result.assets && Array.isArray(result.assets) && result.assets.length > 0) {
         setReceipt(result.assets[0]);
       }
     } catch (e) {
@@ -38,14 +40,17 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
     }
   };
 
+  const removeReceipt = () => {
+    setReceipt(null);
+  };
+
   const proceedToPayment = () => {
     const parsedAmount = parseFloat(amount);
-    if (!parsedAmount || parsedAmount <= 0) {
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
       Alert.alert('Enter amount', 'Please enter a valid contribution amount.');
       return;
     }
-    // Route straight to the Method of Payment screen, carrying transaction
-    // metadata (amount + frequency) through the route parameters.
+
     navigation.navigate('AddFunds', {
       amount: parsedAmount,
       frequency: schedule,
@@ -54,7 +59,8 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
   };
 
   const submitProof = () => {
-    if (!amount || parseFloat(amount) <= 0) {
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
       Alert.alert('Enter amount', 'Please enter a valid contribution amount.');
       return;
     }
@@ -62,11 +68,22 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
       Alert.alert('Proof required', 'Upload a payment receipt or enter the transaction reference.');
       return;
     }
+
+    const formattedAmount = parsedAmount.toLocaleString('en-NG', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
     Alert.alert(
       'Contribution submitted',
-            `Your ${schedule} contribution of \u20A6${amount} has been submitted for verification.`,
+      `Your ${schedule} contribution of \u20A6${formattedAmount} has been submitted for verification.`,
+      [
+        {
+          text: 'OK',
+          onPress: () => navigation.goBack(),
+        },
+      ]
     );
-    navigation.goBack();
   };
 
   return (
@@ -78,22 +95,29 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.grow]} showsVerticalScrollIndicator={true}>
-        {/* Schedule toggle */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.label}>Contribution Schedule</Text>
         <View style={styles.scheduleToggle}>
           <TouchableOpacity
             style={[styles.scheduleBtn, schedule === 'weekly' && styles.scheduleBtnActive]}
             onPress={() => setSchedule('weekly')}
+            activeOpacity={0.7}
           >
             <Calendar size={18} color={schedule === 'weekly' ? '#FFFFFF' : '#4CAF50'} />
             <Text style={[styles.scheduleBtnText, schedule === 'weekly' && styles.scheduleBtnTextActive]}>
               Weekly
             </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.scheduleBtn, schedule === 'monthly' && styles.scheduleBtnActive]}
             onPress={() => setSchedule('monthly')}
+            activeOpacity={0.7}
           >
             <Calendar size={18} color={schedule === 'monthly' ? '#FFFFFF' : '#4CAF50'} />
             <Text style={[styles.scheduleBtnText, schedule === 'monthly' && styles.scheduleBtnTextActive]}>
@@ -102,10 +126,9 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
           </TouchableOpacity>
         </View>
 
-        {/* Amount */}
         <Text style={styles.label}>Contribution Amount</Text>
         <View style={styles.amountInputWrap}>
-          <Text style={styles.nairaPrefix}>₦</Text>
+          <Text style={styles.nairaPrefix}>{"\u20A6"}</Text>
           <TextInput
             style={styles.amountInput}
             value={amount}
@@ -116,22 +139,33 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
           />
         </View>
 
-        {/* Dynamic cooperative bank details (from Admin settings) */}
         <BankDetailsCard />
 
-        {/* Payment confirmation */}
-        <Text style={styles.label}>Payment Confirmation</Text>
-        <TouchableOpacity style={styles.uploadBtn} onPress={pickReceipt}>
-          <Upload size={20} color="#4CAF50" />
-          <View style={styles.uploadTextGroup}>
-            <Text style={styles.uploadTitle} numberOfLines={1}>
-              {receipt ? receipt.name : 'Upload Payment Receipt'}
-            </Text>
-            <Text style={styles.uploadHint}>Image or PDF proof of transfer</Text>
-          </View>
-        </TouchableOpacity>
+        <Text style={styles.label}>Payment Confirmation (Optional / Manual Proof)</Text>
 
-        <Text style={styles.orText}>— or enter manually —</Text>
+        {receipt ? (
+          <View style={styles.receiptSelectedBox}>
+            <CheckCircle size={20} color="#4CAF50" />
+            <Text style={styles.receiptName} numberOfLines={1}>
+              {receipt.name ? receipt.name : 'Receipt Attached'}
+            </Text>
+            <TouchableOpacity onPress={removeReceipt} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <XCircle size={20} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity style={styles.uploadBtn} onPress={pickReceipt} activeOpacity={0.7}>
+            <Upload size={20} color="#4CAF50" />
+            <View style={styles.uploadTextGroup}>
+              <Text style={styles.uploadTitle} numberOfLines={1}>
+                Upload Payment Receipt
+              </Text>
+              <Text style={styles.uploadHint}>Image or PDF proof of transfer</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+
+        <Text style={styles.orText}>— or enter transaction details —</Text>
 
         <Text style={styles.label}>Transaction Reference</Text>
         <TextInput
@@ -140,6 +174,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
           onChangeText={setReference}
           placeholder="e.g. GTB1234567890"
           placeholderTextColor="#6B7280"
+          autoCapitalize="characters"
         />
 
         <Text style={styles.label}>Sender Name</Text>
@@ -151,27 +186,42 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
           placeholderTextColor="#6B7280"
         />
 
-        {/* Submit — routes to the Method of Payment page with metadata */}
-        <TouchableOpacity style={styles.submitBtn} onPress={proceedToPayment}>
-          <Send size={18} color="#FFFFFF" />
-          <Text style={styles.submitBtnText}>Proceed to Payment</Text>
-        </TouchableOpacity>
+        <View style={styles.actionSection}>
+          <TouchableOpacity style={styles.submitBtn} onPress={proceedToPayment} activeOpacity={0.8}>
+            <Send size={18} color="#FFFFFF" />
+            <Text style={styles.submitBtnText}>Proceed to Payment</Text>
+          </TouchableOpacity>
+
+          {(receipt !== null || reference.trim().length > 0) && (
+            <TouchableOpacity style={styles.secondaryBtn} onPress={submitProof} activeOpacity={0.8}>
+              <Text style={styles.secondaryBtnText}>Submit Proof Directly</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: { flex: 1 },
-  grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
-  content: { padding: 16, paddingBottom: 32 },
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F7F5',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: Platform.OS === 'web' ? 110 : 40,
+    flexGrow: 1,
+  },
   label: {
     color: '#0B2211',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
-    marginTop: 4,
+    marginTop: 6,
   },
   scheduleToggle: {
     flexDirection: 'row',
@@ -187,7 +237,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 6,
     paddingVertical: 10,
     borderRadius: 10,
   },
@@ -198,6 +247,7 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontSize: 13,
     fontWeight: '600',
+    marginLeft: 6,
   },
   scheduleBtnTextActive: {
     color: '#FFFFFF',
@@ -234,7 +284,7 @@ const styles = StyleSheet.create({
     borderColor: '#4CAF50',
     borderStyle: 'dashed',
     padding: 14,
-    marginBottom: 14,
+    marginBottom: 10,
   },
   uploadTextGroup: {
     marginLeft: 12,
@@ -249,6 +299,23 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontSize: 11,
     marginTop: 2,
+  },
+  receiptSelectedBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#10B981',
+    padding: 14,
+    marginBottom: 10,
+  },
+  receiptName: {
+    flex: 1,
+    fontSize: 13,
+    color: '#065F46',
+    fontWeight: '500',
+    marginHorizontal: 10,
   },
   orText: {
     textAlign: 'center',
@@ -265,7 +332,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     color: '#0B2211',
     fontSize: 14,
-    marginBottom: 14,
+    marginBottom: 12,
+  },
+  actionSection: {
+    marginTop: 10,
   },
   submitBtn: {
     backgroundColor: '#4CAF50',
@@ -274,11 +344,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 10,
+    marginBottom: 10,
   },
   submitBtnText: {
     color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  secondaryBtn: {
+    backgroundColor: 'transparent',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  secondaryBtnText: {
+    color: '#4CAF50',
     fontWeight: 'bold',
     fontSize: 14,
   },
