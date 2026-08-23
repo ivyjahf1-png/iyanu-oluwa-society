@@ -11,15 +11,21 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native'
+import { ChevronLeft, Eye, EyeOff, Fingerprint } from 'lucide-react-native'
 import { useAuth } from '../context/AuthContext'
 
 export default function SignInScreen({ navigation }) {
-  const { loginWithPassword } = useAuth();
+  const { loginWithPassword, loginWithBiometric, methods } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const bioReady = methods.biometric && methods.biometricAvailable;
+
+  const handleBiometricSignIn = async () => {
+    const ok = await loginWithBiometric();
+    if (ok) navigation.replace('MainTabs');
+  };
 
   const validate = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -98,6 +104,13 @@ export default function SignInScreen({ navigation }) {
             </View>
           </View>
 
+          {bioReady && (
+            <TouchableOpacity style={styles.bioBtn} onPress={handleBiometricSignIn}>
+              <Fingerprint size={20} color="#4CAF50" />
+              <Text style={styles.bioBtnText}>Sign in with Biometrics</Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
             style={[styles.primaryBtn, submitting && { opacity: 0.7 }]}
             onPress={handleSignIn}
@@ -165,6 +178,18 @@ const styles = StyleSheet.create({
     borderColor: '#1C4A2E',
   },
   eyeBtn: { paddingHorizontal: 12 },
+  bioBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(76, 175, 80, 0.12)',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+    borderRadius: 14,
+    paddingVertical: 12,
+  },
+  bioBtnText: { color: '#4CAF50', fontSize: 13, fontWeight: '600' },
   primaryBtn: {
     backgroundColor: '#4CAF50',
     borderRadius: 14,

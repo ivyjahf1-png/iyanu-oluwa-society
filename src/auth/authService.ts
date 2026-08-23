@@ -202,6 +202,24 @@ export async function endSession(): Promise<void> {
   await secDel(KEYS.SESSION);
 }
 
+/**
+ * Developer utility: wipe ALL account/auth data (emails, password hashes,
+ * passcodes, biometric flags, sessions) so previously-used emails become
+ * available for fresh sign-ups. Requires no arguments and never throws.
+ */
+export async function resetAllAccounts(): Promise<void> {
+  await Promise.all([
+    secDel(KEYS.EMAIL),
+    secDel(KEYS.SALT),
+    secDel(KEYS.PWD_HASH),
+    secDel(KEYS.PASSCODE_HASH),
+    secDel(`${KEYS.PASSCODE_HASH}.salt`),
+    secDel(KEYS.PASSCODE_ENABLED),
+    secDel(KEYS.BIOMETRIC_ENABLED),
+    secDel(KEYS.SESSION),
+  ]);
+}
+
 /* ================================= PASSCODE ================================= */
 
 /** Save a 4/6-digit passcode (hashed) and enable it in one step. */

@@ -1,10 +1,32 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, SafeAreaView, StatusBar, TouchableOpacity } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Menu, Settings, ChevronRight, CheckCircle2, PackageOpen, Megaphone } from 'lucide-react-native';
+import { Menu, Settings, ChevronRight, CheckCircle2, PackageOpen, Megaphone, RefreshCw } from 'lucide-react-native';
+import { Alert } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
 export default function MoreScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
+  const { resetAllAccounts } = useAuth();
+
+  const confirmResetAccounts = () => {
+    Alert.alert(
+      'Reset All Accounts',
+      'This permanently deletes every account, passcode and biometric setting on this device. Previously used emails become available for fresh sign-ups. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            await resetAllAccounts();
+            Alert.alert('Accounts Cleared', 'All accounts were removed. You can now sign up fresh.');
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
@@ -69,6 +91,18 @@ export default function MoreScreen({ navigation: rawNav }) {
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Channels & Announcements</Text>
             <Text style={styles.adminSub}>Broadcast announcements to members</Text>
+          </View>
+          <ChevronRight size={18} color="#9CB8A6" />
+        </TouchableOpacity>
+
+        {/* Developer utility: clear all accounts */}
+        <TouchableOpacity style={styles.adminRow} onPress={confirmResetAccounts}>
+          <View style={[styles.adminIcon, { backgroundColor: '#C0392B' }]}>
+            <RefreshCw size={20} color="#FFFFFF" />
+          </View>
+          <View style={styles.adminTextGroup}>
+            <Text style={styles.adminTitle}>Reset All Accounts</Text>
+            <Text style={styles.adminSub}>Clear every account on this device (dev tool)</Text>
           </View>
           <ChevronRight size={18} color="#9CB8A6" />
         </TouchableOpacity>

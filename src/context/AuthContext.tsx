@@ -27,6 +27,7 @@ export interface AuthState {
   setPasscodeEnabled: (enabled: boolean) => Promise<void>;
   enableBiometric: () => Promise<{ ok: boolean; error?: string }>;
   disableBiometric: () => Promise<void>;
+  resetAllAccounts: () => Promise<void>;
   refreshMethods: () => Promise<void>;
   unlock: () => void;
   lock: () => void;
@@ -182,6 +183,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!passcodeLockEnabled) setIsLocked(false);
   };
 
+  const resetAllAccounts = async () => {
+    await authService.resetAllAccounts();
+    setUserEmail(null);
+    setIsLocked(false);
+    setPasscodeSet(false);
+    setPasscodeLockEnabled(false);
+    setBiometricEnabled(false);
+  };
+
   const value: AuthState = {
     userEmail,
     restoring,
@@ -202,6 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setPasscodeEnabled,
     enableBiometric,
     disableBiometric,
+    resetAllAccounts,
     refreshMethods,
     unlock: () => setIsLocked(false),
     lock: () => setIsLocked(true),
