@@ -26,25 +26,32 @@ const memory = new Map<string, string>();
 
 async function secGet(key: string): Promise<string | null> {
   try {
-    return await SecureStore.getItemAsync(key);
+    const v = await SecureStore.getItemAsync(key);
+    // Web/no-native builds: SecureStore resolves null instead of throwing,
+    // so fall through to the in-memory fallback where secSet stored the value.
+    return v ?? memory.get(key) ?? null;
   } catch (e) {
     return memory.get(key) ?? null;
   }
 }
 
 async function secSet(key: string, value: string): Promise<void> {
+  // Always mirror to memory so web/no-native builds (where SecureStore is a
+  // no-op) can still read back what was written during this session.
+  memory.set(key, value);
   try {
     await SecureStore.setItemAsync(key, value);
   } catch (e) {
-    memory.set(key, value);
+    // Memory copy above already covers this platform.
   }
 }
 
 async function secDel(key: string): Promise<void> {
+  memory.delete(key);
   try {
     await SecureStore.deleteItemAsync(key);
   } catch (e) {
-    memory.delete(key);
+    // Already removed from memory.
   }
 }
 
