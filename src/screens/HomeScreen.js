@@ -150,12 +150,20 @@ export default function HomeScreen({ navigation: rawNav }) {
             end={{ x: 1, y: 1 }}
             style={styles.metallicCard}
           >
-            {/* Bright metallic silver zone — sharp diagonal transition */}
+            {/* Bright metallic silver zone — sharp diagonal edge */}
             <LinearGradient
               colors={['#99B0A6', '#E0E8E4']}
               start={{ x: 0, y: 1 }}
               end={{ x: 1, y: 0 }}
               style={styles.silverZone}
+              pointerEvents="none"
+            />
+            {/* Glossy sheen */}
+            <LinearGradient
+              colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0.6, y: 1 }}
+              style={styles.shineOverlay}
               pointerEvents="none"
             />
 
@@ -178,7 +186,7 @@ export default function HomeScreen({ navigation: rawNav }) {
             <View style={styles.cardRight}>
               <View style={styles.crestWrap}>
                 <Image
-                  source={require('../../assets/logo.png')}
+                  source={require("../../assets/logo.png")}
                   style={styles.crestLogo}
                 />
                 <Text style={styles.watermarkTitle}>Iyanu Oluwa Society Community</Text>
@@ -189,9 +197,9 @@ export default function HomeScreen({ navigation: rawNav }) {
                 onPress={() => setShowBalance(!showBalance)}
               >
                 {showBalance ? (
-                  <Eye size={14} color="#FFFFFF" />
-                ) : (
                   <EyeOff size={14} color="#FFFFFF" />
+                ) : (
+                  <Eye size={14} color="#FFFFFF" />
                 )}
                 <Text style={styles.showBalanceText}>
                   {showBalance ? 'Hide Balance' : 'Show Balance'}
@@ -199,144 +207,41 @@ export default function HomeScreen({ navigation: rawNav }) {
               </TouchableOpacity>
             </View>
           </LinearGradient>
-
         </View>
 
-        {/* ===== ANNOUNCEMENT DROP-DOWN BANNER (stays until dismissed) ===== */}
-        {latestAnnouncement && (
-          <View style={styles.announceBanner}>
-            <View style={styles.announceIconWrap}>
-              <Bell size={18} color='#10B981' />
-            </View>
-            <View style={styles.announceTextGroup}>
-              <Text style={styles.announceTitle} numberOfLines={1}>
-                {latestAnnouncement.title}
-              </Text>
-              <Text style={styles.announceMessage} numberOfLines={2}>
-                {latestAnnouncement.message}
-              </Text>
-            </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, styles.grow]}
+        showsVerticalScrollIndicator={true}
+      >
+        {/* Financial Services */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionHeader}>Financial Services</Text>
+          <TouchableOpacity onPress={() => setShowAllServices(!showAllServices)}>
+            <Text style={styles.viewAllText}>{showAllServices ? 'Show Less' : 'View All >'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.serviceGrid}>
+          {[
+            { key: 'coop', title: 'Coop Contribution', desc: 'Deposit weekly or monthly savings', Icon: PiggyBank, badge: '#0D4035', iconTint: '#10B981', route: 'AddFunds', isNew: true },
+            { key: 'statement', title: 'Account Statement', desc: 'Download report', Icon: FileText, badge: '#1D303E', iconTint: '#38BDF8', route: 'AccountStatement' },
+            { key: 'request', title: 'Request Loan', desc: 'Apply for member credit', Icon: Landmark, badge: '#3E2718', iconTint: '#F97316', route: 'RequestLoan' },
+            { key: 'repay', title: 'Repay Loan', desc: 'Make loan payments', Icon: CreditCard, badge: '#2A1E3E', iconTint: '#A855F7', route: 'RepayLoan' },
+          ].map(({ key, title, desc, Icon, badge, iconTint, route, isNew }) => (
             <TouchableOpacity
-              style={styles.announceDismiss}
-              onPress={() => dismissAnnouncement(latestAnnouncement.id)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              key={key}
+              style={styles.serviceCard}
+              onPress={() => route && navigation.navigate(route)}
             >
-              <Text style={styles.announceDismissText}>Dismiss</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* ===== SCROLLABLE DASHBOARD CONTENT (scrolls under sticky header) ===== */}
-        <ScrollView style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.scrollContent, styles.grow]}
-        >
-        {/* ============ WHITE CONTENT CONTAINER ============ */}
-        <View style={styles.whiteSection}>
-
-          {/* ============ DUAL SUMMARY CARDS ============ */}
-          <View style={styles.dualCardRow}>
-            {/* Savings card */}
-            <View style={styles.summaryCard}>
-              <View style={styles.summaryHeader}>
-                <Text style={styles.summaryTitle}>Savings</Text>
-                <TouchableOpacity onPress={() => setShowSavings(!showSavings)}>
-                  {showSavings ? <EyeOff size={16} color='#8EA89D' /> : <Eye size={16} color='#8EA89D' />}
-                </TouchableOpacity>
-                <View style={styles.summaryBadge}>
-                  <PiggyBank size={18} color="#FFFFFF" />
-                </View>
+              <View style={styles.serviceIconBadge}>
+                <Icon size={22} color={iconTint} />
               </View>
-              <Text style={styles.summaryAmount}>{showSavings ? `₦${savings ?? "0.00"}` : '₦ **'}</Text>
-              <View style={styles.summaryDivider} />
-              <Text style={styles.summarySub}>Total Savings</Text>
-            </View>
-
-            {/* Active Loan card */}
-            <View style={styles.summaryCard}>
-              <View style={styles.summaryHeader}>
-                <Text style={styles.summaryTitle}>Active Loan</Text>
-                <TouchableOpacity onPress={() => setShowLoan(!showLoan)}>
-                  {showLoan ? <EyeOff size={16} color='#8EA89D' /> : <Eye size={16} color='#8EA89D' />}
-                </TouchableOpacity>
-                <View style={styles.summaryBadge}>
-                  <Wallet size={18} color="#FFFFFF" />
-                </View>
-              </View>
-              <Text style={styles.summaryAmount}>{showLoan ? `₦${loan ?? "0.00"}` : '₦ **'}</Text>
-              <View style={styles.summaryDivider} />
-              <Text style={styles.summarySub}>Paid: ₦{showLoan ? (paid ?? "0.00") : "**"}</Text>
-            </View>
-          </View>
-
-          {/* ============ FINANCIAL SERVICES ============ */}
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionHeader}>Financial Services</Text>
-            <TouchableOpacity onPress={() => setShowAllServices(!showAllServices)}>
-              <Text style={styles.viewAllText}>View All &gt;</Text>
-            </TouchableOpacity>
-          </View>
-          {/* Colorful gradient badge definitions for each service */}
-          <View style={styles.serviceGrid}>
-            {[
-              {
-                key: 'coop',
-                title: 'Coop Contribution',
-                desc: 'Deposit weekly or monthly savings',
-                Icon: PiggyBank,
-                badge: '#0D4035',
-                iconTint: '#10B981',
-                route: 'AddFunds',
-                isNew: true,
-              },
-              {
-                key: 'statement',
-                title: 'Account Statement',
-                desc: 'Download report',
-                Icon: FileText,
-                badge: '#1D303E',
-                iconTint: '#38BDF8',
-                route: 'AccountStatement',
-              },
-              {
-                key: 'request',
-                title: 'Request Loan',
-                desc: 'Apply for member credit',
-                Icon: Landmark,
-                badge: '#3E2718',
-                iconTint: '#F97316',
-                route: 'RequestLoan',
-              },
-              {
-                key: 'repay',
-                title: 'Repay Loan',
-                desc: 'Make loan payments',
-                Icon: CreditCard,
-                badge: '#2A1E3E',
-                iconTint: '#A855F7',
-                route: 'RepayLoan',
-              },
-            ].map(({ key, title, desc, Icon, badge, iconTint, route, isNew }) => (
-              <TouchableOpacity
-                key={key}
-                style={styles.serviceCard}
-                onPress={route ? () => navigation.navigate(route) : undefined}
-              >
-                <View>
-                  <LinearGradient
-                    colors={[badge, badge]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.serviceIconBadge}
-                  >
-                    <Icon size={22} color={iconTint} />
-                  </LinearGradient>
-                  {isNew ? (
+              {isNew ? (
                     <View style={styles.newBadge}>
                       <Text style={styles.newBadgeText}>NEW</Text>
                     </View>
                   ) : null}
-                </View>
                 <Text style={styles.serviceTitle}>{title}</Text>
                 <Text style={styles.serviceDesc}>{desc}</Text>
               </TouchableOpacity>
@@ -462,7 +367,6 @@ export default function HomeScreen({ navigation: rawNav }) {
               <ChevronRight size={18} color='#8EA89D' />
             </TouchableOpacity>
           </View>
-        </View>
 
       </ScrollView>
 
@@ -673,15 +577,16 @@ const styles = StyleSheet.create({
   },
   // Available Balance Card — distinct neon green outline so it stands apart
   metallicCard: {
+    height: 170,
     borderRadius: 20,
+    overflow: 'hidden',
     borderTopWidth: 1.5,
     borderTopColor: 'rgba(255, 255, 255, 0.45)',
     shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
     elevation: 8,
-    overflow: 'hidden',
   },
   shineOverlay: {
     position: 'absolute',
@@ -693,13 +598,18 @@ const styles = StyleSheet.create({
   // Bright metallic silver right zone — sharp angled edge
   silverZone: {
     position: 'absolute',
-    top: -40,
-    bottom: -40,
-    right: -50,
-    width: '58%',
-    transform: [{ rotate: '14deg' }],
+    top: -30,
+    bottom: -30,
+    right: -40,
+    width: '55%',
+    transform: [{ rotate: '12deg' }],
   },
-  cardLeft: { zIndex: 1, justifyContent: 'space-between' },
+  cardLeft: {
+    zIndex: 1,
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+  },
   balanceLabel: {
     color: '#BCCAC3',
     fontSize: 14,
@@ -709,18 +619,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 28,
     fontWeight: 'bold',
-    marginVertical: 10,
+    marginTop: 10,
   },
   addFundBtn: {
-    backgroundColor: '#0C503D',
+    backgroundColor: '#0D5C46',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 6,
-    paddingVertical: 9,
+    paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 20,
     alignSelf: 'flex-start',
+    marginTop: 14,
   },
   addFundText: {
     color: '#10B981',
@@ -730,18 +640,25 @@ const styles = StyleSheet.create({
   crestWrap: {
     alignItems: 'center',
   },
+  watermarkTitle: {
+    color: '#2F4038',
+    fontSize: 10,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 4,
+  },
   crestLogo: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     borderWidth: 1.5,
     borderColor: '#FFFFFF',
-    marginBottom: 6,
   },
   cardRight: {
     zIndex: 1,
     alignItems: 'flex-end',
     justifyContent: 'space-between',
+    paddingVertical: 2,
   },
   showBalanceBtn: {
     backgroundColor: 'rgba(0, 0, 0, 0.25)',
@@ -752,7 +669,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#FFFFFF',
+    borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   showBalanceText: { color: '#FFFFFF', fontSize: 12 },
   avatarImage: {
