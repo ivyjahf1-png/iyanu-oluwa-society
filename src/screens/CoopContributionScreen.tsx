@@ -64,7 +64,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
     }
     Alert.alert(
       'Contribution submitted',
-      `Your ${schedule} contribution of ₦${amount} has been submitted for verification.`,
+            `Your ${schedule} contribution of \u20A6${amount} has been submitted for verification.`,
     );
     navigation.goBack();
   };

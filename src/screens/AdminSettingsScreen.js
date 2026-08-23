@@ -126,7 +126,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+        <SafeAreaView style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
       <ScreenHeader
         title="Admin Settings"
@@ -134,9 +134,9 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView 
-        style={styles.scrollView} 
-        contentContainerStyle={styles.content} 
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
         showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
       >

@@ -27,6 +27,9 @@ import AIAssistantScreen from '../screens/AIAssistantScreen';
 import AccountStatementScreen from '../screens/AccountStatementScreen';
 import AnnouncementsScreen from '../screens/AnnouncementsScreen';
 import ProfileSettingsScreen from '../screens/ProfileSettingsScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
+import SignInScreen from '../screens/SignInScreen';
+import SignUpScreen from '../screens/SignUpScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -96,7 +99,12 @@ export default function AppNavigator() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.webWrapper}>
-        <Stack.Navigator initialRouteName="MainTabs" screenOptions={fullScreenOptions}>
+        <Stack.Navigator initialRouteName="Welcome" screenOptions={fullScreenOptions}>
+          {/* Auth flow */}
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="SignIn" component={SignInScreen} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} />
+
           <Stack.Screen name="MainTabs" component={BottomTabs} />
           <Stack.Screen name="MeetingChat" component={MeetingChatScreen} />
           <Stack.Screen name="CallScreen" component={CallScreen} />
