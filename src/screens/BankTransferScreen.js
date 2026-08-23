@@ -100,14 +100,14 @@ export default function BankTransferScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   content: { padding: 16, paddingBottom: 32 },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
   },
   headerRow: {
     flexDirection: 'row',
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F0',
+    borderBottomColor: '#1C4A2E',
   },
   headerTitle: {
     color: '#0B2211',
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   detailLabel: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 12,
   },
   detailValue: {
@@ -155,18 +155,18 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F0',
+    borderTopColor: '#1C4A2E',
   },
   footerText: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
   },
   emptyCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     alignItems: 'center',
   },
   emptyTitle: {
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   emptySub: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 12,
     marginTop: 6,
     textAlign: 'center',
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   secondaryBtn: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#4CAF50',

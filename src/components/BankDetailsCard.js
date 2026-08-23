@@ -59,11 +59,11 @@ export default function BankDetailsCard() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     marginBottom: 20,
   },
   headerRow: {
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F0',
+    borderBottomColor: '#1C4A2E',
   },
   headerTitle: {
     color: '#0B2211',
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   detailLabel: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 12,
   },
   detailValue: {
@@ -112,10 +112,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F0',
+    borderTopColor: '#1C4A2E',
   },
   footerText: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
   },
 });

@@ -72,13 +72,13 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
       <ScreenHeader title="User Management" subtitle="Monitor and manage cooperative members" onBack={() => navigation?.goBack()} />
 
       <View style={styles.searchRow}>
-        <Search size={18} color="#6B7280" />
+        <Search size={18} color="#93A69B" />
         <TextInput
           style={styles.searchInput}
           value={query}
           onChangeText={setQuery}
           placeholder="Search by name or email"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           autoCapitalize="none"
         />
       </View>
@@ -122,20 +122,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B2211' },
   scroll: { flex: 1 },
   searchRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#0F2A19',
     borderRadius: 12, marginHorizontal: 16, marginVertical: 12, paddingHorizontal: 12,
   },
-  searchInput: { flex: 1, paddingVertical: 10, color: '#111827', fontSize: 14, marginLeft: 8 },
+  searchInput: { flex: 1, paddingVertical: 10, color: '#FFFFFF', fontSize: 14, marginLeft: 8 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   empty: { color: '#A7F3D0', fontSize: 14, textAlign: 'center', marginTop: 12 },
   userCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 14, marginHorizontal: 16, marginBottom: 10,
+    backgroundColor: '#0F2A19', borderRadius: 14, marginHorizontal: 16, marginBottom: 10,
     padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   userInfo: { flex: 1 },
   userName: { color: '#0B2211', fontSize: 15, fontWeight: 'bold' },
   userEmail: { color: '#4CAF50', fontSize: 12, marginTop: 2 },
-  userMeta: { color: '#6B7280', fontSize: 11, marginTop: 2 },
+  userMeta: { color: '#93A69B', fontSize: 11, marginTop: 2 },
   actions: { flexDirection: 'row', gap: 8, marginLeft: 10 },
   actionBtn: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   resetBtn: { backgroundColor: '#2563EB' },

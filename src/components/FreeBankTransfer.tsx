@@ -55,7 +55,7 @@ export default function FreeBankTransfer() {
   if (!bankDetails?.accountNumber) {
     return (
       <View style={styles.emptyContainer}>
-        <Building2 size={40} color="#9ca3af" />
+        <Building2 size={40} color="#7E9086" />
         <Text style={styles.emptyText}>
           Cooperative account details have not been set by the admin yet.
         </Text>
@@ -78,7 +78,7 @@ export default function FreeBankTransfer() {
           {copiedField === fieldKey ? (
             <Check size={18} color="#4CAF50" />
           ) : (
-            <Copy size={18} color="#6b7280" />
+            <Copy size={18} color="#93A69B" />
           )}
         </TouchableOpacity>
       </View>
@@ -106,11 +106,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#111827",
+    color: "#FFFFFF",
   },
   subtitle: {
     fontSize: 14,
-    color: "#6b7280",
+    color: "#93A69B",
     marginTop: -8,
   },
   fieldContainer: {
@@ -119,15 +119,15 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#374151",
+    color: "#C9D6CE",
   },
   valueRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#0F2A19",
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#1C4A2E",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "500",
-    color: "#111827",
+    color: "#FFFFFF",
     marginRight: 12,
   },
   copyButton: {
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: "#6b7280",
+    color: "#93A69B",
     textAlign: "center",
     paddingHorizontal: 20,
   },

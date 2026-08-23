@@ -75,7 +75,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                 setRemindersEnabled(v);
                 updateUser({ remindersEnabled: v });
               }}
-              trackColor={{ false: '#E5E7EB', true: '#4CAF50' }}
+              trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -112,7 +112,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                   updateUser({ reminderDaysBefore: clean });
                 }}
                 placeholder="e.g. 3"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
                 keyboardType="number-pad"
                 maxLength={2}
               />
@@ -135,7 +135,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                 setSoundAlertsEnabled(v);
                 updateUser({ soundAlertsEnabled: v });
               }}
-              trackColor={{ false: '#E5E7EB', true: '#4CAF50' }}
+              trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -191,7 +191,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   content: { padding: 16, paddingBottom: 32 },
   sectionTitle: {
     color: '#0B2211',
@@ -201,11 +201,11 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     marginBottom: 18,
   },
   switchRow: {
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   switchSub: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 2,
   },
@@ -244,10 +244,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingVertical: 9,
   },
   chipActive: {
@@ -263,10 +263,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 11,
     color: '#0B2211',
@@ -297,26 +297,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 9,
   },
   noteCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     gap: 8,
   },
   noteText: {
     flex: 1,
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     lineHeight: 15,
   },

@@ -81,14 +81,14 @@ export default function AnnouncementsScreen({ navigation }) {
           value={title}
           onChangeText={setTitle}
           placeholder="Announcement title"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
         />
         <TextInput
           style={[styles.input, styles.textArea]}
           value={message}
           onChangeText={setMessage}
           placeholder="Announcement message..."
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           multiline
           numberOfLines={3}
         />
@@ -140,7 +140,7 @@ export default function AnnouncementsScreen({ navigation }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   content: { padding: 16, paddingBottom: 32 },
   sectionTitle: {
     color: '#0B2211',
@@ -150,10 +150,10 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: '#0B2211',
@@ -174,19 +174,19 @@ const styles = StyleSheet.create({
   btnDisabled: { opacity: 0.6 },
   postBtnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
   emptyCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     padding: 24,
     alignItems: 'center',
   },
-  emptyText: { color: '#6B7280', fontSize: 12, marginTop: 8 },
+  emptyText: { color: '#93A69B', fontSize: 12, marginTop: 8 },
   announcementCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     padding: 14,
     marginBottom: 10,
   },
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   authorText: { color: '#127A41', fontSize: 11, fontWeight: 'bold' },
-  dateText: { color: '#9CA3AF', fontSize: 10, marginLeft: 'auto' },
+  dateText: { color: '#7E9086', fontSize: 10, marginLeft: 'auto' },
   deleteBtn: { marginLeft: 8, padding: 2 },
   announcementTitle: {
     color: '#0B2211',
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   announcementMessage: {
-    color: '#374151',
+    color: '#C9D6CE',
     fontSize: 12,
     lineHeight: 17,
   },

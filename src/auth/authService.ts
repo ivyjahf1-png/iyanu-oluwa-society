@@ -103,7 +103,7 @@ export async function syncUserRecord(uid: string, email: string): Promise<void> 
       },
       { onConflict: 'uid' },
     );
-  } catch (e) {
+  } catch (e: any) {
     console.warn('[auth] user record sync skipped:', e?.message || e);
   }
 }

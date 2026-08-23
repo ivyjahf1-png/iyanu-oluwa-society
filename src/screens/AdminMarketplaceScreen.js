@@ -159,14 +159,14 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
               value={title}
               onChangeText={setTitle}
               placeholder="Item title"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor="#93A69B"
             />
             <TextInput
               style={[styles.input, styles.textArea]}
               value={description}
               onChangeText={setDescription}
               placeholder="Description"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor="#93A69B"
               multiline
               numberOfLines={3}
             />
@@ -175,7 +175,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
               value={price}
               onChangeText={setPrice}
               placeholder="Price (e.g. 450000)"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor="#93A69B"
               keyboardType="decimal-pad"
             />
             <TextInput
@@ -183,7 +183,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
               value={location}
               onChangeText={setLocation}
               placeholder="Available location (e.g. Lagos)"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor="#93A69B"
             />
 
             <TouchableOpacity style={styles.submitBtn} onPress={submitItem}>
@@ -195,13 +195,13 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
 
         {/* Real-time search */}
         <View style={styles.searchBar}>
-          <Search size={18} color="#6B7280" />
+          <Search size={18} color="#93A69B" />
           <TextInput
             style={styles.searchInput}
             value={query}
             onChangeText={setQuery}
             placeholder="Search inventory alphabetically..."
-            placeholderTextColor="#6B7280"
+            placeholderTextColor="#93A69B"
             autoCapitalize="none"
           />
         </View>
@@ -293,14 +293,14 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 value={editTitle}
                 onChangeText={setEditTitle}
                 placeholder="Item name"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
               />
               <TextInput
                 style={styles.editInput}
                 value={editPrice}
                 onChangeText={setEditPrice}
                 placeholder="Price"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
                 keyboardType="decimal-pad"
               />
               <TextInput
@@ -308,7 +308,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 value={editDescription}
                 onChangeText={setEditDescription}
                 placeholder="Description"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
                 multiline
               />
               <TextInput
@@ -316,7 +316,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 value={editLocation}
                 onChangeText={setEditLocation}
                 placeholder="Location"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
               />
               <TouchableOpacity style={styles.saveEditBtn} onPress={saveEdit}>
                 <Text style={styles.saveEditText}>Save Changes</Text>
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -366,21 +366,21 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: 12,
     marginBottom: 12,
-    backgroundColor: '#EEF2F0',
+    backgroundColor: '#1C4A2E',
   },
   modalName: { color: '#0B2211', fontSize: 18, fontWeight: 'bold' },
   modalPrice: { color: '#4CAF50', fontSize: 16, fontWeight: '700', marginTop: 4 },
-  modalLocation: { color: '#6B7280', fontSize: 13, marginTop: 4 },
-  modalDesc: { color: '#374151', fontSize: 14, marginTop: 10, lineHeight: 20 },
+  modalLocation: { color: '#93A69B', fontSize: 13, marginTop: 4 },
+  modalDesc: { color: '#C9D6CE', fontSize: 14, marginTop: 10, lineHeight: 20 },
   editInput: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#111827',
-    backgroundColor: '#F9FAFB',
+    color: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     marginBottom: 12,
   },
   editTextarea: { height: 90, textAlignVertical: 'top' },
@@ -394,14 +394,14 @@ const styles = StyleSheet.create({
   saveEditText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   content: { padding: 16, paddingBottom: 32 },
   uploadToggle: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#4CAF50',
@@ -421,11 +421,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   formCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     marginBottom: 16,
   },
   imagePicker: {
@@ -441,15 +441,15 @@ const styles = StyleSheet.create({
   },
   imagePreview: { width: '100%', height: '100%' },
   imagePickerText: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 12,
     marginTop: 8,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: '#0B2211',
@@ -477,10 +477,10 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 12,
     marginBottom: 14,
   },
@@ -502,7 +502,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   emptySub: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 12,
     marginTop: 6,
     textAlign: 'center',
@@ -511,11 +511,11 @@ const styles = StyleSheet.create({
   itemCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     marginBottom: 10,
   },
   itemThumb: {
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   itemThumbPlaceholder: {
-    backgroundColor: '#EEF2F0',
+    backgroundColor: '#1C4A2E',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   itemLocation: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 10,
     marginTop: 2,
   },

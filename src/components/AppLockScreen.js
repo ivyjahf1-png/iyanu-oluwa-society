@@ -28,8 +28,10 @@ export default function AppLockScreen() {
   const passcodeAvailable = methods.passcode && methods.passcodeLockEnabled;
 
   // Decide the starting mode once on mount and auto-fire biometrics.
+  // Password fallback is ONLY shown when biometric AND passcode are both
+  // unavailable — a failed/cancelled biometric always falls back to passcode.
   useEffect(() => {
-    if (methods.biometric) {
+    if (methods.biometric && methods.biometricAvailable) {
       setMode('biometric');
       (async () => {
         const ok = await loginWithBiometric();
@@ -37,6 +39,9 @@ export default function AppLockScreen() {
       })();
     } else if (passcodeAvailable) {
       setMode('passcode');
+    } else if (methods.biometric) {
+      // Biometric flag on but hardware/enrollment unavailable → passcode or password.
+      setMode(passcodeAvailable ? 'passcode' : 'password');
     } else {
       setMode('password');
     }
@@ -171,7 +176,7 @@ function PasswordFallback() {
       <TextInput
         style={styles.input}
         placeholder="Email"
-        placeholderTextColor="#6B7280"
+        placeholderTextColor="#93A69B"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -180,7 +185,7 @@ function PasswordFallback() {
       <TextInput
         style={styles.input}
         placeholder="Password"
-        placeholderTextColor="#6B7280"
+        placeholderTextColor="#93A69B"
         value={password}
         onChangeText={setPassword}
         secureTextEntry

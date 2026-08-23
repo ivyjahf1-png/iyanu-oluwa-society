@@ -138,7 +138,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
             value={amount}
             onChangeText={setAmount}
             placeholder="0.00"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor="#93A69B"
             keyboardType="decimal-pad"
           />
         </View>
@@ -187,7 +187,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
           value={bvn}
           onChangeText={setBvn}
           placeholder="11-digit BVN"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           keyboardType="number-pad"
           maxLength={11}
         />
@@ -199,7 +199,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
           value={purpose}
           onChangeText={setPurpose}
           placeholder="e.g. School fees, business capital..."
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           multiline
           numberOfLines={3}
         />
@@ -254,7 +254,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#F4F7F5' 
+    backgroundColor: '#0B2211' 
   },
   scrollView: { 
     flex: 1 
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   eligibleCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#4CAF50',
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eligibleLabel: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
   },
   eligibleValue: {
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   eligibleHint: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 10,
     marginTop: 2,
   },
@@ -303,10 +303,10 @@ const styles = StyleSheet.create({
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     marginBottom: 16,
   },
@@ -330,10 +330,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tenureChip: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 15,
     paddingVertical: 9,
   },
@@ -351,10 +351,10 @@ const styles = StyleSheet.create({
   },
   freqToggle: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     padding: 4,
     marginBottom: 16,
   },
@@ -376,10 +376,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: '#0B2211',
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   summaryTitle: {
-    color: '#F4F7F5',
+    color: '#0B2211',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     marginVertical: 6,
   },
   summaryTotalLabel: {
-    color: '#F4F7F5',
+    color: '#0B2211',
     fontSize: 13,
     fontWeight: 'bold',
   },

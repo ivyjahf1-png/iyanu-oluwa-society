@@ -27,6 +27,7 @@ import AIAssistantScreen from '../screens/AIAssistantScreen';
 import AccountStatementScreen from '../screens/AccountStatementScreen';
 import AnnouncementsScreen from '../screens/AnnouncementsScreen';
 import AdminUserManagementScreen from '../screens/AdminUserManagementScreen';
+import BannerManagerScreen from '../screens/BannerManagerScreen';
 import ProfileSettingsScreen from '../screens/ProfileSettingsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import SignInScreen from '../screens/SignInScreen';
@@ -127,6 +128,7 @@ export default function AppNavigator() {
           <Stack.Screen name="AccountStatement" component={AccountStatementScreen} />
           <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
           <Stack.Screen name="AdminUserManagement" component={AdminUserManagementScreen} />
+          <Stack.Screen name="PromotionalBanners" component={BannerManagerScreen} />
         </Stack.Navigator>
       </View>
     </SafeAreaView>

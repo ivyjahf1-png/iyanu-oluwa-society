@@ -257,7 +257,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
                 value={amount}
                 onChangeText={setAmount}
                 placeholder="0.00"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
                 keyboardType="decimal-pad"
               />
             </View>
@@ -268,7 +268,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
               value={reference}
               onChangeText={setReference}
               placeholder="e.g. TRF9988776655"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor="#93A69B"
             />
 
             <TouchableOpacity style={styles.uploadBtn} onPress={pickReceipt}>
@@ -300,7 +300,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   content: { padding: 16, paddingBottom: 32 },
   metaBanner: {
     backgroundColor: '#0B2211',
@@ -334,10 +334,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingVertical: 12,
   },
   methodBtnActive: {
@@ -353,11 +353,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   optionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
   },
   optionTitle: {
     color: '#0B2211',
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   optionHint: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 4,
     marginBottom: 12,
@@ -376,10 +376,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 9,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F0',
+    borderBottomColor: '#1C4A2E',
   },
   detailLabel: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 12,
   },
   detailValue: {
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   pendingNote: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 12,
     fontStyle: 'italic',
@@ -413,10 +413,10 @@ const styles = StyleSheet.create({
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
   },
   nairaPrefix: {
@@ -433,10 +433,10 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: '#0B2211',
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   uploadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#4CAF50',
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   uploadHint: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 2,
   },

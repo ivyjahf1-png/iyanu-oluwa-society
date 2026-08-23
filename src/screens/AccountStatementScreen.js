@@ -250,7 +250,7 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   actionRow: {
     flexDirection: 'row',
     gap: 10,
@@ -300,11 +300,11 @@ const styles = StyleSheet.create({
   ledgerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     marginBottom: 8,
   },
   ledgerIcon: {
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-  creditIcon: { backgroundColor: '#DCFCE7' },
+  creditIcon: { backgroundColor: '#12331E' },
   debitIcon: { backgroundColor: '#FDE8E8' },
   ledgerInfo: { flex: 1 },
   ledgerLabel: {
@@ -324,19 +324,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   ledgerDate: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 10,
     marginTop: 2,
   },
   ledgerAmounts: { alignItems: 'flex-end' },
   creditAmount: { color: '#4CAF50', fontSize: 12, fontWeight: 'bold' },
   debitAmount: { color: '#C0392B', fontSize: 12, fontWeight: 'bold' },
-  runningBalance: { color: '#6B7280', fontSize: 9, marginTop: 2 },
+  runningBalance: { color: '#93A69B', fontSize: 9, marginTop: 2 },
   pdfReadyCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#4CAF50',

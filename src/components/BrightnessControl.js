@@ -57,10 +57,10 @@ export default function BrightnessControl({ label, hint, value, onChange }) {
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     padding: 12,
     marginBottom: 12,
   },
@@ -107,10 +107,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   segmentOff: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#1C4A2E',
   },
   hint: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 8,
   },

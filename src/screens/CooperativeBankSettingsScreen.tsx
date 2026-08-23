@@ -22,6 +22,12 @@ interface BankDetails {
   accountName: string;
 }
 
+interface CoopBankSettings {
+  coop_bank_name?: string;
+  coop_account_number?: string;
+  coop_account_name?: string;
+}
+
 export default function CooperativeBankSettings() {
   const [form, setForm] = useState<BankDetails>({
     bankName: "",
@@ -35,7 +41,7 @@ export default function CooperativeBankSettings() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const data = await getAllSettings();
+        const data = await getAllSettings() as CoopBankSettings;
 
         if (data) {
           setForm({
@@ -130,7 +136,7 @@ export default function CooperativeBankSettings() {
             <TextInput
               style={styles.input}
               placeholder="e.g. Zenith Bank, First Bank, Wema Bank"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#7E9086"
               value={form.bankName}
               onChangeText={(text) => handleChange("bankName", text)}
               autoCapitalize="words"
@@ -143,7 +149,7 @@ export default function CooperativeBankSettings() {
             <TextInput
               style={styles.input}
               placeholder="e.g. 1234567890"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#7E9086"
               value={form.accountNumber}
               onChangeText={(text) => handleChange("accountNumber", text.replace(/[^0-9]/g, ""))}
               keyboardType="number-pad"
@@ -157,7 +163,7 @@ export default function CooperativeBankSettings() {
             <TextInput
               style={styles.input}
               placeholder="e.g. Iyanu Oluwa Society"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#7E9086"
               value={form.accountName}
               onChangeText={(text) => handleChange("accountName", text)}
               autoCapitalize="words"
@@ -194,7 +200,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#0F2A19",
   },
   center: {
     flex: 1,
@@ -210,11 +216,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111827",
+    color: "#FFFFFF",
   },
   description: {
     fontSize: 14,
-    color: "#6b7280",
+    color: "#93A69B",
     marginBottom: 24,
   },
   field: {
@@ -223,18 +229,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#374151",
+    color: "#C9D6CE",
     marginBottom: 6,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#1C4A2E",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: "#111827",
-    backgroundColor: "#fff",
+    color: "#FFFFFF",
+    backgroundColor: "#0F2A19",
   },
   saveButton: {
     marginTop: 12,

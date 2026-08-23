@@ -99,13 +99,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithPassword = async (email: string, password: string) => {
     const res = await authService.loginWithPassword(email, password);
-    if (res.ok) setUserEmail(email.trim().toLowerCase());
+    if (res.ok) {
+      setUserEmail(email.trim().toLowerCase());
+      // Successful sign-in always clears the lock so the user goes straight
+      // to the dashboard (fixes forced "Sign In Required" loop).
+      setIsLocked(false);
+    }
     return res;
   };
 
   const registerAccount = async (email: string, password: string) => {
     const res = await authService.registerAccount(email, password);
-    if (res.ok) setUserEmail(email.trim().toLowerCase());
+    if (res.ok) {
+      setUserEmail(email.trim().toLowerCase());
+      setIsLocked(false);
+    }
     return res;
   };
 

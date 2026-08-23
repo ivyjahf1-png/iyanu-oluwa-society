@@ -54,7 +54,7 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
           style={styles.optionRow}
           onPress={() => setShowComingSoon(true)}
         >
-          <View style={[styles.optionIcon, { backgroundColor: '#EEF2F0' }]}>
+          <View style={[styles.optionIcon, { backgroundColor: '#1C4A2E' }]}>
             <CreditCard size={22} color="#4CAF50" />
           </View>
           <View style={styles.optionTextGroup}>
@@ -76,7 +76,7 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
             })
           }
         >
-          <View style={[styles.optionIcon, { backgroundColor: '#EEF2F0' }]}>
+          <View style={[styles.optionIcon, { backgroundColor: '#1C4A2E' }]}>
             <Landmark size={22} color="#4CAF50" />
           </View>
           <View style={styles.optionTextGroup}>
@@ -123,16 +123,16 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   content: { padding: 16, paddingBottom: 32 },
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     marginBottom: 12,
   },
   optionIcon: {
@@ -150,24 +150,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   optionSub: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 2,
   },
   noteCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     gap: 8,
     marginTop: 8,
   },
   noteText: {
     flex: 1,
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     lineHeight: 15,
   },
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalSub: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 12,
     marginTop: 6,
     textAlign: 'center',

@@ -145,7 +145,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
             value={inputText}
             onChangeText={setInputText}
             placeholder="Ask me anything..."
-            placeholderTextColor="#6B7280"
+            placeholderTextColor="#93A69B"
             multiline
           />
           <TouchableOpacity
@@ -163,7 +163,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   flex: { flex: 1 },
   messageList: { padding: 16, paddingBottom: 12 },
   suggestionWrap: {
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   chip: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#4CAF50',
@@ -208,10 +208,10 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   bubbleAi: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
   },
   aiRow: {
     flexDirection: 'row',
@@ -233,10 +233,10 @@ const styles = StyleSheet.create({
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 10,
     paddingVertical: 8,
     marginHorizontal: 12,

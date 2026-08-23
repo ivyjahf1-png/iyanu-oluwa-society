@@ -145,7 +145,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
             value={amount}
             onChangeText={setAmount}
             placeholder="0.00"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor="#93A69B"
             keyboardType="decimal-pad"
           />
         </View>
@@ -184,7 +184,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
           value={reference}
           onChangeText={setReference}
           placeholder="e.g. GTB1234567890"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           autoCapitalize="characters"
         />
 
@@ -194,7 +194,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
           value={senderName}
           onChangeText={setSenderName}
           placeholder="Name on the paying account"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
         />
 
         <View style={styles.actionSection}>
@@ -217,7 +217,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F7F5',
+    backgroundColor: '#0B2211',
   },
   scrollView: {
     flex: 1,
@@ -236,10 +236,10 @@ const styles = StyleSheet.create({
   },
   scheduleToggle: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     padding: 4,
     marginBottom: 16,
   },
@@ -266,10 +266,10 @@ const styles = StyleSheet.create({
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     marginBottom: 18,
   },
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   uploadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#4CAF50',
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   uploadHint: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 2,
   },
@@ -330,15 +330,15 @@ const styles = StyleSheet.create({
   },
   orText: {
     textAlign: 'center',
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginVertical: 10,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: '#0B2211',

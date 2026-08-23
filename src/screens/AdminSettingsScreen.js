@@ -172,7 +172,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={flwPublicKey}
             onChangeText={setFlwPublicKey}
             placeholder="FLWPUBK-..."
-            placeholderTextColor="#6B7280"
+            placeholderTextColor="#93A69B"
             autoCapitalize="none"
           />
 
@@ -182,7 +182,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={flwSecretKey}
             onChangeText={setFlwSecretKey}
             placeholder="FLWSECK-..."
-            placeholderTextColor="#6B7280"
+            placeholderTextColor="#93A69B"
             autoCapitalize="none"
             secureTextEntry
           />
@@ -193,7 +193,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={flwSecretHash}
             onChangeText={setFlwSecretHash}
             placeholder="Webhook verification hash"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor="#93A69B"
             autoCapitalize="none"
             secureTextEntry
           />
@@ -206,7 +206,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             <Switch
               value={passFeesToUser}
               onValueChange={setPassFeesToUser}
-              trackColor={{ false: '#E5E7EB', true: '#4CAF50' }}
+              trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -228,7 +228,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={bankNameInput}
             onChangeText={setBankNameInput}
             placeholder="e.g. Zenith Bank, First Bank, Wema Bank"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor="#93A69B"
           />
 
           <Text style={styles.label}>Account Number</Text>
@@ -237,7 +237,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={accountNumberInput}
             onChangeText={setAccountNumberInput}
             placeholder="e.g. 1234567890"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor="#93A69B"
             keyboardType="number-pad"
             maxLength={10}
           />
@@ -248,7 +248,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={accountNameInput}
             onChangeText={setAccountNameInput}
             placeholder="e.g. Iyanu Oluwa Society"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor="#93A69B"
           />
         </View>
 
@@ -289,7 +289,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
                 value={loanLimitPercent}
                 onChangeText={(t) => setLoanLimitPercent(t.replace(/[^0-9]/g, ''))}
                 placeholder="e.g. 200 (% of total savings)"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
                 keyboardType="number-pad"
               />
             </>
@@ -301,12 +301,24 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
                 value={loanLimitFixed}
                 onChangeText={(t) => setLoanLimitFixed(t.replace(/[^0-9.]/g, ''))}
                 placeholder="e.g. 500000"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
                 keyboardType="decimal-pad"
               />
             </>
           )}
         </View>
+
+        <TouchableOpacity
+          style={styles.bannerLink}
+          onPress={() => navigation.navigate('PromotionalBanners')}
+        >
+          <Megaphone size={18} color="#4CAF50" />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.bannerLinkTitle}>Promotional Banners</Text>
+            <Text style={styles.bannerLinkSub}>Create photo-only or full advert banner popups</Text>
+          </View>
+          <ChevronRight size={18} color="#9CB8A6" />
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
@@ -324,7 +336,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#F4F7F5' 
+    backgroundColor: '#0B2211' 
   },
   scrollView: { 
     flex: 1 
@@ -335,11 +347,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   sectionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     marginBottom: 16,
   },
   sectionHeaderRow: {
@@ -354,7 +366,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   sectionHint: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginBottom: 10,
   },
@@ -365,10 +377,10 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: '#0B2211',
@@ -390,7 +402,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   switchSub: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 2,
   },
@@ -414,13 +426,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   loanSection: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     padding: 14,
     marginTop: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
   },
   loanHeader: {
     flexDirection: 'row',
@@ -430,13 +442,20 @@ const styles = StyleSheet.create({
   },
   modeRow: {
     flexDirection: 'row',
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#1C4A2E',
     borderRadius: 10,
     padding: 4,
     marginVertical: 10,
   },
   modeBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
   modeBtnActive: { backgroundColor: '#4CAF50' },
-  modeBtnText: { color: '#6B7280', fontSize: 12, fontWeight: '600' },
+  modeBtnText: { color: '#93A69B', fontSize: 12, fontWeight: '600' },
   modeBtnTextActive: { color: '#FFFFFF' },
+  bannerLink: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#F0FDF4', borderRadius: 12, padding: 14,
+    borderWidth: 1, borderColor: '#BBF7D0', marginBottom: 16,
+  },
+  bannerLinkTitle: { color: '#0B2211', fontSize: 14, fontWeight: '600' },
+  bannerLinkSub: { color: '#93A69B', fontSize: 11, marginTop: 2 },
 });

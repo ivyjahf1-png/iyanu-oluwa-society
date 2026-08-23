@@ -162,14 +162,14 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
   );
 }
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   list: { padding: 16, paddingBottom: 32 },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     marginBottom: 12,
   },
   cardHeader: {
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   meta: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 4,
   },
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   noReceipt: {
-    color: '#9CA3AF',
+    color: '#7E9086',
     fontSize: 11,
     marginTop: 10,
     fontStyle: 'italic',
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 13,
     marginTop: 10,
   },

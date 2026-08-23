@@ -39,6 +39,7 @@ import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 import { deriveDisplayName } from '../auth/authService';
 import { useAnnouncements } from '../context/AnnouncementsContext';
+import { useBanners } from '../context/BannerContext';
 import { useTransactions } from '../context/TransactionsContext';
 
 export default function HomeScreen({ navigation: rawNav }) {
@@ -56,6 +57,27 @@ export default function HomeScreen({ navigation: rawNav }) {
   const { unreadAnnouncements, dismissAnnouncement } = useAnnouncements();
   const latestAnnouncement = unreadAnnouncements[0] || null;
   const hasUnread = unreadAnnouncements.length > 0;
+
+  // Promotional banner popup (admin-created, cooperative content only).
+  const { visibleBanners, activeBanners, dismissBanner } = useBanners();
+  const [bannerOpen, setBannerOpen] = useState(false);
+  const [bannerIndex, setBannerIndex] = useState(0);
+
+  // Show the first visible banner automatically; auto-rotate every 2 hours.
+  useEffect(() => {
+    if (visibleBanners.length > 0) {
+      setBannerIndex((i) => (bannerIndex >= visibleBanners.length ? 0 : bannerIndex));
+      const t = setTimeout(() => setBannerOpen(true), 600);
+      const rotate = setInterval(
+        () => setBannerIndex((i) => (i + 1) % Math.max(visibleBanners.length, 1)),
+        2 * 60 * 60 * 1000 // 2 hours
+      );
+      return () => { clearTimeout(t); clearInterval(rotate); };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleBanners.length]);
+
+  const currentBanner = visibleBanners[bannerIndex] || visibleBanners[0] || null;
 
   // Existing state handlers preserved: visibility toggles for each balance area.
   const [showBalance, setShowBalance] = useState(false);
@@ -443,6 +465,42 @@ export default function HomeScreen({ navigation: rawNav }) {
           </View>
         </View>
       </Modal>
+
+      {/* Promotional banner popup (admin-created, cooperative content only) */}
+      <Modal visible={bannerOpen && !!currentBanner} transparent animationType="fade">
+        <View style={styles.bannerPopupOverlay}>
+          <View style={styles.bannerPopupCard}>
+            {currentBanner?.imageUri ? (
+              <SafeImage
+                source={{ uri: currentBanner.imageUri }}
+                style={currentBanner.kind === 'photo' ? styles.bannerPopupPhoto : styles.bannerPopupImage}
+              />
+            ) : null}
+            {currentBanner?.kind !== 'photo' && (
+              <View style={styles.bannerPopupBody}>
+                {!!currentBanner?.title && (
+                  <Text style={styles.bannerPopupTitle}>{currentBanner.title}</Text>
+                )}
+                {!!currentBanner?.description && (
+                  <Text style={styles.bannerPopupDesc}>{currentBanner.description}</Text>
+                )}
+                {!!currentBanner?.category && (
+                  <Text style={styles.bannerPopupCategory}>{currentBanner.category}</Text>
+                )}
+              </View>
+            )}
+            <TouchableOpacity
+              style={styles.bannerDismissBtn}
+              onPress={() => {
+                if (currentBanner) dismissBanner(currentBanner.id);
+                setBannerOpen(false);
+              }}
+            >
+              <Text style={styles.bannerDismissText}>Maybe Later</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -462,7 +520,7 @@ const styles = StyleSheet.create({
   announceBanner: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: '#FFFFFF',
+      backgroundColor: '#0F2A19',
       borderRadius: 14,
       padding: 12,
       marginHorizontal: 16,
@@ -491,7 +549,7 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
     },
     announceMessage: {
-      color: '#374151',
+      color: '#C9D6CE',
       fontSize: 11,
       marginTop: 2,
     },
@@ -573,7 +631,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -593,7 +651,7 @@ const styles = StyleSheet.create({
     bottom: -60,
     right: -70,
     width: '62%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     transform: [{ rotate: '16deg' }],
   },
   watermark: {
@@ -660,7 +718,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F1F5F9',
     borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#3E5C4C',
     paddingVertical: 10,
     paddingHorizontal: 16,
     flexDirection: 'row',
@@ -936,7 +994,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   networkSheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -947,7 +1005,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   networkSub: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 4,
     marginBottom: 12,
@@ -957,7 +1015,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F0',
+    borderBottomColor: '#1C4A2E',
   },
   networkLogo: {
     width: 42,
@@ -983,7 +1041,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   networkCancelText: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -1000,9 +1058,42 @@ const styles = StyleSheet.create({
     width: 46,
     height: 34,
     borderRadius: 6,
-    backgroundColor: '#1F2937',
+    backgroundColor: '#0F2A19',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
   },
+  // Promotional banner popup
+  bannerPopupOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  bannerPopupCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#0F2A19',
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+  },
+  bannerPopupImage: { width: '100%', height: 160 },
+  bannerPopupPhoto: { width: '100%', height: 260 },
+  bannerPopupBody: { padding: 16 },
+  bannerPopupTitle: { color: '#0B2211', fontSize: 18, fontWeight: 'bold' },
+  bannerPopupDesc: { color: '#C9D6CE', fontSize: 13, marginTop: 6, lineHeight: 19 },
+  bannerPopupCategory: {
+    color: '#4CAF50', fontSize: 11, fontWeight: '600', marginTop: 8,
+    backgroundColor: '#E8F5E9', alignSelf: 'flex-start',
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, overflow: 'hidden',
+  },
+  bannerDismissBtn: {
+    margin: 14, marginTop: 6,
+    backgroundColor: '#4CAF50', borderRadius: 12, paddingVertical: 12,
+    alignItems: 'center',
+  },
+  bannerDismissText: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' },
 });

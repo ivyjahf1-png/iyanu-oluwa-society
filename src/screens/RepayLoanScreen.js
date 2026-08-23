@@ -128,7 +128,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
               value={customAmount}
               onChangeText={setCustomAmount}
               placeholder="0.00"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor="#93A69B"
               keyboardType="decimal-pad"
             />
           </View>
@@ -160,7 +160,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
           value={reference}
           onChangeText={setReference}
           placeholder="e.g. TRF9988776655"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
         />
 
         {/* Submit */}
@@ -176,7 +176,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   content: { padding: 16, paddingBottom: 32 },
   metricsCard: {
     backgroundColor: '#0B2211',
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
   },
   metricHighlight: {
-    color: '#F4F7F5',
+    color: '#0B2211',
     fontSize: 15,
   },
   metricDivider: {
@@ -228,10 +228,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingVertical: 12,
   },
   modeBtnActive: {
@@ -249,10 +249,10 @@ const styles = StyleSheet.create({
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     marginBottom: 18,
   },
@@ -270,16 +270,16 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   fullAmountBox: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     padding: 16,
     alignItems: 'center',
     marginBottom: 18,
   },
   fullAmountLabel: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
   },
   fullAmountValue: {
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   uploadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#4CAF50',
@@ -309,15 +309,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   uploadHint: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     marginTop: 2,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: '#0B2211',

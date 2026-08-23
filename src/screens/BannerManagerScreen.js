@@ -59,11 +59,11 @@ export default function BannerManagerScreen({ navigation }) {
 
       <View style={styles.tabs}>
         <TouchableOpacity style={[styles.tab, tab === 'full' && styles.tabActive]} onPress={() => setTab('full')}>
-          <Megaphone size={16} color={tab === 'full' ? '#FFFFFF' : '#6B7280'} />
+          <Megaphone size={16} color={tab === 'full' ? '#FFFFFF' : '#93A69B'} />
           <Text style={[styles.tabText, tab === 'full' && styles.tabTextActive]}>Full Banner</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.tab, tab === 'photo' && styles.tabActive]} onPress={() => setTab('photo')}>
-          <ImageIcon size={16} color={tab === 'photo' ? '#FFFFFF' : '#6B7280'} />
+          <ImageIcon size={16} color={tab === 'photo' ? '#FFFFFF' : '#93A69B'} />
           <Text style={[styles.tabText, tab === 'photo' && styles.tabTextActive]}>Photo Only</Text>
         </TouchableOpacity>
       </View>
@@ -76,9 +76,9 @@ export default function BannerManagerScreen({ navigation }) {
                 : (<><Upload size={26} color="#4CAF50" /><Text style={styles.uploadText}>Tap to upload banner photo</Text></>)}
             </TouchableOpacity>
             <Text style={styles.label}>Title</Text>
-            <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="e.g. New Marketplace Listing Week" placeholderTextColor="#6B7280" />
+            <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="e.g. New Marketplace Listing Week" placeholderTextColor="#93A69B" />
             <Text style={styles.label}>Description / Offer</Text>
-            <TextInput style={[styles.input, styles.area]} value={description} onChangeText={setDescription} placeholder="Short details of the offer or benefit" placeholderTextColor="#6B7280" multiline />
+            <TextInput style={[styles.input, styles.area]} value={description} onChangeText={setDescription} placeholder="Short details of the offer or benefit" placeholderTextColor="#93A69B" multiline />
             <Text style={styles.label}>Category</Text>
             <View style={styles.chips}>
               {CATEGORIES.map((c) => (
@@ -89,7 +89,7 @@ export default function BannerManagerScreen({ navigation }) {
             </View>
             <View style={styles.switchRow}>
               <Text style={styles.switchLabel}>Active</Text>
-              <Switch value={fullActive} onValueChange={setFullActive} trackColor={{ false: '#E5E7EB', true: '#4CAF50' }} thumbColor="#FFFFFF" />
+              <Switch value={fullActive} onValueChange={setFullActive} trackColor={{ false: '#1C4A2E', true: '#4CAF50' }} thumbColor="#FFFFFF" />
             </View>
             <TouchableOpacity style={styles.publishBtn} onPress={publishFull}>
               <Plus size={18} color="#FFFFFF" />
@@ -104,14 +104,14 @@ export default function BannerManagerScreen({ navigation }) {
             </TouchableOpacity>
             <View style={styles.switchRow}>
               <Text style={styles.switchLabel}>Active</Text>
-              <Switch value={photoActive} onValueChange={setPhotoActive} trackColor={{ false: '#E5E7EB', true: '#4CAF50' }} thumbColor="#FFFFFF" />
+              <Switch value={photoActive} onValueChange={setPhotoActive} trackColor={{ false: '#1C4A2E', true: '#4CAF50' }} thumbColor="#FFFFFF" />
             </View>
             <TouchableOpacity style={styles.publishBtn} onPress={publishPhoto}>
               <Plus size={18} color="#FFFFFF" />
               <Text style={styles.publishText}>Publish Photo Banner</Text>
             </TouchableOpacity>
           </View>
-        
+        )}
 
         {/* Published banners */}
         <Text style={styles.sectionLabel}>Published Banners ({banners.length})</Text>
@@ -130,7 +130,7 @@ export default function BannerManagerScreen({ navigation }) {
                 <Switch
                   value={b.active}
                   onValueChange={(v) => updateBanner(b.id, { active: v })}
-                  trackColor={{ false: '#E5E7EB', true: '#4CAF50' }}
+                  trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
                   thumbColor="#FFFFFF"
                 />
                 <TouchableOpacity onPress={() => removeBanner(b.id)} style={styles.deleteBtn}>
@@ -153,17 +153,17 @@ const styles = StyleSheet.create({
   tabActive: { backgroundColor: '#4CAF50' },
   tabText: { color: '#9CB8A6', fontSize: 13, fontWeight: '600' },
   tabTextActive: { color: '#FFFFFF' },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 16, marginHorizontal: 16, padding: 16, marginBottom: 16 },
+  card: { backgroundColor: '#0F2A19', borderRadius: 16, marginHorizontal: 16, padding: 16, marginBottom: 16 },
   uploadBox: { borderWidth: 1.5, borderColor: '#4CAF50', borderStyle: 'dashed', borderRadius: 14, paddingVertical: 26, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F0FDF4', gap: 8, marginBottom: 14, minHeight: 120 },
-  uploadText: { color: '#4B5563', fontSize: 13 },
+  uploadText: { color: '#93A69B', fontSize: 13 },
   preview: { width: '100%', height: 150, borderRadius: 12 },
   label: { color: '#0B2211', fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 8 },
-  input: { backgroundColor: '#F9FAFB', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#111827', marginBottom: 6 },
+  input: { backgroundColor: '#0F2A19', borderRadius: 12, borderWidth: 1, borderColor: '#1C4A2E', paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#FFFFFF', marginBottom: 6 },
   area: { height: 80, textAlignVertical: 'top' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 6 },
-  chip: { backgroundColor: '#E5E7EB', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
+  chip: { backgroundColor: '#1C4A2E', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6 },
   chipActive: { backgroundColor: '#4CAF50' },
-  chipText: { color: '#374151', fontSize: 12 },
+  chipText: { color: '#C9D6CE', fontSize: 12 },
   chipTextActive: { color: '#FFFFFF' },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 8 },
   switchLabel: { color: '#0B2211', fontSize: 13, fontWeight: '600' },
@@ -171,10 +171,10 @@ const styles = StyleSheet.create({
   publishText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
   sectionLabel: { color: '#A7F3D0', fontSize: 14, fontWeight: 'bold', marginHorizontal: 16, marginTop: 6, marginBottom: 10 },
   empty: { color: '#9CB8A6', fontSize: 13, textAlign: 'center', margin: 20 },
-  bannerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF', borderRadius: 12, marginHorizontal: 16, marginBottom: 8, padding: 12 },
+  bannerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#0F2A19', borderRadius: 12, marginHorizontal: 16, marginBottom: 8, padding: 12 },
   rowLeft: { flex: 1 },
   rowTitle: { color: '#0B2211', fontSize: 13, fontWeight: '600' },
-  rowMeta: { color: '#6B7280', fontSize: 11, marginTop: 2 },
+  rowMeta: { color: '#93A69B', fontSize: 11, marginTop: 2 },
   rowActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   deleteBtn: { padding: 4 },
 });

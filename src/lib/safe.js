@@ -33,6 +33,7 @@ export const KNOWN_ROUTES = new Set([
   'AccountStatement',
   'Announcements',
   'AdminUserManagement',
+  'PromotionalBanners',
 ]);
 
 /**

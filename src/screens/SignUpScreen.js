@@ -70,7 +70,7 @@ export default function SignUpScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="you@example.com"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor="#93A69B"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -84,7 +84,7 @@ export default function SignUpScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -109,7 +109,7 @@ export default function SignUpScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}

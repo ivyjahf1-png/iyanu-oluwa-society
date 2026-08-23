@@ -10,7 +10,7 @@ export default function ScreenHeader({ title, subtitle, onBack }) {
   return (
     <View style={styles.header}>
       <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-        <ChevronLeft size={22} color="#F4F7F5" />
+        <ChevronLeft size={22} color="#0B2211" />
       </TouchableOpacity>
       <View style={styles.titleGroup}>
         <Text style={styles.title}>{title}</Text>

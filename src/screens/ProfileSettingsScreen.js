@@ -241,14 +241,14 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={fullName}
           onChangeText={setFullName}
           placeholder="Full name"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
         />
         <TextInput
           style={styles.input}
           value={email}
           onChangeText={setEmail}
           placeholder="Email address"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           autoCapitalize="none"
           keyboardType="email-address"
         />
@@ -257,7 +257,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={phone}
           onChangeText={setPhone}
           placeholder="Phone number"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           keyboardType="phone-pad"
           maxLength={11}
         />
@@ -270,7 +270,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           <Switch
             value={methods.biometric}
             onValueChange={handleBiometricToggle}
-            trackColor={{ false: '#E5E7EB', true: '#4CAF50' }}
+            trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -284,7 +284,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
             value={methods.passcode && methods.passcodeLockEnabled}
             onValueChange={handleTogglePasscodeLock}
             disabled={!methods.passcode}
-            trackColor={{ false: '#E5E7EB', true: '#4CAF50' }}
+            trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -293,7 +293,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={newPasscode}
           onChangeText={(t) => setNewPasscode(t.replace(/[^0-9]/g, ''))}
           placeholder={methods.passcode ? 'Change passcode (4 digits)' : 'Set passcode (4 digits)'}
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           keyboardType="number-pad"
           secureTextEntry
           maxLength={4}
@@ -303,7 +303,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={confirmPasscode}
           onChangeText={(t) => setConfirmPasscode(t.replace(/[^0-9]/g, ''))}
           placeholder="Confirm passcode"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           keyboardType="number-pad"
           secureTextEntry
           maxLength={4}
@@ -320,7 +320,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={currentPassword}
           onChangeText={setCurrentPassword}
           placeholder="Current password"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           secureTextEntry
         />
         <TextInput
@@ -328,7 +328,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={newPassword}
           onChangeText={setNewPassword}
           placeholder="New password (leave blank to keep)"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           secureTextEntry
         />
         <TouchableOpacity
@@ -433,14 +433,14 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={userBankName}
           onChangeText={setUserBankName}
           placeholder="Your bank name (e.g. GTBank)"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
         />
         <TextInput
           style={styles.input}
           value={userAccountNumber}
           onChangeText={setUserAccountNumber}
           placeholder="Your account number"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           keyboardType="number-pad"
           maxLength={10}
         />
@@ -449,14 +449,14 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={userAccountName}
           onChangeText={setUserAccountName}
           placeholder="Account name"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
         />
         <TextInput
           style={styles.input}
           value={transferPin}
           onChangeText={setTransferPin}
           placeholder="Set 4-digit Transfer PIN"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           keyboardType="number-pad"
           maxLength={4}
           secureTextEntry
@@ -475,14 +475,14 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   content: { padding: 16, paddingBottom: 32 },
   avatarSection: { alignItems: 'center', marginBottom: 20 },
   avatarWrap: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderWidth: 2,
     borderColor: '#4CAF50',
     justifyContent: 'center',
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarHint: { color: '#6B7280', fontSize: 11, marginTop: 8 },
+  avatarHint: { color: '#93A69B', fontSize: 11, marginTop: 8 },
   sectionTitle: {
     color: '#0B2211',
     fontSize: 14,
@@ -510,10 +510,10 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: '#0B2211',
@@ -523,10 +523,10 @@ const styles = StyleSheet.create({
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     padding: 12,
     marginBottom: 12,
   },
@@ -538,10 +538,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   themeCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     padding: 14,
     marginBottom: 10,
   },
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   themeCardDesc: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 11,
     lineHeight: 15,
   },
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
     padding: 18,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     marginBottom: 16,
   },
   previewText: {

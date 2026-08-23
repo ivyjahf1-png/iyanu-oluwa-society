@@ -71,7 +71,7 @@ export default function SignInScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="you@example.com"
-              placeholderTextColor="#6B7280"
+              placeholderTextColor="#93A69B"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -85,7 +85,7 @@ export default function SignInScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
-                placeholderTextColor="#6B7280"
+                placeholderTextColor="#93A69B"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}

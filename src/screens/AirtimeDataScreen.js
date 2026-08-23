@@ -126,7 +126,7 @@ export default function AirtimeDataScreen({ navigation: rawNav, route }) {
           value={phone}
           onChangeText={setPhone}
           placeholder="e.g. 08031234567"
-          placeholderTextColor="#6B7280"
+          placeholderTextColor="#93A69B"
           keyboardType="phone-pad"
           maxLength={11}
         />
@@ -202,7 +202,7 @@ export default function AirtimeDataScreen({ navigation: rawNav, route }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flex: 1, backgroundColor: '#0B2211' },
   content: { padding: 16, paddingBottom: 32 },
   label: {
     color: '#0B2211',
@@ -219,10 +219,10 @@ const styles = StyleSheet.create({
   providerBadge: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingVertical: 10,
     marginHorizontal: 3,
   },
@@ -250,10 +250,10 @@ const styles = StyleSheet.create({
   },
   typeToggle: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     padding: 4,
     marginBottom: 16,
   },
@@ -278,10 +278,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 12,
     color: '#0B2211',
@@ -302,10 +302,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   amountChip: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 16,
     paddingVertical: 9,
   },
@@ -322,10 +322,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   planSelector: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#1C4A2E',
     paddingHorizontal: 14,
     paddingVertical: 14,
   },
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   planPlaceholder: {
-    color: '#6B7280',
+    color: '#93A69B',
   },
   buyBtn: {
     backgroundColor: '#4CAF50',
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0F2A19',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 13,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F0',
+    borderBottomColor: '#1C4A2E',
   },
   modalRowTitle: {
     color: '#0B2211',
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   modalCancelText: {
-    color: '#6B7280',
+    color: '#93A69B',
     fontSize: 13,
     fontWeight: '600',
   },
