@@ -8,7 +8,7 @@
  * - All methods are async and fail-safe: errors reject cleanly so callers can
  *   show friendly messages instead of crashing.
  */
-import { storage } from './storage';
+import { storage } from '../lib/storage';
 import * as Crypto from 'expo-crypto';
 
 const KEYS = {
