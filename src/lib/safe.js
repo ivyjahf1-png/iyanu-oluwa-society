@@ -40,6 +40,7 @@ export const KNOWN_ROUTES = new Set([
   'PromotionalBanners',
   'CoopCredit',
   'Society',
+  'SocietyHub',
 ]);
 
 /**

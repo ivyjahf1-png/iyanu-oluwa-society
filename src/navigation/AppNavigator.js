@@ -139,6 +139,7 @@ export default function AppNavigator() {
           <Stack.Screen name="PromotionalBanners" component={BannerManagerScreen} />
           <Stack.Screen name="CoopCredit" component={CoopCreditScreen} />
           <Stack.Screen name="Society" component={SocietyScreen} />
+          <Stack.Screen name="SocietyHub" component={SocietyScreen} />
           <Stack.Screen name="More" component={MoreScreen} />
           <Stack.Screen name="Co-op Hub" component={CoopHubScreen} />
         </Stack.Navigator>

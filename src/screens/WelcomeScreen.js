@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -6,20 +6,48 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  Image,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function WelcomeScreen({ navigation }) {
+  // Hidden admin trigger: 5 taps on the logo within 2.5 seconds.
+  const [tapCount, setTapCount] = useState(0);
+  const tapTimer = useRef(null);
+
+  const handleLogoTap = () => {
+    setTapCount((prev) => {
+      const next = prev + 1;
+      if (next >= 5) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+        if (tapTimer.current) clearTimeout(tapTimer.current);
+        navigation.navigate('AdminSettings');
+        return 0;
+      }
+      return next;
+    });
+    // Auto-reset after 2.5s of inactivity
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(() => setTapCount(0), 2500);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor='#091813' barStyle="light-content" />
       <LinearGradient colors={['#091813', '#1A3A24']} style={styles.gradient}>
         <View style={styles.content}>
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoTxt}>Iyanu</Text>
-            <Text style={styles.logoTxt2}>Oluwa</Text>
-            <Text style={styles.logoSociety}>Society</Text>
-          </View>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleLogoTap}
+            style={styles.logoPlaceholder}
+          >
+            <Image
+              resizeMode="contain"
+              source={require('../../assets/logo.png')}
+              style={styles.welcomeLogo}
+            />
+          </TouchableOpacity>
 
           <Text style={styles.tagline}>
             Your cooperative financial platform
@@ -54,24 +82,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logoTxt: {
-    fontSize: 38,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 1,
-  },
-  logoTxt2: {
-    fontSize: 38,
-    fontWeight: '800',
-    color: '#10B981',
-    letterSpacing: 1,
-    marginTop: -6,
-  },
-  logoSociety: {
-    fontSize: 16,
-    color: '#A7F3D0',
-    letterSpacing: 3,
-    fontWeight: '600',
+  welcomeLogo: {
+    width: 140,
+    height: 140,
+    marginBottom: 24,
   },
   tagline: {
     color: '#A7F3D0',

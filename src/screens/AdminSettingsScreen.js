@@ -14,12 +14,25 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Landmark, CheckCircle2, Key, Megaphone, ChevronRight } from 'lucide-react-native';
+import { Landmark, CheckCircle2, Key, Megaphone, ChevronRight, ShieldCheck, Eye, EyeOff } from 'lucide-react-native';
+import * as LocalAuthentication from 'expo-local-authentication';
 import ScreenHeader from '../components/ScreenHeader';
 import { getAllSettings, saveSettings } from '../lib/supabase';
 import { useBankDetails } from '../context/BankContext';
 
 const ADMIN_SETTINGS_CACHE_KEY = '@admin_app_settings';
+const ADMIN_SECURITY_KEY = '@admin_security';
+
+// Simple deterministic hash so the admin passcode is never stored in plain text.
+function hashPasscode(code, salt) {
+  let h = 0x811c9dc5;
+  const input = salt + ':' + code;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return 'fnv:' + h.toString(16) + ':' + input.length;
+}
 
 export default function AdminSettingsScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
@@ -41,6 +54,11 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
   const [loanLimitMode, setLoanLimitMode] = useState('percent'); // 'percent' | 'fixed'
   const [loanLimitPercent, setLoanLimitPercent] = useState('200');
   const [loanLimitFixed, setLoanLimitFixed] = useState('');
+  // Security & Access Control (admin master passcode + biometric + startup lock)
+  const [adminPasscode, setAdminPasscode] = useState('');
+  const [showAdminPasscode, setShowAdminPasscode] = useState(false);
+  const [secBiometric, setSecBiometric] = useState(false);
+  const [secRequireStartup, setSecRequireStartup] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -81,6 +99,17 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     setLoanLimitMode(loadedData.loan_limit_mode || 'percent');
     setLoanLimitPercent(loadedData.loan_limit_percent || '200');
     setLoanLimitFixed(loadedData.loan_limit_fixed || '');
+    // Security & Access Control (persisted in @admin_security)
+    try {
+      const rawSec = await AsyncStorage.getItem(ADMIN_SECURITY_KEY);
+      if (rawSec) {
+        const sec = JSON.parse(rawSec);
+        setSecBiometric(Boolean(sec.biometricEnabled));
+        setSecRequireStartup(Boolean(sec.requireOnStartup));
+      }
+    } catch (e) {
+      console.warn('Admin security load failed:', e);
+    }
 
     setLoading(false);
   };
@@ -141,6 +170,84 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
       navigation.goBack();
     } else {
       Alert.alert('Save Failed', 'Could not save settings locally or online.');
+    }
+  };
+
+  /* ===== Security & Access Control handlers ===== */
+
+  // Save / update the master 6-digit admin passcode (hashed before storage).
+  const saveAdminPasscode = async () => {
+    if (!/^\d{6}$/.test(adminPasscode)) {
+      Alert.alert('Invalid Passcode', 'The master passcode must be exactly 6 digits.');
+      return;
+    }
+    try {
+      const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      const existingRaw = await AsyncStorage.getItem(ADMIN_SECURITY_KEY);
+      const sec = existingRaw ? JSON.parse(existingRaw) : {};
+      sec.salt = salt;
+      sec.passcodeHash = hashPasscode(adminPasscode, salt);
+      await AsyncStorage.setItem(ADMIN_SECURITY_KEY, JSON.stringify(sec));
+      setAdminPasscode('');
+      Alert.alert('Passcode Updated', 'The master admin passcode has been saved.');
+    } catch (e) {
+      console.warn('Admin passcode save failed:', e);
+      Alert.alert('Error', 'Could not save the admin passcode.');
+    }
+  };
+
+  // Enable/disable fingerprint / FaceID with native verification first.
+  const toggleBiometric = async (enabled) => {
+    if (!enabled) {
+      setSecBiometric(false);
+      try {
+        const rawSec = await AsyncStorage.getItem(ADMIN_SECURITY_KEY);
+        const sec = rawSec ? JSON.parse(rawSec) : {};
+        sec.biometricEnabled = false;
+        await AsyncStorage.setItem(ADMIN_SECURITY_KEY, JSON.stringify(sec));
+      } catch (e) { console.warn('biometric persist failed:', e); }
+      return;
+    }
+    try {
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!hasHardware || !enrolled) {
+        Alert.alert(
+          'Biometric Unavailable',
+          !hasHardware
+            ? 'This device does not support biometric authentication.'
+            : 'No fingerprint or face is enrolled on this device.'
+        );
+        return;
+      }
+      const res = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Confirm to enable biometric access',
+      });
+      if (!res.success) return; // keep toggle OFF on failure/cancel
+      setSecBiometric(true);
+      try {
+        const rawSec = await AsyncStorage.getItem(ADMIN_SECURITY_KEY);
+        const sec = rawSec ? JSON.parse(rawSec) : {};
+        sec.biometricEnabled = true;
+        await AsyncStorage.setItem(ADMIN_SECURITY_KEY, JSON.stringify(sec));
+      } catch (e) { console.warn('biometric persist failed:', e); }
+      Alert.alert('Biometric Enabled', 'Fingerprint / FaceID can now unlock admin access.');
+    } catch (e) {
+      console.warn('biometric error:', e);
+      Alert.alert('Error', 'Biometric authentication could not be completed.');
+    }
+  };
+
+  // Enforce passcode checks at app startup.
+  const toggleRequireStartup = async (enabled) => {
+    setSecRequireStartup(enabled);
+    try {
+      const rawSec = await AsyncStorage.getItem(ADMIN_SECURITY_KEY);
+      const sec = rawSec ? JSON.parse(rawSec) : {};
+      sec.requireOnStartup = enabled;
+      await AsyncStorage.setItem(ADMIN_SECURITY_KEY, JSON.stringify(sec));
+    } catch (e) {
+      console.warn('startup flag persist failed:', e);
     }
   };
 
@@ -320,6 +427,65 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           <ChevronRight size={18} color="#9CB8A6" />
         </TouchableOpacity>
 
+        {/* Security & Access Control */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <ShieldCheck size={18} color="#10B981" />
+            <Text style={styles.sectionTitle}>Security &amp; Access Control</Text>
+          </View>
+          <Text style={styles.sectionHint}>
+            Master passcode, biometric unlock, and startup enforcement for admin access.
+          </Text>
+
+          <Text style={styles.label}>Master Admin Passcode (6 digits)</Text>
+          <View style={styles.passcodeRow}>
+            <TextInput
+              style={[styles.input, styles.passcodeInput]}
+              value={adminPasscode}
+              onChangeText={(t) => setAdminPasscode(t.replace(/[^0-9]/g, ''))}
+              placeholder="Set / update 6-digit passcode"
+              placeholderTextColor="#526E63"
+              keyboardType="number-pad"
+              secureTextEntry={!showAdminPasscode}
+              maxLength={6}
+            />
+            <TouchableOpacity style={styles.eyeToggleBtn} onPress={() => setShowAdminPasscode(!showAdminPasscode)}>
+              {showAdminPasscode ? <EyeOff size={18} color="#8EA89D" /> : <Eye size={18} color="#8EA89D" />}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.switchRow}>
+            <View style={styles.switchTextGroup}>
+              <Text style={styles.switchTitle}>Enable Biometric Auth</Text>
+              <Text style={styles.switchSub}>Fingerprint / FaceID verification for admin access</Text>
+            </View>
+            <Switch
+              value={secBiometric}
+              onValueChange={toggleBiometric}
+              trackColor={{ false: '#172F27', true: '#10B981' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View style={styles.switchRow}>
+            <View style={styles.switchTextGroup}>
+              <Text style={styles.switchTitle}>Require Passcode on Startup</Text>
+              <Text style={styles.switchSub}>Enforce passcode check at login / app launch</Text>
+            </View>
+            <Switch
+              value={secRequireStartup}
+              onValueChange={toggleRequireStartup}
+              trackColor={{ false: '#172F27', true: '#10B981' }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <TouchableOpacity style={styles.saveBtn} onPress={saveAdminPasscode}>
+            <CheckCircle2 size={16} color="#FFFFFF" />
+            <Text style={styles.saveBtnText}>Save Passcode</Text>
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity
           style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
           onPress={saveSettingsHandler}
@@ -406,6 +572,23 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 2,
   },
+  passcodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0D1D18',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#172F27',
+    marginBottom: 14,
+  },
+  passcodeInput: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    marginBottom: 0,
+    color: '#FFFFFF',
+  },
+  eyeToggleBtn: { paddingHorizontal: 12 },
   saveBtn: {
     backgroundColor: '#10B981',
     borderRadius: 12,

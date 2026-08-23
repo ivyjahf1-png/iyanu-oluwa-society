@@ -143,13 +143,23 @@ export default function HomeScreen({ navigation: rawNav }) {
             </View>
           </View>
 
-          {/* Available Balance Card — metallic diagonal gradient */}
+          {/* Available Balance Card — dual-zone metallic split */}
           <LinearGradient
-            colors={GRADIENTS.metallicCard}
+            colors={['#0B1B15', '#162C24']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.metallicCard}
           >
+            {/* Bright metallic silver zone — sharp diagonal transition */}
+            <LinearGradient
+              colors={['#99B0A6', '#E0E8E4']}
+              start={{ x: 0, y: 1 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.silverZone}
+              pointerEvents="none"
+            />
+
+            {/* ===== LEFT: Balance & primary action ===== */}
             <View style={styles.cardLeft}>
               <Text style={styles.balanceLabel}>Available Balance</Text>
               <Text style={styles.balanceAmount}>
@@ -164,11 +174,14 @@ export default function HomeScreen({ navigation: rawNav }) {
               </TouchableOpacity>
             </View>
 
+            {/* ===== RIGHT: Crest emblem & toggle action ===== */}
             <View style={styles.cardRight}>
-              <View style={styles.watermarkContainer}>
-                <Landmark size={36} color="#A0AEC0" />
-                <Text style={styles.watermarkTitle}>Iyanu Oluwa Society</Text>
-                <Text style={styles.watermarkSub}>Community</Text>
+              <View style={styles.crestWrap}>
+                <Image
+                  source={require('../../assets/logo.png')}
+                  style={styles.crestLogo}
+                />
+                <Text style={styles.watermarkTitle}>Iyanu Oluwa Society Community</Text>
               </View>
 
               <TouchableOpacity
@@ -661,17 +674,35 @@ const styles = StyleSheet.create({
   // Available Balance Card — distinct neon green outline so it stands apart
   metallicCard: {
     borderRadius: 20,
-    padding: 18,
-    marginTop: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#2A3E37',
+    borderTopWidth: 1.5,
+    borderTopColor: 'rgba(255, 255, 255, 0.45)',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+    overflow: 'hidden',
   },
-  cardLeft: { justifyContent: 'space-between' },
+  shineOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  // Bright metallic silver right zone — sharp angled edge
+  silverZone: {
+    position: 'absolute',
+    top: -40,
+    bottom: -40,
+    right: -50,
+    width: '58%',
+    transform: [{ rotate: '14deg' }],
+  },
+  cardLeft: { zIndex: 1, justifyContent: 'space-between' },
   balanceLabel: {
-    color: '#CBD5E1',
-    fontSize: 13,
+    color: '#BCCAC3',
+    fontSize: 14,
     fontWeight: '500',
   },
   balanceAmount: {
@@ -681,12 +712,13 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   addFundBtn: {
-    backgroundColor: '#0D4035',
+    backgroundColor: '#0C503D',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 9,
+    paddingHorizontal: 16,
     borderRadius: 20,
     alignSelf: 'flex-start',
   },
@@ -695,18 +727,30 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
   },
-  cardRight: { alignItems: 'flex-end', justifyContent: 'space-between' },
-  watermarkContainer: { alignItems: 'center', opacity: 0.75 },
-  watermarkTitle: { color: '#E2E8F0', fontSize: 10, fontWeight: '600', marginTop: 4 },
-  watermarkSub: { color: COLORS.textSecondary, fontSize: 9 },
+  crestWrap: {
+    alignItems: 'center',
+  },
+  crestLogo: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+    marginBottom: 6,
+  },
+  cardRight: {
+    zIndex: 1,
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
   showBalanceBtn: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingVertical: 7,
     paddingHorizontal: 12,
-    borderRadius: 16,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#FFFFFF',
   },

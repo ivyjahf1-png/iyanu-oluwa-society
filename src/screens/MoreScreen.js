@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, SafeAreaView, StatusBar, TouchableOpacity } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Menu, Settings, ChevronRight, CheckCircle2, PackageOpen, Megaphone, Users, Trash2 } from 'lucide-react-native';
+import { Menu, Settings, ChevronRight, CheckCircle2, PackageOpen, Megaphone, Users, Trash2, Award } from 'lucide-react-native';
 import { Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
@@ -103,6 +103,21 @@ export default function MoreScreen({ navigation: rawNav }) {
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>User Management</Text>
             <Text style={styles.adminSub}>Monitor members, reset passwords & suspend accounts</Text>
+          </View>
+          <ChevronRight size={18} color="#9CB8A6" />
+        </TouchableOpacity>
+
+        {/* Member: Society Hub */}
+        <TouchableOpacity
+          style={styles.adminRow}
+          onPress={() => navigation.navigate('SocietyHub')}
+        >
+          <View style={[styles.adminIcon, { backgroundColor: '#10B981' }]}>
+            <Award size={20} color="#FFFFFF" />
+          </View>
+          <View style={styles.adminTextGroup}>
+            <Text style={styles.adminTitle}>Society Hub</Text>
+            <Text style={styles.adminSub}>Membership status & community activities</Text>
           </View>
           <ChevronRight size={18} color="#9CB8A6" />
         </TouchableOpacity>

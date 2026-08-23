@@ -19,6 +19,7 @@
     "expo-clipboard": "^57.0.1",
     "expo-crypto": "~15.0.9",
     "expo-document-picker": "^57.0.1",
+    "expo-haptics": "^57.0.1",
     "expo-linear-gradient": "^57.0.1",
     "expo-local-authentication": "^57.0.2",
     "expo-notifications": "^0.32.17",
