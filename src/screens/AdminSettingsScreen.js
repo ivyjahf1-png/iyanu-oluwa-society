@@ -146,7 +146,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 
   return (
         <SafeAreaView style={{ flex: 1 }}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="light-content" backgroundColor='#091813' />
       <ScreenHeader
         title="Admin Settings"
         subtitle="Gateway credentials & cooperative bank account"
@@ -162,7 +162,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         {/* Flutterwave credentials */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
-            <Key size={18} color="#4CAF50" />
+            <Key size={18} color="#10B981" />
             <Text style={styles.sectionTitle}>Flutterwave Gateway</Text>
           </View>
 
@@ -172,7 +172,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={flwPublicKey}
             onChangeText={setFlwPublicKey}
             placeholder="FLWPUBK-..."
-            placeholderTextColor="#93A69B"
+            placeholderTextColor="#526E63"
             autoCapitalize="none"
           />
 
@@ -182,7 +182,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={flwSecretKey}
             onChangeText={setFlwSecretKey}
             placeholder="FLWSECK-..."
-            placeholderTextColor="#93A69B"
+            placeholderTextColor="#526E63"
             autoCapitalize="none"
             secureTextEntry
           />
@@ -193,7 +193,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={flwSecretHash}
             onChangeText={setFlwSecretHash}
             placeholder="Webhook verification hash"
-            placeholderTextColor="#93A69B"
+            placeholderTextColor="#526E63"
             autoCapitalize="none"
             secureTextEntry
           />
@@ -206,7 +206,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             <Switch
               value={passFeesToUser}
               onValueChange={setPassFeesToUser}
-              trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
+              trackColor={{ false: '#172F27', true: '#10B981' }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -215,7 +215,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         {/* Cooperative bank details */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
-            <Landmark size={18} color="#4CAF50" />
+            <Landmark size={18} color="#10B981" />
             <Text style={styles.sectionTitle}>Cooperative Bank Account</Text>
           </View>
           <Text style={styles.sectionHint}>
@@ -228,7 +228,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={bankNameInput}
             onChangeText={setBankNameInput}
             placeholder="e.g. Zenith Bank, First Bank, Wema Bank"
-            placeholderTextColor="#93A69B"
+            placeholderTextColor="#526E63"
           />
 
           <Text style={styles.label}>Account Number</Text>
@@ -237,7 +237,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={accountNumberInput}
             onChangeText={setAccountNumberInput}
             placeholder="e.g. 1234567890"
-            placeholderTextColor="#93A69B"
+            placeholderTextColor="#526E63"
             keyboardType="number-pad"
             maxLength={10}
           />
@@ -248,14 +248,14 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             value={accountNameInput}
             onChangeText={setAccountNameInput}
             placeholder="e.g. Iyanu Oluwa Society"
-            placeholderTextColor="#93A69B"
+            placeholderTextColor="#526E63"
           />
         </View>
 
         {/* Loan Eligibility — admin-controlled limit (Nigerian coop rule) */}
         <View style={styles.loanSection}>
           <View style={styles.loanHeader}>
-            <Landmark size={18} color="#4CAF50" />
+            <Landmark size={18} color="#10B981" />
             <Text style={styles.sectionTitle}>Loan Eligibility</Text>
           </View>
           <Text style={styles.sectionHint}>
@@ -289,7 +289,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
                 value={loanLimitPercent}
                 onChangeText={(t) => setLoanLimitPercent(t.replace(/[^0-9]/g, ''))}
                 placeholder="e.g. 200 (% of total savings)"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
                 keyboardType="number-pad"
               />
             </>
@@ -301,7 +301,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
                 value={loanLimitFixed}
                 onChangeText={(t) => setLoanLimitFixed(t.replace(/[^0-9.]/g, ''))}
                 placeholder="e.g. 500000"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
                 keyboardType="decimal-pad"
               />
             </>
@@ -312,7 +312,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           style={styles.bannerLink}
           onPress={() => navigation.navigate('PromotionalBanners')}
         >
-          <Megaphone size={18} color="#4CAF50" />
+          <Megaphone size={18} color="#10B981" />
           <View style={{ flex: 1 }}>
             <Text style={styles.bannerLinkTitle}>Promotional Banners</Text>
             <Text style={styles.bannerLinkSub}>Create photo-only or full advert banner popups</Text>
@@ -336,7 +336,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#0B2211' 
+    backgroundColor: '#091813' 
   },
   scrollView: { 
     flex: 1 
@@ -347,11 +347,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   sectionCard: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     marginBottom: 16,
   },
   sectionHeaderRow: {
@@ -361,29 +361,29 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
   },
   sectionHint: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginBottom: 10,
   },
   label: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     marginBottom: 14,
   },
@@ -397,18 +397,18 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   switchTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
   switchSub: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginTop: 2,
   },
   saveBtn: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 14,
+    backgroundColor: '#10B981',
+    borderRadius: 12,
     paddingVertical: 15,
     flexDirection: 'row',
     justifyContent: 'center',
@@ -426,13 +426,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   loanSection: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 14,
     padding: 14,
     marginTop: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
   },
   loanHeader: {
     flexDirection: 'row',
@@ -442,20 +442,20 @@ const styles = StyleSheet.create({
   },
   modeRow: {
     flexDirection: 'row',
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#172F27',
     borderRadius: 10,
     padding: 4,
     marginVertical: 10,
   },
   modeBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
-  modeBtnActive: { backgroundColor: '#4CAF50' },
-  modeBtnText: { color: '#93A69B', fontSize: 12, fontWeight: '600' },
+  modeBtnActive: { backgroundColor: '#10B981' },
+  modeBtnText: { color: '#8EA89D', fontSize: 12, fontWeight: '600' },
   modeBtnTextActive: { color: '#FFFFFF' },
   bannerLink: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#F0FDF4', borderRadius: 12, padding: 14,
-    borderWidth: 1, borderColor: '#BBF7D0', marginBottom: 16,
+    backgroundColor: '#132620', borderRadius: 12, padding: 14,
+    borderWidth: 1, borderColor: '#172F27', marginBottom: 16,
   },
-  bannerLinkTitle: { color: '#0B2211', fontSize: 14, fontWeight: '600' },
-  bannerLinkSub: { color: '#93A69B', fontSize: 11, marginTop: 2 },
+  bannerLinkTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  bannerLinkSub: { color: '#8EA89D', fontSize: 11, marginTop: 2 },
 });

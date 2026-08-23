@@ -39,7 +39,7 @@ export default function SavingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
       <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollContent, styles.grow]} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
@@ -66,7 +66,7 @@ export default function SavingsScreen() {
           </Text>
           <View style={styles.badgeRow}>
             <View style={styles.interestBadge}>
-              <TrendingUp color="#4CAF50" size={14} />
+              <TrendingUp color="#10B981" size={14} />
               <Text style={styles.interestText}>+8.5% p.a. Dividend</Text>
             </View>
           </View>
@@ -146,7 +146,7 @@ export default function SavingsScreen() {
             <View style={styles.historyItem}>
               <View style={styles.historyLeft}>
                 <View style={styles.histIconWrapper}>
-                  <PiggyBank color="#4CAF50" size={18} />
+                  <PiggyBank color="#10B981" size={18} />
                 </View>
                 <View>
                   <Text style={styles.histTitle}>No contributions yet</Text>
@@ -160,7 +160,7 @@ export default function SavingsScreen() {
               <View key={t.id} style={styles.historyItem}>
                 <View style={styles.historyLeft}>
                   <View style={styles.histIconWrapper}>
-                    <PiggyBank color="#4CAF50" size={18} />
+                    <PiggyBank color="#10B981" size={18} />
                   </View>
                   <View>
                     <Text style={styles.histTitle}>{t.label}</Text>
@@ -183,11 +183,11 @@ export default function SavingsScreen() {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   scrollContent: { padding: 16 },
   headerTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
   headerSub: { color: '#9CB8A6', fontSize: 12, marginBottom: 16, marginTop: 4 },
-  balanceCard: { backgroundColor: '#123B24', borderRadius: 16, padding: 20, marginBottom: 16 },
+  balanceCard: { backgroundColor: '#132620', borderRadius: 16, padding: 20, marginBottom: 16 },
   balanceLabel: { color: '#D3F99D', fontSize: 13 },
   balanceHeaderRow: {
     flexDirection: 'row',
@@ -198,33 +198,33 @@ const styles = StyleSheet.create({
   balanceAmount: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold', marginVertical: 6 },
   badgeRow: { flexDirection: 'row', marginBottom: 16 },
   interestBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, gap: 4 },
-  interestText: { color: '#4CAF50', fontSize: 11, fontWeight: 'bold' },
+  interestText: { color: '#10B981', fontSize: 11, fontWeight: 'bold' },
   actionRow: { flexDirection: 'row', gap: 12 },
-  primaryBtn: { flex: 1, backgroundColor: '#4CAF50', paddingVertical: 12, borderRadius: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },
+  primaryBtn: { flex: 1, backgroundColor: '#10B981', paddingVertical: 12, borderRadius: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },
   btnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
-  secondaryBtn: { flex: 1, backgroundColor: '#0F2A19', paddingVertical: 12, borderRadius: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#1C4A2E' },
+  secondaryBtn: { flex: 1, backgroundColor: '#0D1D18', paddingVertical: 12, borderRadius: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#172F27' },
   secBtnText: { color: '#A7F3D0', fontWeight: 'bold', fontSize: 13 },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#0F2A19', borderRadius: 10, padding: 4, marginBottom: 16 },
+  tabContainer: { flexDirection: 'row', backgroundColor: '#0D1D18', borderRadius: 10, padding: 4, marginBottom: 16 },
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
-  activeTab: { backgroundColor: '#123B24' },
+  activeTab: { backgroundColor: '#132620' },
   tabText: { color: '#9CB8A6', fontSize: 12, fontWeight: '600' },
   activeTabText: { color: '#FFFFFF' },
-  infoCard: { backgroundColor: '#0F2A19', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#1C4A2E', marginBottom: 20 },
+  infoCard: { backgroundColor: '#0D1D18', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#172F27', marginBottom: 20 },
   infoRow: { flexDirection: 'row', alignItems: 'center' },
-  iconCircle: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#1C4A2E', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  iconCircle: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#172F27', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   infoTextGroup: { flex: 1 },
   infoTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
   infoSub: { color: '#9CB8A6', fontSize: 11, marginTop: 2 },
   infoAmount: { color: '#A7F3D0', fontSize: 14, fontWeight: 'bold' },
-  statusBadgeText: { color: '#4CAF50', fontSize: 11, fontWeight: 'bold', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  statusBadgeText: { color: '#10B981', fontSize: 11, fontWeight: 'bold', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   divider: { height: 1, backgroundColor: '#1B3D28', marginVertical: 12 },
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionHeader: { color: '#D3F99D', fontSize: 15, fontWeight: '700' },
-  historyList: { backgroundColor: '#0F2A19', borderRadius: 14, borderWidth: 1, borderColor: '#1C4A2E', paddingHorizontal: 14 },
+  historyList: { backgroundColor: '#0D1D18', borderRadius: 14, borderWidth: 1, borderColor: '#172F27', paddingHorizontal: 14 },
   historyItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#1B3D28' },
   historyLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   histIconWrapper: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center' },
   histTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '500' },
   histDate: { color: '#9CB8A6', fontSize: 10, marginTop: 2 },
-  histAmount: { color: '#4CAF50', fontSize: 13, fontWeight: 'bold' },
+  histAmount: { color: '#10B981', fontSize: 13, fontWeight: 'bold' },
 });

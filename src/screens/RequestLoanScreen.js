@@ -106,7 +106,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="light-content" backgroundColor='#091813' />
       <ScreenHeader
         title="Request Loan"
         subtitle="Apply for member credit with flexible repayment"
@@ -121,7 +121,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
       >
         {/* Eligibility */}
         <View style={styles.eligibleCard}>
-          <PiggyBank size={20} color="#4CAF50" />
+          <PiggyBank size={20} color="#10B981" />
           <View style={styles.eligibleTextGroup}>
             <Text style={styles.eligibleLabel}>Max Eligible Loan Limit</Text>
             <Text style={styles.eligibleValue}>₦{fmt(maxEligible)}</Text>
@@ -138,7 +138,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
             value={amount}
             onChangeText={setAmount}
             placeholder="0.00"
-            placeholderTextColor="#93A69B"
+            placeholderTextColor="#526E63"
             keyboardType="decimal-pad"
           />
         </View>
@@ -187,7 +187,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
           value={bvn}
           onChangeText={setBvn}
           placeholder="11-digit BVN"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
           keyboardType="number-pad"
           maxLength={11}
         />
@@ -199,7 +199,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
           value={purpose}
           onChangeText={setPurpose}
           placeholder="e.g. School fees, business capital..."
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
           multiline
           numberOfLines={3}
         />
@@ -254,7 +254,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#0B2211' 
+    backgroundColor: '#091813' 
   },
   scrollView: { 
     flex: 1 
@@ -267,10 +267,10 @@ const styles = StyleSheet.create({
   eligibleCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     padding: 14,
     marginBottom: 18,
   },
@@ -279,22 +279,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eligibleLabel: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
   },
   eligibleValue: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 19,
     fontWeight: 'bold',
     marginTop: 2,
   },
   eligibleHint: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 10,
     marginTop: 2,
   },
   label: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
@@ -303,22 +303,22 @@ const styles = StyleSheet.create({
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     marginBottom: 16,
   },
   nairaPrefix: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 18,
     fontWeight: 'bold',
     marginRight: 6,
   },
   amountInput: {
     flex: 1,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '600',
     paddingVertical: 13,
@@ -330,19 +330,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tenureChip: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 15,
     paddingVertical: 9,
   },
   tenureChipActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
   },
   tenureChipText: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -351,10 +351,10 @@ const styles = StyleSheet.create({
   },
   freqToggle: {
     flexDirection: 'row',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     padding: 4,
     marginBottom: 16,
   },
@@ -365,10 +365,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   freqBtnActive: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
   },
   freqBtnText: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -376,13 +376,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   input: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     marginBottom: 14,
   },
@@ -391,13 +391,13 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   summaryCard: {
-    backgroundColor: '#0B2211',
+    backgroundColor: '#091813',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
   },
   summaryTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
@@ -422,12 +422,12 @@ const styles = StyleSheet.create({
     marginVertical: 6,
   },
   summaryTotalLabel: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: 'bold',
   },
   summaryTotalValue: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 15,
     fontWeight: 'bold',
   },
@@ -444,7 +444,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   installmentValue: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 4,
@@ -459,22 +459,22 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxActive: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
   },
   termsText: {
     flex: 1,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 12,
     lineHeight: 17,
   },
   submitBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 14,
     paddingVertical: 15,
     flexDirection: 'row',

@@ -100,9 +100,9 @@ export default function CooperativeBankSettings() {
   if (loading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
+        <StatusBar backgroundColor='#091813' barStyle="light-content" />
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#10B981" />
         </View>
       </SafeAreaView>
     );
@@ -110,7 +110,7 @@ export default function CooperativeBankSettings() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -122,7 +122,7 @@ export default function CooperativeBankSettings() {
           showsVerticalScrollIndicator={true}
         >
           <View style={styles.header}>
-            <Building2 size={24} color="#4CAF50" />
+            <Building2 size={24} color="#10B981" />
             <Text style={styles.headerTitle}>Cooperative Bank Account</Text>
           </View>
 
@@ -136,7 +136,7 @@ export default function CooperativeBankSettings() {
             <TextInput
               style={styles.input}
               placeholder="e.g. Zenith Bank, First Bank, Wema Bank"
-              placeholderTextColor="#7E9086"
+              placeholderTextColor="#526E63"
               value={form.bankName}
               onChangeText={(text) => handleChange("bankName", text)}
               autoCapitalize="words"
@@ -149,7 +149,7 @@ export default function CooperativeBankSettings() {
             <TextInput
               style={styles.input}
               placeholder="e.g. 1234567890"
-              placeholderTextColor="#7E9086"
+              placeholderTextColor="#526E63"
               value={form.accountNumber}
               onChangeText={(text) => handleChange("accountNumber", text.replace(/[^0-9]/g, ""))}
               keyboardType="number-pad"
@@ -163,7 +163,7 @@ export default function CooperativeBankSettings() {
             <TextInput
               style={styles.input}
               placeholder="e.g. Iyanu Oluwa Society"
-              placeholderTextColor="#7E9086"
+              placeholderTextColor="#526E63"
               value={form.accountName}
               onChangeText={(text) => handleChange("accountName", text)}
               autoCapitalize="words"
@@ -195,12 +195,12 @@ export default function CooperativeBankSettings() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#0B2211",
+    backgroundColor: '#091813',
   },
   container: {
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: "#0F2A19",
+    backgroundColor: '#0D1D18',
   },
   center: {
     flex: 1,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: "#93A69B",
+    color: '#8EA89D',
     marginBottom: 24,
   },
   field: {
@@ -229,22 +229,22 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#C9D6CE",
+    color: '#8EA89D',
     marginBottom: 6,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#1C4A2E",
+    borderColor: '#172F27',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     color: "#FFFFFF",
-    backgroundColor: "#0F2A19",
+    backgroundColor: '#0D1D18',
   },
   saveButton: {
     marginTop: 12,
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#10B981",
     borderRadius: 14,
     paddingVertical: 16,
     flexDirection: "row",

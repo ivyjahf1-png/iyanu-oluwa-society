@@ -12,8 +12,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function WelcomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
-      <LinearGradient colors={['#0B2211', '#1A3A24']} style={styles.gradient}>
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
+      <LinearGradient colors={['#091813', '#1A3A24']} style={styles.gradient}>
         <View style={styles.content}>
           <View style={styles.logoPlaceholder}>
             <Text style={styles.logoTxt}>Iyanu</Text>
@@ -47,7 +47,7 @@ export default function WelcomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   gradient: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { width: '100%', alignItems: 'center', paddingHorizontal: 24 },
   logoPlaceholder: {
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   logoTxt2: {
     fontSize: 38,
     fontWeight: '800',
-    color: '#4CAF50',
+    color: '#10B981',
     letterSpacing: 1,
     marginTop: -6,
   },
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   },
   btnGroup: { width: '100%', gap: 14 },
   primaryBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
   },
   secondaryBtnTxt: {
     color: '#A7F3D0',

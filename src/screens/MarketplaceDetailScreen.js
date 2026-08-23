@@ -54,7 +54,7 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
 
       {/* Top bar */}
       <View style={styles.topBar}>
@@ -84,7 +84,7 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
           <MapPin size={14} color="#9CB8A6" />
           <Text style={styles.location}>{item.location}</Text>
           <View style={styles.verifiedBadge}>
-            <CheckCircle2 size={14} color="#4CAF50" />
+            <CheckCircle2 size={14} color="#10B981" />
             <Text style={styles.verifiedText}>Member Verified</Text>
           </View>
         </View>
@@ -95,7 +95,7 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
 
         {/* Trust card */}
         <View style={styles.trustCard}>
-          <ShieldCheck color="#4CAF50" size={20} />
+          <ShieldCheck color="#10B981" size={20} />
           <View style={styles.trustTextGroup}>
             <Text style={styles.trustTitle}>Co-op Buyer Protection</Text>
             <Text style={styles.trustSub}>Inspection & escrow available for all member transactions.</Text>
@@ -113,27 +113,27 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0F2A19', justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0D1D18', justifyContent: 'center', alignItems: 'center' },
   topBarTitle: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold', flex: 1, marginLeft: 12 },
-  favBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0F2A19', justifyContent: 'center', alignItems: 'center' },
+  favBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0D1D18', justifyContent: 'center', alignItems: 'center' },
   content: { paddingHorizontal: 16, paddingBottom: 24 },
-  media: { height: 200, borderRadius: 20, backgroundColor: '#123B24', justifyContent: 'center', alignItems: 'center', marginBottom: 16, overflow: 'hidden' },
+  media: { height: 200, borderRadius: 20, backgroundColor: '#132620', justifyContent: 'center', alignItems: 'center', marginBottom: 16, overflow: 'hidden' },
   mediaImage: { width: '100%', height: '100%' },
   title: { color: '#FFFFFF', fontSize: 19, fontWeight: 'bold', marginBottom: 6 },
   price: { color: '#A7F3D0', fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
   locationRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 18, flexWrap: 'wrap' },
   location: { color: '#9CB8A6', fontSize: 12, marginRight: 8 },
   verifiedBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, gap: 4 },
-  verifiedText: { color: '#4CAF50', fontSize: 11, fontWeight: 'bold' },
+  verifiedText: { color: '#10B981', fontSize: 11, fontWeight: 'bold' },
   sectionHeader: { color: '#D3F99D', fontSize: 14, fontWeight: '700', marginBottom: 8 },
   description: { color: '#FFFFFF', fontSize: 14, lineHeight: 21, marginBottom: 16 },
-  trustCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0F2A19', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#1C4A2E', marginBottom: 16 },
+  trustCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0D1D18', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#172F27', marginBottom: 16 },
   trustTextGroup: { flex: 1, marginLeft: 10 },
   trustTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
   trustSub: { color: '#9CB8A6', fontSize: 11, marginTop: 2 },
-  contactBtn: { backgroundColor: '#4CAF50', borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-  contactedBtn: { backgroundColor: '#1C4A2E' },
+  contactBtn: { backgroundColor: '#10B981', borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  contactedBtn: { backgroundColor: '#172F27' },
   contactText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },
 });

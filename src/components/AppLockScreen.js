@@ -76,18 +76,18 @@ export default function AppLockScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
-      <LinearGradient colors={['#0B2211', '#1A3A24']} style={styles.gradient}>
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
+      <LinearGradient colors={['#091813', '#1A3A24']} style={styles.gradient}>
         <View style={styles.body}>
           <View style={styles.logoRow}>
-            <Lock size={22} color="#4CAF50" />
+            <Lock size={22} color="#10B981" />
             <Text style={styles.logoText}>Iyanu Oluwa Society</Text>
           </View>
 
           {mode === 'biometric' && (
             <>
               <TouchableOpacity style={styles.bioBtn} onPress={tryBiometric} activeOpacity={0.8}>
-                <Fingerprint size={64} color="#4CAF50" />
+                <Fingerprint size={64} color="#10B981" />
               </TouchableOpacity>
               <Text style={styles.title}>Unlock with Biometrics</Text>
               <Text style={styles.subtitle}>Use fingerprint or Face ID to continue</Text>
@@ -126,7 +126,7 @@ export default function AppLockScreen() {
                   <Delete size={22} color="#A7F3D0" />
                 </TouchableOpacity>
               </View>
-              {checking && <ActivityIndicator color="#4CAF50" style={{ marginTop: 10 }} />}
+              {checking && <ActivityIndicator color="#10B981" style={{ marginTop: 10 }} />}
               <TouchableOpacity onPress={() => setMode('password')}>
                 <Text style={styles.link}>Use password instead</Text>
               </TouchableOpacity>
@@ -176,7 +176,7 @@ function PasswordFallback() {
       <TextInput
         style={styles.input}
         placeholder="Email"
-        placeholderTextColor="#93A69B"
+        placeholderTextColor="#526E63"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -185,7 +185,7 @@ function PasswordFallback() {
       <TextInput
         style={styles.input}
         placeholder="Password"
-        placeholderTextColor="#93A69B"
+        placeholderTextColor="#526E63"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -206,7 +206,7 @@ function PasswordFallback() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   gradient: { flex: 1 },
   body: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 32 },
@@ -215,17 +215,17 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#172F27',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
   title: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
   subtitle: { color: '#A7F3D0', fontSize: 13, marginTop: 6, marginBottom: 16 },
-  link: { color: '#4CAF50', fontSize: 13, fontWeight: '600', marginTop: 18 },
+  link: { color: '#10B981', fontSize: 13, fontWeight: '600', marginTop: 18 },
   dots: { flexDirection: 'row', gap: 10, marginVertical: 12 },
-  dotFilled: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#4CAF50' },
-  dotEmpty: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#1C4A2E' },
+  dotFilled: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#10B981' },
+  dotEmpty: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#172F27' },
   error: { color: '#F87171', fontSize: 12, marginTop: 6 },
   keypad: {
     flexDirection: 'row',
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     width: 76,
     height: 60,
     borderRadius: 14,
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#172F27',
     justifyContent: 'center',
     alignItems: 'center',
     margin: 5,
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   keyText: { color: '#FFFFFF', fontSize: 22, fontWeight: '600' },
   passwordCard: { width: '100%' },
   input: {
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#172F27',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   signInBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   signInText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
   signUpLink: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 10,
     fontWeight: '400',
     textAlign: 'center',

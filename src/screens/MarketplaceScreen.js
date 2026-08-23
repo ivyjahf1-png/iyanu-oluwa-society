@@ -63,7 +63,7 @@ export default function MarketplaceScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
 
       {/* Top bar */}
       <View style={styles.topBar}>
@@ -81,7 +81,7 @@ export default function MarketplaceScreen({ navigation: rawNav }) {
           value={query}
           onChangeText={setQuery}
           placeholder="Search land, cars, items..."
-          placeholderTextColor="#9CB8A6"
+          placeholderTextColor="#526E63"
         />
       </View>
 
@@ -161,7 +161,7 @@ export default function MarketplaceScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#0B2211' 
+    backgroundColor: '#091813' 
   },
   topBar: { 
     flexDirection: 'row', 
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     width: 40, 
     height: 40, 
     borderRadius: 20, 
-    backgroundColor: '#0F2A19', 
+    backgroundColor: '#0D1D18', 
     justifyContent: 'center', 
     alignItems: 'center' 
   },
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
   searchBar: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    backgroundColor: '#0F2A19', 
+    backgroundColor: '#0D1D18', 
     borderRadius: 12, 
     marginHorizontal: 16, 
     paddingHorizontal: 12, 
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     marginBottom: 8 
   },
   chip: { 
-    backgroundColor: '#0F2A19', 
+    backgroundColor: '#0D1D18', 
     borderRadius: 16, 
     paddingHorizontal: 12, 
     paddingVertical: 6, 
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     marginBottom: 6 
   },
   chipActive: { 
-    backgroundColor: '#4CAF50' 
+    backgroundColor: '#10B981' 
   },
   chipText: { 
     color: '#9CB8A6', 
@@ -243,16 +243,16 @@ const styles = StyleSheet.create({
   },
   card: { 
     width: '48%', 
-    backgroundColor: '#0F2A19', 
+    backgroundColor: '#0D1D18', 
     borderRadius: 14, 
     borderWidth: 1, 
-    borderColor: '#1C4A2E', 
+    borderColor: '#172F27', 
     marginBottom: 10, 
     overflow: 'hidden' 
   },
   cardMedia: { 
     height: 110, 
-    backgroundColor: '#123B24', 
+    backgroundColor: '#132620', 
     justifyContent: 'center', 
     alignItems: 'center' 
   },

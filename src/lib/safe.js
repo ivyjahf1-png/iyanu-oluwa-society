@@ -7,8 +7,12 @@ import { Alert } from 'react-native';
 export const KNOWN_ROUTES = new Set([
   'MainTabs',
   'Home',
+  'Dashboard',
   'Savings',
+  'Savings Hub',
+  'SavingsHub',
   'Co-op Hub',
+  'Co-op Credit',
   'More',
   'Welcome',
   'SignIn',
@@ -34,6 +38,8 @@ export const KNOWN_ROUTES = new Set([
   'Announcements',
   'AdminUserManagement',
   'PromotionalBanners',
+  'CoopCredit',
+  'Society',
 ]);
 
 /**

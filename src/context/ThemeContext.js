@@ -26,7 +26,11 @@ const DARK = {
   accentText: '#A7F3D0',
 };
 
-const ThemeContext = createContext(null);
+export const ThemeContext = createContext({
+  isDark: true,
+  mode: 'dark',
+  colors: { ...DARK },
+});
 
 export function ThemeProvider({ children }) {
   const { user } = useUser();
@@ -69,7 +73,12 @@ export function ThemeProvider({ children }) {
 }
 
 export function useAppTheme() {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error('useAppTheme must be used inside <ThemeProvider>');
+  // Default context value guarantees `colors` is never undefined, even if a
+  // consumer renders outside the provider.
+  const ctx = useContext(ThemeContext) || {
+    isDark: true,
+    mode: 'dark',
+    colors: { ...DARK },
+  };
   return ctx;
 }

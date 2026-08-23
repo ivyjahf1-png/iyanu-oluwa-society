@@ -19,6 +19,8 @@ import {
   Lock,
   User,
   KeyRound,
+  Eye,
+  EyeOff,
   Sun,
   Moon,
   Sparkles,
@@ -48,6 +50,8 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
   const [biometric, setBiometric] = useState(Boolean(user?.biometricEnabled));
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [transferPin, setTransferPin] = useState(user?.transferPin || '');
   const [userBankName, setUserBankName] = useState(user?.userBankName || '');
   const [userAccountNumber, setUserAccountNumber] = useState(user?.userAccountNumber || '');
@@ -183,7 +187,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
                   return `rgba(255,255,255,${alpha})`;
     }
     const currentHour = new Date().getHours();
-    return currentHour >= 18 || currentHour < 6 ? '#0B2211' : '#FFFFFF';
+    return currentHour >= 18 || currentHour < 6 ? '#091813' : '#FFFFFF';
   };
 
   // Helper function to derive preview text color
@@ -191,9 +195,9 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
     if (themeMode === 'dark') return '#FFFFFF';
     if (themeMode === 'automatic') {
       const currentHour = new Date().getHours();
-      return currentHour >= 18 || currentHour < 6 ? '#FFFFFF' : '#0B2211';
+      return currentHour >= 18 || currentHour < 6 ? '#FFFFFF' : '#091813';
     }
-    return '#0B2211';
+    return '#091813';
   };
 
   // Helper function to render text string cleanly
@@ -207,7 +211,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="light-content" backgroundColor='#091813' />
       <ScreenHeader
         title="Profile Settings"
         subtitle="Manage your account & security"
@@ -225,7 +229,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
             {user?.avatarUri ? (
               <SafeImage source={{ uri: user.avatarUri }} style={styles.avatarImage} />
             ) : (
-              <User size={40} color="#4CAF50" />
+              <User size={40} color="#10B981" />
             )}
             <View style={styles.cameraBadge}>
               <Camera size={13} color="#FFFFFF" />
@@ -241,14 +245,14 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={fullName}
           onChangeText={setFullName}
           placeholder="Full name"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
         />
         <TextInput
           style={styles.input}
           value={email}
           onChangeText={setEmail}
           placeholder="Email address"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
           autoCapitalize="none"
           keyboardType="email-address"
         />
@@ -257,7 +261,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={phone}
           onChangeText={setPhone}
           placeholder="Phone number"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
           keyboardType="phone-pad"
           maxLength={11}
         />
@@ -270,7 +274,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           <Switch
             value={methods.biometric}
             onValueChange={handleBiometricToggle}
-            trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
+            trackColor={{ false: '#172F27', true: '#10B981' }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -278,13 +282,13 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
         {/* Passcode / App Lock */}
         <Text style={styles.sectionTitle}>Passcode</Text>
         <View style={styles.settingRow}>
-          <Lock size={20} color="#4CAF50" />
+          <Lock size={20} color="#10B981" />
           <Text style={styles.settingLabel}>App Lock (require on reopen)</Text>
           <Switch
             value={methods.passcode && methods.passcodeLockEnabled}
             onValueChange={handleTogglePasscodeLock}
             disabled={!methods.passcode}
-            trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
+            trackColor={{ false: '#172F27', true: '#10B981' }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -293,7 +297,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={newPasscode}
           onChangeText={(t) => setNewPasscode(t.replace(/[^0-9]/g, ''))}
           placeholder={methods.passcode ? 'Change passcode (4 digits)' : 'Set passcode (4 digits)'}
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
           keyboardType="number-pad"
           secureTextEntry
           maxLength={4}
@@ -303,39 +307,49 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={confirmPasscode}
           onChangeText={(t) => setConfirmPasscode(t.replace(/[^0-9]/g, ''))}
           placeholder="Confirm passcode"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
           keyboardType="number-pad"
           secureTextEntry
           maxLength={4}
         />
         <TouchableOpacity style={styles.linkBtn} onPress={handleSavePasscode}>
-          <KeyRound size={16} color="#4CAF50" />
+          <KeyRound size={16} color="#10B981" />
           <Text style={styles.linkBtnText}>
             {methods.passcode ? 'Change Passcode' : 'Set Passcode'}
           </Text>
         </TouchableOpacity>
 
-        <TextInput
-          style={styles.input}
-          value={currentPassword}
-          onChangeText={setCurrentPassword}
-          placeholder="Current password"
-          placeholderTextColor="#93A69B"
-          secureTextEntry
-        />
-        <TextInput
-          style={styles.input}
-          value={newPassword}
-          onChangeText={setNewPassword}
-          placeholder="New password (leave blank to keep)"
-          placeholderTextColor="#93A69B"
-          secureTextEntry
-        />
+        <View style={styles.passwordRow}>
+          <TextInput
+            style={[styles.input, styles.passwordInput]}
+            value={currentPassword}
+            onChangeText={setCurrentPassword}
+            placeholder="Current password"
+            placeholderTextColor="#526E63"
+            secureTextEntry={!showCurrentPassword}
+          />
+          <TouchableOpacity style={styles.eyeToggleBtn} onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+            {showCurrentPassword ? <EyeOff size={18} color="#8EA89D" /> : <Eye size={18} color="#8EA89D" />}
+          </TouchableOpacity>
+        </View>
+        <View style={styles.passwordRow}>
+          <TextInput
+            style={[styles.input, styles.passwordInput]}
+            value={newPassword}
+            onChangeText={setNewPassword}
+            placeholder="New password (leave blank to keep)"
+            placeholderTextColor="#526E63"
+            secureTextEntry={!showNewPassword}
+          />
+          <TouchableOpacity style={styles.eyeToggleBtn} onPress={() => setShowNewPassword(!showNewPassword)}>
+            {showNewPassword ? <EyeOff size={18} color="#8EA89D" /> : <Eye size={18} color="#8EA89D" />}
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity
           style={styles.linkBtn}
           onPress={() => Alert.alert('Reset PIN', 'A PIN reset link has been sent to your email.')}
         >
-          <KeyRound size={16} color="#4CAF50" />
+          <KeyRound size={16} color="#10B981" />
           <Text style={styles.linkBtnText}>Reset Transaction PIN</Text>
         </TouchableOpacity>
 
@@ -348,7 +362,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           onPress={() => setThemeMode('automatic')}
         >
           <View style={styles.themeCardHeader}>
-            <Sparkles size={18} color="#4CAF50" />
+            <Sparkles size={18} color="#10B981" />
             <Text style={styles.themeCardTitle}>Automatic Theme</Text>
             {themeMode === 'automatic' && (
               <View style={styles.activePill}>
@@ -433,14 +447,14 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={userBankName}
           onChangeText={setUserBankName}
           placeholder="Your bank name (e.g. GTBank)"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
         />
         <TextInput
           style={styles.input}
           value={userAccountNumber}
           onChangeText={setUserAccountNumber}
           placeholder="Your account number"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
           keyboardType="number-pad"
           maxLength={10}
         />
@@ -449,14 +463,14 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           value={userAccountName}
           onChangeText={setUserAccountName}
           placeholder="Account name"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
         />
         <TextInput
           style={styles.input}
           value={transferPin}
           onChangeText={setTransferPin}
           placeholder="Set 4-digit Transfer PIN"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
           keyboardType="number-pad"
           maxLength={4}
           secureTextEntry
@@ -475,16 +489,16 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   content: { padding: 16, paddingBottom: 32 },
   avatarSection: { alignItems: 'center', marginBottom: 20 },
   avatarWrap: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -497,56 +511,73 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  avatarHint: { color: '#93A69B', fontSize: 11, marginTop: 8 },
+  avatarHint: { color: '#8EA89D', fontSize: 11, marginTop: 8 },
   sectionTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
     marginTop: 6,
   },
-  input: {
-    backgroundColor: '#0F2A19',
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
+    marginBottom: 6,
+  },
+  passwordInput: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    marginBottom: 0,
+    color: '#FFFFFF',
+  },
+  eyeToggleBtn: { paddingHorizontal: 12 },
+  input: {
+    backgroundColor: '#0D1D18',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     marginBottom: 12,
   },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     padding: 12,
     marginBottom: 12,
   },
   settingLabel: {
     flex: 1,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
     marginLeft: 10,
   },
   themeCard: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     padding: 14,
     marginBottom: 10,
   },
   themeCardActive: {
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     borderWidth: 2,
     backgroundColor: '#F0FAF4',
   },
@@ -557,13 +588,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   themeCardTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: 'bold',
     flex: 1,
   },
   activePill: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -574,7 +605,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   themeCardDesc: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     lineHeight: 15,
   },
@@ -583,7 +614,7 @@ const styles = StyleSheet.create({
     padding: 18,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     marginBottom: 16,
   },
   previewText: {
@@ -596,9 +627,9 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 14,
   },
-  linkBtnText: { color: '#4CAF50', fontSize: 13, fontWeight: '600' },
+  linkBtnText: { color: '#10B981', fontSize: 13, fontWeight: '600' },
   saveBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 14,
     paddingVertical: 15,
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   StyleSheet,
   Text,
@@ -40,11 +40,25 @@ import { useAuth } from '../context/AuthContext';
 import { deriveDisplayName } from '../auth/authService';
 import { useAnnouncements } from '../context/AnnouncementsContext';
 import { useBanners } from '../context/BannerContext';
+import { ThemeContext } from '../context/ThemeContext';
+import { COLORS, GRADIENTS } from '../constants/theme';
 import { useTransactions } from '../context/TransactionsContext';
 
 export default function HomeScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { user } = useUser();
+
+  // Guarded theme access — the context carries a built-in default, and this
+  // fallback object guarantees `colors` is always defined for consumers.
+  const themeCtx = useContext(ThemeContext) || {};
+  const colors = themeCtx?.colors || {
+    background: '#091813',
+    card: '#132620',
+    primary: '#10B981',
+    text: '#FFFFFF',
+    subtext: '#8EA89D',
+    border: '#172F27',
+  };
   const { userEmail } = useAuth();
   // Display name comes from the authenticated user's email
   // (temitope.adewale@gmail.com -> "Temitope Adewale"); falls back to the
@@ -101,7 +115,7 @@ export default function HomeScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#0A1412" />
+      <StatusBar barStyle="dark-content" backgroundColor='#091813' />
 
       {/* ===== STICKY HEADER & BALANCE SECTION (pinned above the scroll) ===== */}
       <View style={styles.headerSection}>
@@ -131,7 +145,7 @@ export default function HomeScreen({ navigation: rawNav }) {
 
           {/* Available Balance Card — metallic diagonal gradient */}
           <LinearGradient
-            colors={['#142521', '#2C3E3A', '#81938E', '#1B2C28']}
+            colors={GRADIENTS.metallicCard}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.metallicCard}
@@ -179,7 +193,7 @@ export default function HomeScreen({ navigation: rawNav }) {
         {latestAnnouncement && (
           <View style={styles.announceBanner}>
             <View style={styles.announceIconWrap}>
-              <Bell size={18} color="#00D084" />
+              <Bell size={18} color='#10B981' />
             </View>
             <View style={styles.announceTextGroup}>
               <Text style={styles.announceTitle} numberOfLines={1}>
@@ -214,7 +228,7 @@ export default function HomeScreen({ navigation: rawNav }) {
               <View style={styles.summaryHeader}>
                 <Text style={styles.summaryTitle}>Savings</Text>
                 <TouchableOpacity onPress={() => setShowSavings(!showSavings)}>
-                  {showSavings ? <EyeOff size={16} color="#94A3B8" /> : <Eye size={16} color="#94A3B8" />}
+                  {showSavings ? <EyeOff size={16} color='#8EA89D' /> : <Eye size={16} color='#8EA89D' />}
                 </TouchableOpacity>
                 <View style={styles.summaryBadge}>
                   <PiggyBank size={18} color="#FFFFFF" />
@@ -230,7 +244,7 @@ export default function HomeScreen({ navigation: rawNav }) {
               <View style={styles.summaryHeader}>
                 <Text style={styles.summaryTitle}>Active Loan</Text>
                 <TouchableOpacity onPress={() => setShowLoan(!showLoan)}>
-                  {showLoan ? <EyeOff size={16} color="#94A3B8" /> : <Eye size={16} color="#94A3B8" />}
+                  {showLoan ? <EyeOff size={16} color='#8EA89D' /> : <Eye size={16} color='#8EA89D' />}
                 </TouchableOpacity>
                 <View style={styles.summaryBadge}>
                   <Wallet size={18} color="#FFFFFF" />
@@ -257,35 +271,39 @@ export default function HomeScreen({ navigation: rawNav }) {
                 title: 'Coop Contribution',
                 desc: 'Deposit weekly or monthly savings',
                 Icon: PiggyBank,
-                colors: ['#10B981', '#0D9488'],
+                badge: '#0D4035',
+                iconTint: '#10B981',
                 route: 'AddFunds',
                 isNew: true,
-              },
-              {
-                key: 'loan',
-                title: 'Request Loan',
-                desc: 'Apply for member credit',
-                Icon: Landmark,
-                colors: ['#2563EB', '#06B6D4'],
-                route: 'RequestLoan',
-              },
-              {
-                key: 'repay',
-                title: 'Repay Loan',
-                desc: 'Make loan repayments',
-                Icon: CreditCard,
-                colors: ['#D97706', '#78350F'],
-                route: 'RepayLoan',
               },
               {
                 key: 'statement',
                 title: 'Account Statement',
                 desc: 'Download report',
                 Icon: FileText,
-                colors: ['#7C3AED', '#4F46E5'],
+                badge: '#1D303E',
+                iconTint: '#38BDF8',
                 route: 'AccountStatement',
               },
-            ].map(({ key, title, desc, Icon, colors, route, isNew }) => (
+              {
+                key: 'request',
+                title: 'Request Loan',
+                desc: 'Apply for member credit',
+                Icon: Landmark,
+                badge: '#3E2718',
+                iconTint: '#F97316',
+                route: 'RequestLoan',
+              },
+              {
+                key: 'repay',
+                title: 'Repay Loan',
+                desc: 'Make loan payments',
+                Icon: CreditCard,
+                badge: '#2A1E3E',
+                iconTint: '#A855F7',
+                route: 'RepayLoan',
+              },
+            ].map(({ key, title, desc, Icon, badge, iconTint, route, isNew }) => (
               <TouchableOpacity
                 key={key}
                 style={styles.serviceCard}
@@ -293,12 +311,12 @@ export default function HomeScreen({ navigation: rawNav }) {
               >
                 <View>
                   <LinearGradient
-                    colors={colors}
+                    colors={[badge, badge]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.serviceIconBadge}
                   >
-                    <Icon size={22} color="#FFFFFF" />
+                    <Icon size={22} color={iconTint} />
                   </LinearGradient>
                   {isNew ? (
                     <View style={styles.newBadge}>
@@ -329,7 +347,7 @@ export default function HomeScreen({ navigation: rawNav }) {
                 </LinearGradient>
                 <Text style={styles.expandedTitle}>Data</Text>
                 <Text style={styles.expandedHint}>Purchase data bundles</Text>
-                <ChevronRight size={18} color="#94A3B8" />
+                <ChevronRight size={18} color='#8EA89D' />
               </TouchableOpacity>
             </View>
           )}
@@ -385,7 +403,7 @@ export default function HomeScreen({ navigation: rawNav }) {
               <View style={styles.hubThumb}>
                 <MapPin size={16} color="#FFFFFF" />
               </View>
-              <ChevronRight size={18} color="#94A3B8" />
+              <ChevronRight size={18} color='#8EA89D' />
             </TouchableOpacity>
 
             {/* Vehicles */}
@@ -408,7 +426,7 @@ export default function HomeScreen({ navigation: rawNav }) {
               <View style={styles.hubThumbCar}>
                 <Car size={16} color="#FFFFFF" />
               </View>
-              <ChevronRight size={18} color="#94A3B8" />
+              <ChevronRight size={18} color='#8EA89D' />
             </TouchableOpacity>
 
             {/* Preserved route: Meeting Chat */}
@@ -428,7 +446,7 @@ export default function HomeScreen({ navigation: rawNav }) {
                 <Text style={styles.hubTitle}>Meeting Chat</Text>
                 <Text style={styles.hubDesc}>Discuss &amp; decide with members</Text>
               </View>
-              <ChevronRight size={18} color="#94A3B8" />
+              <ChevronRight size={18} color='#8EA89D' />
             </TouchableOpacity>
           </View>
         </View>
@@ -521,7 +539,7 @@ const styles = StyleSheet.create({
   // Page — deep-green matching the reference
   container: {
     flex: 1,
-    backgroundColor: '#0A1412',
+    backgroundColor: COLORS.background,
   },
   scrollContent: {
     paddingBottom: 24,
@@ -530,13 +548,13 @@ const styles = StyleSheet.create({
   announceBanner: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: '#12201D',
+      backgroundColor: COLORS.cardBg,
       borderRadius: 14,
       padding: 12,
       marginHorizontal: 16,
       marginTop: 10,
       borderWidth: 1,
-      borderColor: '#00D084',
+      borderColor: COLORS.emeraldAccent,
       elevation: 6,
       shadowColor: '#000',
       shadowOpacity: 0.15,
@@ -554,7 +572,7 @@ const styles = StyleSheet.create({
     },
     announceTextGroup: { flex: 1 },
     announceTitle: {
-      color: '#0A1412',
+      color: COLORS.background,
       fontSize: 13,
       fontWeight: 'bold',
     },
@@ -564,7 +582,7 @@ const styles = StyleSheet.create({
       marginTop: 2,
     },
     announceDismiss: {
-      backgroundColor: '#00D084',
+      backgroundColor: COLORS.emeraldAccent,
       borderRadius: 10,
       paddingHorizontal: 10,
       paddingVertical: 6,
@@ -576,7 +594,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 10,
     paddingBottom: 12,
-    backgroundColor: '#0A1412',
+    backgroundColor: COLORS.background,
     borderBottomLeftRadius: 18,
     borderBottomRightRadius: 18,
     shadowColor: '#000',
@@ -595,18 +613,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   greetingLine: {
-    color: '#94A3B8',
-    fontSize: 15,
-    fontWeight: '600',
+    color: '#8EA89D',
+    fontSize: 14,
+    fontWeight: '400',
   },
-  greetingName: { color: '#FFFFFF', fontSize: 24, fontWeight: '700', marginTop: 2 },
+  greetingName: { color: '#FFFFFF', fontSize: 22, fontWeight: 'bold', marginTop: 2 },
   societyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 6,
   },
   societyText: {
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     fontSize: 12,
     marginLeft: 4,
   },
@@ -616,10 +634,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   notifBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#0B1F12',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#1D2D27',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -630,13 +648,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#00D084',
+    backgroundColor: COLORS.emeraldAccent,
   },
   avatarBtn: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#12201D',
+    backgroundColor: COLORS.cardBg,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -648,7 +666,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: '#2A3E37',
   },
   cardLeft: { justifyContent: 'space-between' },
   balanceLabel: {
@@ -658,31 +676,31 @@ const styles = StyleSheet.create({
   },
   balanceAmount: {
     color: '#FFFFFF',
-    fontSize: 26,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: 'bold',
     marginVertical: 10,
   },
   addFundBtn: {
-    backgroundColor: '#005F4B',
+    backgroundColor: '#0D4035',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: 18,
+    borderRadius: 20,
     alignSelf: 'flex-start',
   },
   addFundText: {
-    color: '#FFFFFF',
+    color: '#10B981',
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   cardRight: { alignItems: 'flex-end', justifyContent: 'space-between' },
   watermarkContainer: { alignItems: 'center', opacity: 0.75 },
   watermarkTitle: { color: '#E2E8F0', fontSize: 10, fontWeight: '600', marginTop: 4 },
-  watermarkSub: { color: '#94A3B8', fontSize: 9 },
+  watermarkSub: { color: COLORS.textSecondary, fontSize: 9 },
   showBalanceBtn: {
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'transparent',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -690,7 +708,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: '#FFFFFF',
   },
   showBalanceText: { color: '#FFFFFF', fontSize: 12 },
   avatarImage: {
@@ -699,7 +717,7 @@ const styles = StyleSheet.create({
   },
   // White rounded content container — inverted to deep forest green per design
   whiteSection: {
-    backgroundColor: '#0A1412',
+    backgroundColor: COLORS.background,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     paddingHorizontal: 16,
@@ -713,12 +731,12 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   summaryCard: {
-    backgroundColor: '#0A1412',
+    backgroundColor: COLORS.background,
     borderRadius: 16,
     padding: 14,
     width: '48%',
     borderWidth: 1,
-    borderColor: '#1C2E2A',
+    borderColor: COLORS.cardBorder,
   },
   summaryHeader: {
     flexDirection: 'row',
@@ -734,23 +752,23 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#00D084',
+    backgroundColor: '#1D2D27',
     justifyContent: 'center',
     alignItems: 'center',
   },
   summaryAmount: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
     marginTop: 8,
   },
   summaryDivider: {
     height: 1,
-    backgroundColor: '#1C2E2A',
+    backgroundColor: '#1C3028',
     marginVertical: 8,
   },
   summarySub: {
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     fontSize: 10,
   },
   // Financial Services
@@ -762,12 +780,12 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   viewAllText: {
-    color: '#94A3B8',
-    fontSize: 13,
+    color: '#10B981',
+    fontSize: 14,
     fontWeight: '600',
   },
   serviceGrid: {
@@ -776,14 +794,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   serviceCard: {
-    backgroundColor: '#0A1412',
+    backgroundColor: COLORS.background,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 4,
     width: '24%',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1C2E2A',
+    borderColor: COLORS.cardBorder,
   },
   serviceIconBadge: {
     width: 38,
@@ -796,7 +814,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -5,
     right: -7,
-    backgroundColor: '#00D084',
+    backgroundColor: COLORS.emeraldAccent,
     borderRadius: 6,
     paddingHorizontal: 3,
     paddingVertical: 1,
@@ -813,25 +831,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   serviceDesc: {
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     fontSize: 8,
     marginTop: 2,
     textAlign: 'center',
   },
   expandedServices: {
-    backgroundColor: '#0A1412',
+    backgroundColor: COLORS.background,
     borderRadius: 14,
     paddingHorizontal: 12,
     marginTop: 8,
     borderWidth: 1,
-    borderColor: '#1C2E2A',
+    borderColor: COLORS.cardBorder,
   },
   expandedRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C2E2A',
+    borderBottomColor: COLORS.cardBorder,
   },
   expandedBadge: {
     width: 36,
@@ -847,13 +865,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   expandedHint: {
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     fontSize: 10,
     marginLeft: 8,
   },
   // AI Assistant Banner — deep green monochrome with light green accents
   aiBanner: {
-    backgroundColor: '#0A1412',
+    backgroundColor: COLORS.background,
     borderRadius: 16,
     padding: 14,
     flexDirection: 'row',
@@ -861,13 +879,13 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#00D084',
+    borderColor: COLORS.emeraldAccent,
   },
   aiIconWrap: {
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: '#00D084',
+    backgroundColor: COLORS.emeraldAccent,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -882,11 +900,11 @@ const styles = StyleSheet.create({
   },
   aiTitle: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   betaPill: {
-    backgroundColor: '#00D084',
+    backgroundColor: COLORS.emeraldAccent,
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -897,18 +915,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   aiSub: {
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     fontSize: 11,
     marginTop: 2,
   },
   askNowBtn: {
-    backgroundColor: '#00D084',
-    borderRadius: 16,
+    backgroundColor: '#10B981',
+    borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginLeft: 8,
   },
-  askNowText: { color: '#0A1412',
+  askNowText: { color: '#FFFFFF',
     fontSize: 11,
     fontWeight: 'bold',
   },
@@ -919,18 +937,18 @@ const styles = StyleSheet.create({
   hubRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0A1412',
+    backgroundColor: COLORS.background,
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#1C2E2A',
+    borderColor: COLORS.cardBorder,
     marginBottom: 10,
   },
   hubIconWrap: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#00D084',
+    backgroundColor: COLORS.emeraldAccent,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
@@ -944,7 +962,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   hubDesc: {
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     fontSize: 10,
     marginTop: 2,
   },
@@ -955,18 +973,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   networkSheet: {
-    backgroundColor: '#12201D',
+    backgroundColor: COLORS.cardBg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
   },
   networkTitle: {
-    color: '#0A1412',
+    color: COLORS.background,
     fontSize: 16,
     fontWeight: 'bold',
   },
   networkSub: {
-    color: '#64748B',
+    color: '#4B6358',
     fontSize: 11,
     marginTop: 4,
     marginBottom: 12,
@@ -976,7 +994,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C2E2A',
+    borderBottomColor: COLORS.cardBorder,
   },
   networkLogo: {
     width: 42,
@@ -991,7 +1009,7 @@ const styles = StyleSheet.create({
   },
   networkName: {
     flex: 1,
-    color: '#0A1412',
+    color: COLORS.background,
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 12,
@@ -1002,7 +1020,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   networkCancelText: {
-    color: '#64748B',
+    color: '#4B6358',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -1010,7 +1028,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 34,
     borderRadius: 6,
-    backgroundColor: '#123B24',
+    backgroundColor: '#132620',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
@@ -1019,7 +1037,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 34,
     borderRadius: 6,
-    backgroundColor: '#12201D',
+    backgroundColor: COLORS.cardBg,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
@@ -1035,25 +1053,25 @@ const styles = StyleSheet.create({
   bannerPopupCard: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#12201D',
+    backgroundColor: COLORS.cardBg,
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: '#00D084',
+    borderColor: COLORS.emeraldAccent,
   },
   bannerPopupImage: { width: '100%', height: 160 },
   bannerPopupPhoto: { width: '100%', height: 260 },
   bannerPopupBody: { padding: 16 },
-  bannerPopupTitle: { color: '#0A1412', fontSize: 18, fontWeight: 'bold' },
+  bannerPopupTitle: { color: COLORS.background, fontSize: 18, fontWeight: 'bold' },
   bannerPopupDesc: { color: '#E2E8F0', fontSize: 13, marginTop: 6, lineHeight: 19 },
   bannerPopupCategory: {
-    color: '#00D084', fontSize: 11, fontWeight: '600', marginTop: 8,
+    color: COLORS.emeraldAccent, fontSize: 11, fontWeight: '600', marginTop: 8,
     backgroundColor: '#E8F5E9', alignSelf: 'flex-start',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, overflow: 'hidden',
   },
   bannerDismissBtn: {
     margin: 14, marginTop: 6,
-    backgroundColor: '#00D084', borderRadius: 12, paddingVertical: 12,
+    backgroundColor: COLORS.emeraldAccent, borderRadius: 12, paddingVertical: 12,
     alignItems: 'center',
   },
   bannerDismissText: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' },

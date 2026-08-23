@@ -22,7 +22,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
       <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollContent, styles.grow]} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
@@ -110,17 +110,17 @@ export default function CoopHubScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-container: { flex: 1, backgroundColor: '#0B2211' },
+container: { flex: 1, backgroundColor: '#091813' },
   scrollContent: { paddingHorizontal: 16, paddingVertical: 16, paddingBottom: 24 },
   headerTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
   headerSub: { color: '#9CB8A6', fontSize: 12, marginTop: 4, marginBottom: 16 },
   sectionHeader: { color: '#D3F99D', fontSize: 15, fontWeight: '700', marginBottom: 12 },
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 16 },
-  actionCard: { backgroundColor: '#0F2A19', borderRadius: 12, padding: 14, width: '48%', marginBottom: 10, borderWidth: 1, borderColor: '#1C4A2E' },
-  actionIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1C4A2E', justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  actionCard: { backgroundColor: '#0D1D18', borderRadius: 12, padding: 14, width: '48%', marginBottom: 10, borderWidth: 1, borderColor: '#172F27' },
+  actionIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#172F27', justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
   actionTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '600', marginTop: 8 },
   actionDesc: { color: '#9CB8A6', fontSize: 10, marginTop: 2 },
-  listContainer: { backgroundColor: '#0F2A19', borderRadius: 12, borderWidth: 1, borderColor: '#1C4A2E', paddingHorizontal: 14 },
+  listContainer: { backgroundColor: '#0D1D18', borderRadius: 12, borderWidth: 1, borderColor: '#172F27', paddingHorizontal: 14 },
   listItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#1B3D28' },
   listLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   listTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '500' },

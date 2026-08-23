@@ -65,12 +65,12 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
         <meta charset="utf-8" />
         <style>
           body { font-family: Helvetica, Arial, sans-serif; color: #1a1a1a; padding: 32px; }
-          .brand { color: #0B2211; font-size: 22px; font-weight: bold; }
+          .brand { color: #091813; font-size: 22px; font-weight: bold; }
           .tag { color: #4CAF50; font-size: 12px; margin-bottom: 4px; }
           .meta { font-size: 11px; color: #555; margin-top: 14px; line-height: 1.6; }
           .divider { border-top: 2px solid #4CAF50; margin: 18px 0; }
           table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th { background: #0B2211; color: #fff; font-size: 11px; text-align: left; padding: 8px; }
+          th { background: #091813; color: #fff; font-size: 11px; text-align: left; padding: 8px; }
           td { font-size: 11px; padding: 8px; border-bottom: 1px solid #ddd; }
           .credit { color: #127A41; font-weight: bold; }
           .debit { color: #C0392B; font-weight: bold; }
@@ -164,7 +164,7 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="light-content" backgroundColor='#091813' />
       <ScreenHeader
         title="Account Statement"
         subtitle="Transaction ledger & downloadable report"
@@ -212,7 +212,7 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
           <View key={entry.id} style={styles.ledgerRow}>
             <View style={[styles.ledgerIcon, entry.type === 'credit' ? styles.creditIcon : styles.debitIcon]}>
               {entry.type === 'credit' ? (
-                <ArrowDownLeft size={16} color="#4CAF50" />
+                <ArrowDownLeft size={16} color="#10B981" />
               ) : (
                 <ArrowUpRight size={16} color="#C0392B" />
               )}
@@ -238,7 +238,7 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
 
         {pdfUri ? (
           <View style={styles.pdfReadyCard}>
-            <FileText size={16} color="#4CAF50" />
+            <FileText size={16} color="#10B981" />
             <Text style={styles.pdfReadyText}>PDF statement generated and ready to share.</Text>
           </View>
         ) : null}
@@ -250,7 +250,7 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   actionRow: {
     flexDirection: 'row',
     gap: 10,
@@ -263,16 +263,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0B2211',
+    backgroundColor: '#091813',
     borderRadius: 12,
     paddingVertical: 11,
   },
   shareBtn: { backgroundColor: '#127A41' },
-  generateBtn: { backgroundColor: '#4CAF50' },
+  generateBtn: { backgroundColor: '#10B981' },
   actionBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' },
   content: { padding: 16, paddingBottom: 32 },
   summaryCard: {
-    backgroundColor: '#0B2211',
+    backgroundColor: '#091813',
     borderRadius: 16,
     padding: 18,
     marginBottom: 18,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   summaryMeta: { color: '#D3F99D', fontSize: 11 },
   debitText: { color: '#FFB4A9' },
   ledgerTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
@@ -300,11 +300,11 @@ const styles = StyleSheet.create({
   ledgerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     marginBottom: 8,
   },
   ledgerIcon: {
@@ -315,33 +315,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-  creditIcon: { backgroundColor: '#12331E' },
+  creditIcon: { backgroundColor: '#0D1D18' },
   debitIcon: { backgroundColor: '#FDE8E8' },
   ledgerInfo: { flex: 1 },
   ledgerLabel: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
   },
   ledgerDate: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 10,
     marginTop: 2,
   },
   ledgerAmounts: { alignItems: 'flex-end' },
-  creditAmount: { color: '#4CAF50', fontSize: 12, fontWeight: 'bold' },
+  creditAmount: { color: '#10B981', fontSize: 12, fontWeight: 'bold' },
   debitAmount: { color: '#C0392B', fontSize: 12, fontWeight: 'bold' },
-  runningBalance: { color: '#93A69B', fontSize: 9, marginTop: 2 },
+  runningBalance: { color: '#8EA89D', fontSize: 9, marginTop: 2 },
   pdfReadyCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     padding: 12,
     marginTop: 8,
   },
-  pdfReadyText: { color: '#0B2211', fontSize: 12 },
+  pdfReadyText: { color: '#FFFFFF', fontSize: 12 },
 });

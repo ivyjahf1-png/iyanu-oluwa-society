@@ -68,23 +68,23 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
       <ScreenHeader title="User Management" subtitle="Monitor and manage cooperative members" onBack={() => navigation?.goBack()} />
 
       <View style={styles.searchRow}>
-        <Search size={18} color="#93A69B" />
+        <Search size={18} color='#8EA89D' />
         <TextInput
           style={styles.searchInput}
           value={query}
           onChangeText={setQuery}
           placeholder="Search by name or email"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
           autoCapitalize="none"
         />
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color="#4CAF50" /></View>
+        <View style={styles.center}><ActivityIndicator size="large" color="#10B981" /></View>
       ) : filtered.length === 0 ? (
         <View style={styles.center}>
           <Users size={40} color="#9CB8A6" />
@@ -119,23 +119,23 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   scroll: { flex: 1 },
   searchRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#0F2A19',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#0D1D18',
     borderRadius: 12, marginHorizontal: 16, marginVertical: 12, paddingHorizontal: 12,
   },
   searchInput: { flex: 1, paddingVertical: 10, color: '#FFFFFF', fontSize: 14, marginLeft: 8 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   empty: { color: '#A7F3D0', fontSize: 14, textAlign: 'center', marginTop: 12 },
   userCard: {
-    backgroundColor: '#0F2A19', borderRadius: 14, marginHorizontal: 16, marginBottom: 10,
+    backgroundColor: '#0D1D18', borderRadius: 14, marginHorizontal: 16, marginBottom: 10,
     padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   userInfo: { flex: 1 },
-  userName: { color: '#0B2211', fontSize: 15, fontWeight: 'bold' },
-  userEmail: { color: '#4CAF50', fontSize: 12, marginTop: 2 },
-  userMeta: { color: '#93A69B', fontSize: 11, marginTop: 2 },
+  userName: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
+  userEmail: { color: '#10B981', fontSize: 12, marginTop: 2 },
+  userMeta: { color: '#8EA89D', fontSize: 11, marginTop: 2 },
   actions: { flexDirection: 'row', gap: 8, marginLeft: 10 },
   actionBtn: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   resetBtn: { backgroundColor: '#2563EB' },

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getAllSettings, saveSettings } from '../lib/supabase';
+import { onRemoteChange } from '../lib/realtime';
 
 /**
  * Global Cooperative Bank Account context — the SINGLE SOURCE OF TRUTH.
@@ -39,6 +40,20 @@ export function BankProvider({ children }) {
         setLoaded(true);
       }
     })();
+
+    // Realtime: refresh when the admin updates settings on any device.
+    return onRemoteChange(() => {
+      (async () => {
+        try {
+          const s = await getAllSettings();
+          setBankDetailsState({
+            bankName: s?.coop_bank_name || '',
+            accountNumber: s?.coop_account_number || '',
+            accountName: s?.coop_account_name || '',
+          });
+        } catch (e) { /* keep current state */ }
+      })();
+    });
   }, []);
 
   /**

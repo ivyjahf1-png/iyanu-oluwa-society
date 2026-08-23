@@ -56,8 +56,8 @@ export default function SignInScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
-      <LinearGradient colors={['#0B2211', '#1A3A24']} style={styles.gradient}>
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
+      <LinearGradient colors={['#091813', '#1A3A24']} style={styles.gradient}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <ChevronLeft color="#FFFFFF" size={24} />
@@ -71,7 +71,7 @@ export default function SignInScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="you@example.com"
-              placeholderTextColor="#93A69B"
+              placeholderTextColor="#526E63"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -85,7 +85,7 @@ export default function SignInScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -106,7 +106,7 @@ export default function SignInScreen({ navigation }) {
 
           {bioReady && (
             <TouchableOpacity style={styles.bioBtn} onPress={handleBiometricSignIn}>
-              <Fingerprint size={20} color="#4CAF50" />
+              <Fingerprint size={20} color="#10B981" />
               <Text style={styles.bioBtnText}>Sign in with Biometrics</Text>
             </TouchableOpacity>
           )}
@@ -136,7 +136,7 @@ export default function SignInScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   gradient: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C4A2E',
+    borderBottomColor: '#172F27',
   },
   backBtn: { padding: 6, marginRight: 8 },
   title: {
@@ -172,10 +172,10 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#172F27',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
   },
   eyeBtn: { paddingHorizontal: 12 },
   bioBtn: {
@@ -185,13 +185,13 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: 'rgba(76, 175, 80, 0.12)',
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     borderRadius: 14,
     paddingVertical: 12,
   },
-  bioBtnText: { color: '#4CAF50', fontSize: 13, fontWeight: '600' },
+  bioBtnText: { color: '#10B981', fontSize: 13, fontWeight: '600' },
   primaryBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   },
   footerTxt: { color: '#A7F3D0', fontSize: 13 },
   link: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 13,
     fontWeight: '600',
   },

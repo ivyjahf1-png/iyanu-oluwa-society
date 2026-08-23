@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
+import { onRemoteChange } from '../lib/realtime';
 
 /**
  * Shared announcements store.
@@ -28,6 +29,16 @@ export function AnnouncementsProvider({ children }) {
       }
       setHydrated(true);
     })();
+
+    // Realtime: re-hydrate when an admin posts/updates remotely (any device).
+    return onRemoteChange(() => {
+      (async () => {
+        try {
+          const raw = await storage.getItem(STORAGE_KEY);
+          if (raw) setAnnouncements(JSON.parse(raw));
+        } catch (e) { /* keep current state */ }
+      })();
+    });
   }, []);
 
   const persist = next => {

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
+import { onRemoteChange } from '../lib/realtime';
 
 /**
  * Shared marketplace inventory.
@@ -24,6 +25,16 @@ export function MarketItemsProvider({ children }) {
       }
       setHydrated(true);
     })();
+
+    // Realtime: re-hydrate when admin uploads/edits items on any device.
+    return onRemoteChange(() => {
+      (async () => {
+        try {
+          const raw = await storage.getItem(STORAGE_KEY);
+          if (raw) setItems(JSON.parse(raw));
+        } catch (e) { /* keep current state */ }
+      })();
+    });
   }, []);
 
     const persist = next => {

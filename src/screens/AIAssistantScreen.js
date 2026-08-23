@@ -85,7 +85,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="light-content" backgroundColor='#091813' />
       <ScreenHeader
         title="Coop AI Assistant"
         subtitle="Cooperative tasks & general knowledge"
@@ -104,7 +104,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
         >
           {/* Suggestion chips */}
           <View style={styles.suggestionWrap}>
-            <Sparkles size={14} color="#4CAF50" />
+            <Sparkles size={14} color="#10B981" />
             <Text style={styles.suggestionLabel}>Try asking</Text>
           </View>
           <View style={styles.chipRow}>
@@ -133,7 +133,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
 
           {loading ? (
             <View style={[styles.bubble, styles.bubbleAi]}>
-              <ActivityIndicator size="small" color="#4CAF50" />
+              <ActivityIndicator size="small" color="#10B981" />
             </View>
           ) : null}
         </ScrollView>
@@ -145,7 +145,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
             value={inputText}
             onChangeText={setInputText}
             placeholder="Ask me anything..."
-            placeholderTextColor="#93A69B"
+            placeholderTextColor="#526E63"
             multiline
           />
           <TouchableOpacity
@@ -163,7 +163,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   flex: { flex: 1 },
   messageList: { padding: 16, paddingBottom: 12 },
   suggestionWrap: {
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   suggestionLabel: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',
   },
@@ -184,10 +184,10 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   chip: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
@@ -204,14 +204,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   bubbleMine: {
-    backgroundColor: '#0B2211',
+    backgroundColor: '#091813',
     alignSelf: 'flex-end',
   },
   bubbleAi: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
   },
   aiRow: {
     flexDirection: 'row',
@@ -220,23 +220,23 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   aiTag: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 9,
     fontWeight: 'bold',
     letterSpacing: 0.5,
   },
   bubbleText: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     lineHeight: 19,
   },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 10,
     paddingVertical: 8,
     marginHorizontal: 12,
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     flex: 1,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     maxHeight: 90,
     paddingVertical: 8,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
   },

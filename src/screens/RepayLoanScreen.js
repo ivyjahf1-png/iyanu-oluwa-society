@@ -70,7 +70,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="light-content" backgroundColor='#091813' />
       <ScreenHeader
         title="Repay Loan"
         subtitle="Settle your outstanding cooperative loan"
@@ -105,7 +105,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
             style={[styles.modeBtn, mode === 'full' && styles.modeBtnActive]}
             onPress={() => setMode('full')}
           >
-            <TrendingDown size={18} color={mode === 'full' ? '#FFFFFF' : '#4CAF50'} />
+            <TrendingDown size={18} color={mode === 'full' ? '#FFFFFF' : '#10B981'} />
             <Text style={[styles.modeBtnText, mode === 'full' && styles.modeBtnTextActive]}>
               Pay Full Balance
             </Text>
@@ -128,7 +128,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
               value={customAmount}
               onChangeText={setCustomAmount}
               placeholder="0.00"
-              placeholderTextColor="#93A69B"
+              placeholderTextColor="#526E63"
               keyboardType="decimal-pad"
             />
           </View>
@@ -145,7 +145,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
         {/* Payment confirmation */}
         <Text style={styles.label}>Payment Confirmation</Text>
         <TouchableOpacity style={styles.uploadBtn} onPress={pickReceipt}>
-          <Upload size={20} color="#4CAF50" />
+          <Upload size={20} color="#10B981" />
           <View style={styles.uploadTextGroup}>
             <Text style={styles.uploadTitle} numberOfLines={1}>
               {receipt ? receipt.name : 'Upload Payment Receipt'}
@@ -160,7 +160,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
           value={reference}
           onChangeText={setReference}
           placeholder="e.g. TRF9988776655"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
         />
 
         {/* Submit */}
@@ -176,10 +176,10 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   content: { padding: 16, paddingBottom: 32 },
   metricsCard: {
-    backgroundColor: '#0B2211',
+    backgroundColor: '#091813',
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
@@ -200,10 +200,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   metricGreen: {
-    color: '#4CAF50',
+    color: '#10B981',
   },
   metricHighlight: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 15,
   },
   metricDivider: {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1B3D28',
   },
   label: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
@@ -228,18 +228,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingVertical: 12,
   },
   modeBtnActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
   },
   modeBtnText: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -249,41 +249,41 @@ const styles = StyleSheet.create({
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     marginBottom: 18,
   },
   nairaPrefix: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 18,
     fontWeight: 'bold',
     marginRight: 6,
   },
   amountInput: {
     flex: 1,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '600',
     paddingVertical: 13,
   },
   fullAmountBox: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     padding: 16,
     alignItems: 'center',
     marginBottom: 18,
   },
   fullAmountLabel: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
   },
   fullAmountValue: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 22,
     fontWeight: 'bold',
     marginTop: 4,
@@ -291,10 +291,10 @@ const styles = StyleSheet.create({
   uploadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     borderStyle: 'dashed',
     padding: 14,
     marginBottom: 14,
@@ -304,28 +304,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   uploadTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
   uploadHint: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginTop: 2,
   },
   input: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     marginBottom: 14,
   },
   submitBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 14,
     paddingVertical: 15,
     flexDirection: 'row',

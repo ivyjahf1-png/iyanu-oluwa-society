@@ -99,7 +99,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="light-content" backgroundColor='#091813' />
       <ScreenHeader
         title="Coop Contribution"
         subtitle="Deposit weekly or monthly savings"
@@ -119,7 +119,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
             onPress={() => setSchedule('weekly')}
             activeOpacity={0.7}
           >
-            <Calendar size={18} color={schedule === 'weekly' ? '#FFFFFF' : '#4CAF50'} />
+            <Calendar size={18} color={schedule === 'weekly' ? '#FFFFFF' : '#10B981'} />
             <Text style={[styles.scheduleBtnText, schedule === 'weekly' && styles.scheduleBtnTextActive]}>
               Weekly
             </Text>
@@ -130,7 +130,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
             onPress={() => setSchedule('monthly')}
             activeOpacity={0.7}
           >
-            <Calendar size={18} color={schedule === 'monthly' ? '#FFFFFF' : '#4CAF50'} />
+            <Calendar size={18} color={schedule === 'monthly' ? '#FFFFFF' : '#10B981'} />
             <Text style={[styles.scheduleBtnText, schedule === 'monthly' && styles.scheduleBtnTextActive]}>
               Monthly
             </Text>
@@ -145,7 +145,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
             value={amount}
             onChangeText={setAmount}
             placeholder="0.00"
-            placeholderTextColor="#93A69B"
+            placeholderTextColor="#526E63"
             keyboardType="decimal-pad"
           />
         </View>
@@ -156,7 +156,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
 
         {receipt ? (
           <View style={styles.receiptSelectedBox}>
-            <CheckCircle size={20} color="#4CAF50" />
+            <CheckCircle size={20} color="#10B981" />
             <Text style={styles.receiptName} numberOfLines={1}>
               {receipt.name ? receipt.name : 'Receipt Attached'}
             </Text>
@@ -166,7 +166,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
           </View>
         ) : (
           <TouchableOpacity style={styles.uploadBtn} onPress={pickReceipt} activeOpacity={0.7}>
-            <Upload size={20} color="#4CAF50" />
+            <Upload size={20} color="#10B981" />
             <View style={styles.uploadTextGroup}>
               <Text style={styles.uploadTitle} numberOfLines={1}>
                 Upload Payment Receipt
@@ -184,7 +184,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
           value={reference}
           onChangeText={setReference}
           placeholder="e.g. GTB1234567890"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
           autoCapitalize="characters"
         />
 
@@ -194,7 +194,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
           value={senderName}
           onChangeText={setSenderName}
           placeholder="Name on the paying account"
-          placeholderTextColor="#93A69B"
+          placeholderTextColor="#526E63"
         />
 
         <View style={styles.actionSection}>
@@ -217,7 +217,7 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B2211',
+    backgroundColor: '#091813',
   },
   scrollView: {
     flex: 1,
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   label: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
@@ -236,10 +236,10 @@ const styles = StyleSheet.create({
   },
   scheduleToggle: {
     flexDirection: 'row',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     padding: 4,
     marginBottom: 16,
   },
@@ -252,10 +252,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   scheduleBtnActive: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
   },
   scheduleBtnText: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 13,
     fontWeight: '600',
     marginLeft: 6,
@@ -266,22 +266,22 @@ const styles = StyleSheet.create({
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     marginBottom: 18,
   },
   nairaPrefix: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 18,
     fontWeight: 'bold',
     marginRight: 6,
   },
   amountInput: {
     flex: 1,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '600',
     paddingVertical: 13,
@@ -289,10 +289,10 @@ const styles = StyleSheet.create({
   uploadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     borderStyle: 'dashed',
     padding: 14,
     marginBottom: 10,
@@ -302,12 +302,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   uploadTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
   uploadHint: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginTop: 2,
   },
@@ -330,18 +330,18 @@ const styles = StyleSheet.create({
   },
   orText: {
     textAlign: 'center',
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginVertical: 10,
   },
   input: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     marginBottom: 12,
   },
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   submitBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 14,
     paddingVertical: 15,
     flexDirection: 'row',
@@ -367,12 +367,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     paddingVertical: 14,
     alignItems: 'center',
   },
   secondaryBtnText: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontWeight: 'bold',
     fontSize: 14,
   },

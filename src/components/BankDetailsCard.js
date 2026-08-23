@@ -21,7 +21,7 @@ export default function BankDetailsCard() {
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Landmark size={18} color="#4CAF50" />
+        <Landmark size={18} color="#10B981" />
         <Text style={styles.headerTitle}>Cooperative Bank Account</Text>
       </View>
 
@@ -36,7 +36,7 @@ export default function BankDetailsCard() {
           <Text style={[styles.detailValue, styles.accountNumber]}>
             {accountNumber || 'Not configured'}
           </Text>
-          {accountNumber ? <Copy size={15} color="#4CAF50" /> : null}
+          {accountNumber ? <Copy size={15} color="#10B981" /> : null}
         </View>
       </TouchableOpacity>
 
@@ -46,7 +46,7 @@ export default function BankDetailsCard() {
       </View>
 
       <View style={styles.footerRow}>
-        <ShieldCheck size={14} color="#4CAF50" />
+        <ShieldCheck size={14} color="#10B981" />
         <Text style={styles.footerText}>
           {accountNumber
             ? 'Tap the account number to copy'
@@ -59,11 +59,11 @@ export default function BankDetailsCard() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     marginBottom: 20,
   },
   headerRow: {
@@ -73,10 +73,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C4A2E',
+    borderBottomColor: '#172F27',
   },
   headerTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -87,11 +87,11 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   detailLabel: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 12,
   },
   detailValue: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -112,10 +112,10 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#1C4A2E',
+    borderTopColor: '#172F27',
   },
   footerText: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
   },
 });

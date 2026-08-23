@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
+import { onRemoteChange } from '../lib/realtime';
 
 /**
  * BannerContext — promotional banner store (admin-created, cooperative-only).
@@ -13,11 +14,12 @@ import { storage } from '../lib/storage';
  */
 const BannerContext = createContext(null);
 const STORAGE_KEY = '@ius_banners';
-const DISMISSED_KEY = '@ius_banners_dismissed';
 
 export function BannerProvider({ children }) {
   const [banners, setBanners] = useState([]);
-  const [dismissedIds, setDismissedIds] = useState([]);
+  // "X" hides a banner for the CURRENT SESSION only — on the next app launch
+  // an unexpired banner is shown again until its duration window completes.
+  const [sessionDismissed, setSessionDismissed] = useState([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -25,8 +27,6 @@ export function BannerProvider({ children }) {
       try {
         const raw = await storage.getItem(STORAGE_KEY);
         if (raw) setBanners(JSON.parse(raw));
-        const dRaw = await storage.getItem(DISMISSED_KEY);
-        if (dRaw) setDismissedIds(JSON.parse(dRaw));
       } catch (e) {
         // Corrupt payload — start empty rather than crash.
       }
@@ -34,17 +34,28 @@ export function BannerProvider({ children }) {
     })();
   }, []);
 
+  // Realtime: re-hydrate when admin creates/updates banners on any device.
+  useEffect(() => onRemoteChange(() => {
+    (async () => {
+      try {
+        const raw = await storage.getItem(STORAGE_KEY);
+        if (raw) setBanners(JSON.parse(raw));
+      } catch (e) { /* keep current state */ }
+    })();
+  }), []);
+
   const persist = (next) => {
     setBanners(next);
     storage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
   };
-  const persistDismissed = (next) => {
-    setDismissedIds(next);
-    storage.setItem(DISMISSED_KEY, JSON.stringify(next)).catch(() => {});
-  };
 
-  /** Add a banner (full or photo-only). Returns the stored entry. */
+  /** Add a banner with an optional admin-set display window. */
   const addBanner = (banner) => {
+    let expiresAt = null;
+    if (banner.expiresAt) expiresAt = banner.expiresAt;
+    else if (banner.durationHours) expiresAt = Date.now() + banner.durationHours * 3600 * 1000;
+    else if (banner.durationDays) expiresAt = Date.now() + banner.durationDays * 24 * 3600 * 1000;
+
     const entry = {
       id: `b-${Date.now()}`,
       kind: banner.kind === 'photo' ? 'photo' : 'full',
@@ -53,6 +64,9 @@ export function BannerProvider({ children }) {
       category: banner.category || 'General Cooperative Benefit',
       imageUri: banner.imageUri || null,
       active: banner.active !== false,
+      durationHours: banner.durationHours || null,
+      durationDays: banner.durationDays || null,
+      expiresAt,
       createdAt: Date.now(),
     };
     persist([entry, ...banners]);
@@ -65,19 +79,16 @@ export function BannerProvider({ children }) {
 
   const removeBanner = (id) => persist(banners.filter((b) => b.id !== id));
 
-  /** All active banners (for admin to see which are live). */
-  const activeBanners = banners.filter((b) => b.active);
+  /** Active = switched on AND still inside its admin-set display window. */
+  const isLive = (b) => b.active && (!b.expiresAt || b.expiresAt > Date.now());
 
-  /** The banner currently shown to users — excludes ones the user dismissed. */
-  const visibleBanners = activeBanners.filter((b) => !dismissedIds.includes(b.id));
+  const activeBanners = banners.filter(isLive);
+  const visibleBanners = activeBanners.filter((b) => !sessionDismissed.includes(b.id));
 
-  /** Dismiss the currently-shown popup banner. */
-  const dismissBanner = (id) => {
-    if (!dismissedIds.includes(id)) persistDismissed([...dismissedIds, id]);
+  /** "X" pressed → hide for this session only; reappears next launch. */
+  const dismissBannerForSession = (id) => {
+    if (!sessionDismissed.includes(id)) setSessionDismissed([...sessionDismissed, id]);
   };
-
-  /** Clear dismissed history so banners can be shown again. */
-  const resetDismissals = () => persistDismissed([]);
 
   return (
     <BannerContext.Provider
@@ -89,8 +100,8 @@ export function BannerProvider({ children }) {
         addBanner,
         updateBanner,
         removeBanner,
-        dismissBanner,
-        resetDismissals,
+        dismissBanner: dismissBannerForSession,
+        isLive,
       }}
     >
       {children}

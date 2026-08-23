@@ -172,7 +172,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
             style={[styles.methodBtn, method === 'flutterwave' && styles.methodBtnActive]}
             onPress={() => setMethod('flutterwave')}
           >
-            <Zap size={18} color={method === 'flutterwave' ? '#FFFFFF' : '#4CAF50'} />
+            <Zap size={18} color={method === 'flutterwave' ? '#FFFFFF' : '#10B981'} />
             <Text style={[styles.methodBtnText, method === 'flutterwave' && styles.methodBtnTextActive]}>
               Instant Transfer
             </Text>
@@ -181,7 +181,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
             style={[styles.methodBtn, method === 'manual' && styles.methodBtnActive]}
             onPress={() => setMethod('manual')}
           >
-            <Landmark size={18} color={method === 'manual' ? '#FFFFFF' : '#4CAF50'} />
+            <Landmark size={18} color={method === 'manual' ? '#FFFFFF' : '#10B981'} />
             <Text style={[styles.methodBtnText, method === 'manual' && styles.methodBtnTextActive]}>
               Free Bank Transfer
             </Text>
@@ -210,7 +210,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
                 <Text style={[styles.detailValue, styles.accountNumber]}>
                   {flwAccountNumber || '—'}
                 </Text>
-                {flwAccountNumber ? <Copy size={15} color="#4CAF50" /> : null}
+                {flwAccountNumber ? <Copy size={15} color="#10B981" /> : null}
               </View>
             </TouchableOpacity>
 
@@ -241,7 +241,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
               <Text style={styles.detailLabel}>Account Number</Text>
               <View style={styles.copyRow}>
                 <Text style={[styles.detailValue, styles.accountNumber]}>{coopAccountNumber || "Not configured"}</Text>
-                <Copy size={15} color="#4CAF50" />
+                <Copy size={15} color="#10B981" />
               </View>
             </TouchableOpacity>
             <View style={styles.detailRow}>
@@ -257,7 +257,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
                 value={amount}
                 onChangeText={setAmount}
                 placeholder="0.00"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
                 keyboardType="decimal-pad"
               />
             </View>
@@ -268,11 +268,11 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
               value={reference}
               onChangeText={setReference}
               placeholder="e.g. TRF9988776655"
-              placeholderTextColor="#93A69B"
+              placeholderTextColor="#526E63"
             />
 
             <TouchableOpacity style={styles.uploadBtn} onPress={pickReceipt}>
-              <Upload size={20} color="#4CAF50" />
+              <Upload size={20} color="#10B981" />
               <View style={styles.uploadTextGroup}>
                 <Text style={styles.uploadTitle} numberOfLines={1}>
                   {receipt ? receipt.name : 'Upload Transfer Receipt'}
@@ -300,15 +300,15 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   content: { padding: 16, paddingBottom: 32 },
   metaBanner: {
-    backgroundColor: '#0B2211',
+    backgroundColor: '#091813',
     borderRadius: 14,
     padding: 14,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -334,18 +334,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingVertical: 12,
   },
   methodBtnActive: {
-    backgroundColor: '#0B2211',
-    borderColor: '#0B2211',
+    backgroundColor: '#091813',
+    borderColor: '#091813',
   },
   methodBtnText: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -353,19 +353,19 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   optionCard: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
   },
   optionTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: 'bold',
   },
   optionHint: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginTop: 4,
     marginBottom: 12,
@@ -376,14 +376,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 9,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C4A2E',
+    borderBottomColor: '#172F27',
   },
   detailLabel: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 12,
   },
   detailValue: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -398,13 +398,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   pendingNote: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginTop: 12,
     fontStyle: 'italic',
   },
   label: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
@@ -413,42 +413,42 @@ const styles = StyleSheet.create({
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
   },
   nairaPrefix: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 18,
     fontWeight: 'bold',
     marginRight: 6,
   },
   amountInput: {
     flex: 1,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '600',
     paddingVertical: 13,
   },
   input: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
   },
   uploadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     borderStyle: 'dashed',
     padding: 14,
     marginTop: 16,
@@ -459,17 +459,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   uploadTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
   uploadHint: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginTop: 2,
   },
   submitBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 14,
     paddingVertical: 15,
     flexDirection: 'row',

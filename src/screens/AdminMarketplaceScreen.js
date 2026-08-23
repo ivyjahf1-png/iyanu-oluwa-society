@@ -121,7 +121,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="light-content" backgroundColor='#091813' />
       <ScreenHeader
         title="Marketplace Dashboard"
         subtitle="Upload & manage inventory"
@@ -134,7 +134,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
           style={[styles.uploadToggle, showForm && styles.uploadToggleActive]}
           onPress={() => setShowForm(!showForm)}
         >
-          <Plus size={18} color={showForm ? '#FFFFFF' : '#4CAF50'} />
+          <Plus size={18} color={showForm ? '#FFFFFF' : '#10B981'} />
           <Text style={[styles.uploadToggleText, showForm && styles.uploadToggleTextActive]}>
             {showForm ? 'Close Upload Form' : 'Upload New Item'}
           </Text>
@@ -148,7 +148,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 <SafeImage source={{ uri: imageUri }} style={styles.imagePreview} />
               ) : (
                 <>
-                  <Upload size={26} color="#4CAF50" />
+                  <Upload size={26} color="#10B981" />
                   <Text style={styles.imagePickerText}>Tap to upload item photo</Text>
                 </>
               )}
@@ -159,14 +159,14 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
               value={title}
               onChangeText={setTitle}
               placeholder="Item title"
-              placeholderTextColor="#93A69B"
+              placeholderTextColor="#526E63"
             />
             <TextInput
               style={[styles.input, styles.textArea]}
               value={description}
               onChangeText={setDescription}
               placeholder="Description"
-              placeholderTextColor="#93A69B"
+              placeholderTextColor="#526E63"
               multiline
               numberOfLines={3}
             />
@@ -175,7 +175,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
               value={price}
               onChangeText={setPrice}
               placeholder="Price (e.g. 450000)"
-              placeholderTextColor="#93A69B"
+              placeholderTextColor="#526E63"
               keyboardType="decimal-pad"
             />
             <TextInput
@@ -183,7 +183,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
               value={location}
               onChangeText={setLocation}
               placeholder="Available location (e.g. Lagos)"
-              placeholderTextColor="#93A69B"
+              placeholderTextColor="#526E63"
             />
 
             <TouchableOpacity style={styles.submitBtn} onPress={submitItem}>
@@ -195,13 +195,13 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
 
         {/* Real-time search */}
         <View style={styles.searchBar}>
-          <Search size={18} color="#93A69B" />
+          <Search size={18} color='#8EA89D' />
           <TextInput
             style={styles.searchInput}
             value={query}
             onChangeText={setQuery}
             placeholder="Search inventory alphabetically..."
-            placeholderTextColor="#93A69B"
+            placeholderTextColor="#526E63"
             autoCapitalize="none"
           />
         </View>
@@ -224,7 +224,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 <SafeImage source={{ uri: item.imageUri }} style={styles.itemThumb} />
               ) : (
                 <View style={[styles.itemThumb, styles.itemThumbPlaceholder]}>
-                  <PackageOpen size={20} color="#4CAF50" />
+                  <PackageOpen size={20} color="#10B981" />
                 </View>
               )}
               <View style={styles.itemInfo}>
@@ -260,7 +260,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Item Details</Text>
                 <TouchableOpacity onPress={() => setViewItem(null)} style={styles.modalClose}>
-                  <X size={20} color="#0B2211" />
+                  <X size={20} color='#091813' />
                 </TouchableOpacity>
               </View>
               {viewItem && (
@@ -285,7 +285,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Edit Item</Text>
                 <TouchableOpacity onPress={() => setEditItem(null)} style={styles.modalClose}>
-                  <X size={20} color="#0B2211" />
+                  <X size={20} color='#091813' />
                 </TouchableOpacity>
               </View>
               <TextInput
@@ -293,14 +293,14 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 value={editTitle}
                 onChangeText={setEditTitle}
                 placeholder="Item name"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
               />
               <TextInput
                 style={styles.editInput}
                 value={editPrice}
                 onChangeText={setEditPrice}
                 placeholder="Price"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
                 keyboardType="decimal-pad"
               />
               <TextInput
@@ -308,7 +308,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 value={editDescription}
                 onChangeText={setEditDescription}
                 placeholder="Description"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
                 multiline
               />
               <TextInput
@@ -316,7 +316,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 value={editLocation}
                 onChangeText={setEditLocation}
                 placeholder="Location"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
               />
               <TouchableOpacity style={styles.saveEditBtn} onPress={saveEdit}>
                 <Text style={styles.saveEditText}>Save Changes</Text>
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  viewBtn: { backgroundColor: '#4CAF50' },
+  viewBtn: { backgroundColor: '#10B981' },
   editBtn: { backgroundColor: '#2563EB' },
   modalOverlay: {
     flex: 1,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -359,33 +359,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 14,
   },
-  modalTitle: { color: '#0B2211', fontSize: 17, fontWeight: 'bold' },
+  modalTitle: { color: '#FFFFFF', fontSize: 17, fontWeight: 'bold' },
   modalClose: { padding: 4 },
   modalImage: {
     width: '100%',
     height: 180,
     borderRadius: 12,
     marginBottom: 12,
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#172F27',
   },
-  modalName: { color: '#0B2211', fontSize: 18, fontWeight: 'bold' },
-  modalPrice: { color: '#4CAF50', fontSize: 16, fontWeight: '700', marginTop: 4 },
-  modalLocation: { color: '#93A69B', fontSize: 13, marginTop: 4 },
-  modalDesc: { color: '#C9D6CE', fontSize: 14, marginTop: 10, lineHeight: 20 },
+  modalName: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
+  modalPrice: { color: '#10B981', fontSize: 16, fontWeight: '700', marginTop: 4 },
+  modalLocation: { color: '#8EA89D', fontSize: 13, marginTop: 4 },
+  modalDesc: { color: '#8EA89D', fontSize: 14, marginTop: 10, lineHeight: 20 },
   editInput: {
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
     color: '#FFFFFF',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     marginBottom: 12,
   },
   editTextarea: { height: 90, textAlignVertical: 'top' },
   saveEditBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -394,26 +394,26 @@ const styles = StyleSheet.create({
   saveEditText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   content: { padding: 16, paddingBottom: 32 },
   uploadToggle: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     paddingVertical: 13,
     marginBottom: 14,
   },
   uploadToggleActive: {
-    backgroundColor: '#0B2211',
-    borderColor: '#0B2211',
+    backgroundColor: '#091813',
+    borderColor: '#091813',
   },
   uploadToggleText: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 13,
     fontWeight: 'bold',
   },
@@ -421,18 +421,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   formCard: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     marginBottom: 16,
   },
   imagePicker: {
     height: 130,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
@@ -441,18 +441,18 @@ const styles = StyleSheet.create({
   },
   imagePreview: { width: '100%', height: '100%' },
   imagePickerText: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 12,
     marginTop: 8,
   },
   input: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     marginBottom: 12,
   },
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   submitBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     paddingVertical: 14,
     flexDirection: 'row',
@@ -477,16 +477,16 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 12,
     marginBottom: 14,
   },
   searchInput: {
     flex: 1,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     paddingVertical: 11,
     marginLeft: 8,
@@ -496,13 +496,13 @@ const styles = StyleSheet.create({
     paddingVertical: 46,
   },
   emptyTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: 'bold',
     marginTop: 12,
   },
   emptySub: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 12,
     marginTop: 6,
     textAlign: 'center',
@@ -511,11 +511,11 @@ const styles = StyleSheet.create({
   itemCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     marginBottom: 10,
   },
   itemThumb: {
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   itemThumbPlaceholder: {
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#172F27',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -533,18 +533,18 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   itemTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
   itemPrice: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 13,
     fontWeight: 'bold',
     marginTop: 3,
   },
   itemLocation: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 10,
     marginTop: 2,
   },

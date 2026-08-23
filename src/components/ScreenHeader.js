@@ -10,7 +10,7 @@ export default function ScreenHeader({ title, subtitle, onBack }) {
   return (
     <View style={styles.header}>
       <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-        <ChevronLeft size={22} color="#0B2211" />
+        <ChevronLeft size={22} color='#091813' />
       </TouchableOpacity>
       <View style={styles.titleGroup}>
         <Text style={styles.title}>{title}</Text>
@@ -26,13 +26,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#0B2211',
+    backgroundColor: '#091813',
   },
   backBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,

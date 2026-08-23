@@ -2,10 +2,11 @@ import React from 'react';
 import { View, StyleSheet, Platform, SafeAreaView } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, PiggyBank, Users, Menu } from 'lucide-react-native';
+import { Home, PiggyBank, Wallet, Users, Menu } from 'lucide-react-native';
 
 import HomeScreen from '../screens/HomeScreen';
 import SavingsScreen from '../screens/SavingsScreen';
+import SavingsHubScreen from '../screens/SavingsHubScreen';
 import CoopHubScreen from '../screens/CoopHubScreen';
 import MoreScreen from '../screens/MoreScreen';
 import MeetingChatScreen from '../screens/MeetingChatScreen';
@@ -28,26 +29,30 @@ import AccountStatementScreen from '../screens/AccountStatementScreen';
 import AnnouncementsScreen from '../screens/AnnouncementsScreen';
 import AdminUserManagementScreen from '../screens/AdminUserManagementScreen';
 import BannerManagerScreen from '../screens/BannerManagerScreen';
+import CoopCreditScreen from '../screens/CoopCreditScreen';
+import SocietyScreen from '../screens/SocietyScreen';
 import ProfileSettingsScreen from '../screens/ProfileSettingsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
+import { COLORS } from '../constants/theme';
+import { useAuth } from '../context/AuthContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 const tabBarOptions = {
   headerShown: false,
-  tabBarActiveTintColor: '#00D084',
-  tabBarInactiveTintColor: '#64748B',
+  tabBarActiveTintColor: COLORS.emeraldAccent,
+  tabBarInactiveTintColor: '#4B6358',
   tabBarLabelStyle: {
     fontSize: 10,
     fontWeight: '600',
   },
   tabBarStyle: {
-    backgroundColor: '#0A1412',
-    borderTopColor: '#162522',
-    borderTopWidth: 0,
+    backgroundColor: COLORS.background,
+    borderTopColor: COLORS.navBorder,
+    borderTopWidth: 1,
     height: 65,
     paddingTop: 11,
     paddingBottom: 8,
@@ -60,37 +65,37 @@ const fullScreenOptions = {
 
 function BottomTabs() {
   return (
-    <Tab.Navigator initialRouteName="Home" screenOptions={tabBarOptions}>
+    <Tab.Navigator initialRouteName="Dashboard" screenOptions={tabBarOptions}>
       <Tab.Screen
-        name="Home"
+        name="Dashboard"
         component={HomeScreen}
         options={{
-          title: 'Home',
+          title: 'Dashboard',
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
       <Tab.Screen
-        name="Savings"
-        component={SavingsScreen}
+        name="Savings Hub"
+        component={SavingsHubScreen}
         options={{
-          title: 'Savings',
+          title: 'Savings Hub',
           tabBarIcon: ({ color, size }) => <PiggyBank size={size} color={color} />,
         }}
       />
       <Tab.Screen
-        name="Co-op Hub"
-        component={CoopHubScreen}
+        name="Co-op Credit"
+        component={CoopCreditScreen}
         options={{
-          title: 'Co-op Hub',
-          tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
+          title: 'Co-op Credit',
+          tabBarIcon: ({ color, size }) => <Wallet size={size} color={color} />,
         }}
       />
       <Tab.Screen
-        name="More"
-        component={MoreScreen}
+        name="Society"
+        component={SocietyScreen}
         options={{
-          title: 'More',
-          tabBarIcon: ({ color, size }) => <Menu size={size} color={color} />,
+          title: 'Society',
+          tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
         }}
       />
     </Tab.Navigator>
@@ -98,10 +103,13 @@ function BottomTabs() {
 }
 
 export default function AppNavigator() {
+  const { userEmail, restoring } = useAuth();
+  // Authenticated users land directly on the app; guests see the Welcome flow.
+  const initialRoute = !restoring && userEmail ? 'MainTabs' : 'Welcome';
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.webWrapper}>
-        <Stack.Navigator initialRouteName="Welcome" screenOptions={fullScreenOptions}>
+        <Stack.Navigator key={initialRoute} initialRouteName={initialRoute} screenOptions={fullScreenOptions}>
           {/* Auth flow */}
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="SignIn" component={SignInScreen} />
@@ -129,6 +137,10 @@ export default function AppNavigator() {
           <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
           <Stack.Screen name="AdminUserManagement" component={AdminUserManagementScreen} />
           <Stack.Screen name="PromotionalBanners" component={BannerManagerScreen} />
+          <Stack.Screen name="CoopCredit" component={CoopCreditScreen} />
+          <Stack.Screen name="Society" component={SocietyScreen} />
+          <Stack.Screen name="More" component={MoreScreen} />
+          <Stack.Screen name="Co-op Hub" component={CoopHubScreen} />
         </Stack.Navigator>
       </View>
     </SafeAreaView>

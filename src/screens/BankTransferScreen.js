@@ -29,7 +29,7 @@ export default function BankTransferScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="light-content" backgroundColor='#091813' />
       <ScreenHeader
         title="Bank Transfer"
         subtitle="Your saved payout account"
@@ -40,7 +40,7 @@ export default function BankTransferScreen({ navigation: rawNav }) {
         {hasSavedDetails ? (
           <View style={styles.card}>
             <View style={styles.headerRow}>
-              <Landmark size={18} color="#4CAF50" />
+              <Landmark size={18} color="#10B981" />
               <Text style={styles.headerTitle}>Saved Bank Account</Text>
             </View>
 
@@ -54,7 +54,7 @@ export default function BankTransferScreen({ navigation: rawNav }) {
                 <Text style={[styles.detailValue, styles.accountNumber]}>
                   {user.userAccountNumber}
                 </Text>
-                <Copy size={15} color="#4CAF50" />
+                <Copy size={15} color="#10B981" />
               </View>
             </TouchableOpacity>
             <View style={styles.detailRow}>
@@ -63,7 +63,7 @@ export default function BankTransferScreen({ navigation: rawNav }) {
             </View>
 
             <View style={styles.footerRow}>
-              <ShieldCheck size={14} color="#4CAF50" />
+              <ShieldCheck size={14} color="#10B981" />
               <Text style={styles.footerText}>Tap the account number to copy</Text>
             </View>
           </View>
@@ -100,14 +100,14 @@ export default function BankTransferScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   content: { padding: 16, paddingBottom: 32 },
   card: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
   },
   headerRow: {
     flexDirection: 'row',
@@ -116,10 +116,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C4A2E',
+    borderBottomColor: '#172F27',
   },
   headerTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -130,11 +130,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   detailLabel: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 12,
   },
   detailValue: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -155,35 +155,35 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#1C4A2E',
+    borderTopColor: '#172F27',
   },
   footerText: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
   },
   emptyCard: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     alignItems: 'center',
   },
   emptyTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: 'bold',
     marginTop: 12,
   },
   emptySub: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 12,
     marginTop: 6,
     textAlign: 'center',
     lineHeight: 17,
   },
   primaryBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 12,
     paddingHorizontal: 22,
     paddingVertical: 11,
@@ -195,16 +195,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   secondaryBtn: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: '#10B981',
     paddingVertical: 13,
     alignItems: 'center',
     marginTop: 12,
   },
   secondaryBtnText: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontWeight: '600',
     fontSize: 13,
   },

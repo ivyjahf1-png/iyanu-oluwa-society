@@ -55,8 +55,8 @@ export default function SignUpScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
-      <LinearGradient colors={['#0B2211', '#1A3A24']} style={styles.gradient}>
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
+      <LinearGradient colors={['#091813', '#1A3A24']} style={styles.gradient}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <ChevronLeft color="#FFFFFF" size={24} />
@@ -70,7 +70,7 @@ export default function SignUpScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="you@example.com"
-              placeholderTextColor="#93A69B"
+              placeholderTextColor="#526E63"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -84,7 +84,7 @@ export default function SignUpScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -109,7 +109,7 @@ export default function SignUpScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
@@ -153,7 +153,7 @@ export default function SignUpScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   gradient: { flex: 1 },
   header: {
     flexDirection: 'row',
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C4A2E',
+    borderBottomColor: '#172F27',
     marginBottom: 12,
   },
   backBtn: { padding: 6, marginRight: 8 },
@@ -178,26 +178,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   input: {
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#172F27',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     color: '#FFFFFF',
     fontSize: 15,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#172F27',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
   },
   eyeBtn: { paddingHorizontal: 12 },
   primaryBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   footerTxt: { color: '#A7F3D0', fontSize: 13 },
   link: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 13,
     fontWeight: '600',
   },

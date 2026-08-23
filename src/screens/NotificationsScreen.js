@@ -52,7 +52,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
+      <StatusBar barStyle="light-content" backgroundColor='#091813' />
       <ScreenHeader
         title="Notifications & Reminders"
         subtitle="Payment alerts and scheduling"
@@ -75,7 +75,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                 setRemindersEnabled(v);
                 updateUser({ remindersEnabled: v });
               }}
-              trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
+              trackColor={{ false: '#172F27', true: '#10B981' }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -112,7 +112,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                   updateUser({ reminderDaysBefore: clean });
                 }}
                 placeholder="e.g. 3"
-                placeholderTextColor="#93A69B"
+                placeholderTextColor="#526E63"
                 keyboardType="number-pad"
                 maxLength={2}
               />
@@ -135,7 +135,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                 setSoundAlertsEnabled(v);
                 updateUser({ soundAlertsEnabled: v });
               }}
-              trackColor={{ false: '#1C4A2E', true: '#4CAF50' }}
+              trackColor={{ false: '#172F27', true: '#10B981' }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -153,7 +153,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                       updateUser({ alertSound: s, alertSoundUri: null });
                     }}
                   >
-                    <Music size={14} color={alertSound === s ? '#FFFFFF' : '#4CAF50'} />
+                    <Music size={14} color={alertSound === s ? '#FFFFFF' : '#10B981'} />
                     <Text style={[styles.chipText, alertSound === s && styles.chipTextActive]}>
                       {s}
                     </Text>
@@ -191,21 +191,21 @@ export default function NotificationsScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   content: { padding: 16, paddingBottom: 32 },
   sectionTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
     marginTop: 6,
   },
   card: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     marginBottom: 18,
   },
   switchRow: {
@@ -218,17 +218,17 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   switchTitle: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
   switchSub: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginTop: 2,
   },
   label: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
     marginTop: 14,
@@ -244,18 +244,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingVertical: 9,
   },
   chipActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
   },
   chipText: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -263,13 +263,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   input: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     paddingVertical: 11,
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
   },
   soundGrid: {
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#0B2211',
+    backgroundColor: '#091813',
     borderRadius: 12,
     paddingVertical: 11,
     marginTop: 4,
@@ -297,26 +297,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     paddingHorizontal: 14,
     paddingVertical: 9,
   },
   noteCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     gap: 8,
   },
   noteText: {
     flex: 1,
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     lineHeight: 15,
   },

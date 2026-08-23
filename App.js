@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { BankProvider } from './src/context/BankContext';
@@ -29,10 +29,16 @@ import AppLockScreen from './src/components/AppLockScreen';
 import { TransactionsProvider } from './src/context/TransactionsContext';
 import { BannerProvider } from './src/context/BannerContext';
 import { View, ActivityIndicator } from 'react-native';
+import { startRealtimeSync } from './src/lib/realtime';
 
 /** Shows the app once auth state is restored; gates on the lock screen. */
 function AuthGate({ children }) {
   const { restoring, userEmail, isLocked } = useAuth();
+
+  useEffect(() => {
+    // Supabase realtime channels + polling fallback for admin→user sync.
+    startRealtimeSync();
+  }, []);
 
   if (restoring) {
     return (

@@ -9,7 +9,7 @@ export default function CallScreen({ route, navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#0B2211" barStyle="light-content" />
+      <StatusBar backgroundColor='#091813' barStyle="light-content" />
 
       {/* Back navigation control */}
       <View style={styles.backRow}>
@@ -49,17 +49,17 @@ export default function CallScreen({ route, navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B2211', justifyContent: 'space-between', paddingVertical: 40, paddingHorizontal: 20 },
+  container: { flex: 1, backgroundColor: '#091813', justifyContent: 'space-between', paddingVertical: 40, paddingHorizontal: 20 },
   backRow: { alignItems: 'flex-start' },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#1C4A2E', justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#172F27', justifyContent: 'center', alignItems: 'center' },
   topInfo: { alignItems: 'center', marginTop: 20 },
   callType: { color: '#A7F3D0', fontSize: 11, fontWeight: 'bold' },
   groupTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold', marginTop: 8 },
   status: { color: '#9CB8A6', fontSize: 12, marginTop: 4 },
   avatarContainer: { alignItems: 'center' },
-  largeAvatar: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#0B2211', justifyContent: 'center', alignItems: 'center' },
+  largeAvatar: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#091813', justifyContent: 'center', alignItems: 'center' },
   avatarText: { color: '#FFFFFF', fontSize: 36, fontWeight: 'bold' },
-  controls: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#0F2A19', borderRadius: 30, paddingVertical: 14 },
-  controlBtn: { backgroundColor: '#1C4A2E', padding: 12, borderRadius: 25 },
+  controls: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#0D1D18', borderRadius: 30, paddingVertical: 14 },
+  controlBtn: { backgroundColor: '#172F27', padding: 12, borderRadius: 25 },
   endCallBtn: { backgroundColor: '#FF3B30', padding: 14, borderRadius: 30 },
 });

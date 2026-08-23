@@ -106,7 +106,7 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
 
       {item.receipt_url ? (
         <TouchableOpacity style={styles.receiptBtn} onPress={() => openReceipt(item.receipt_url)}>
-          <FileText size={16} color="#4CAF50" />
+          <FileText size={16} color="#10B981" />
           <Text style={styles.receiptBtnText}>View uploaded receipt</Text>
         </TouchableOpacity>
       ) : (
@@ -162,14 +162,14 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
   );
 }
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B2211' },
+  container: { flex: 1, backgroundColor: '#091813' },
   list: { padding: 16, paddingBottom: 32 },
   card: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     marginBottom: 12,
   },
   cardHeader: {
@@ -178,17 +178,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   memberName: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
   },
   amount: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 16,
     fontWeight: 'bold',
   },
   meta: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginTop: 4,
   },
@@ -199,12 +199,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   receiptBtnText: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 12,
     fontWeight: '600',
   },
   noReceipt: {
-    color: '#7E9086',
+    color: '#4B6358',
     fontSize: 11,
     marginTop: 10,
     fontStyle: 'italic',
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
   },
   approveBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
   },
   approveText: {
     color: '#FFFFFF',
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 13,
     marginTop: 10,
   },

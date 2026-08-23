@@ -32,7 +32,7 @@ export default function SafeImage({ style, ...rest }) {
 
 const styles = StyleSheet.create({
   placeholder: {
-    backgroundColor: '#123B24',
+    backgroundColor: '#132620',
     justifyContent: 'center',
     alignItems: 'center',
   },

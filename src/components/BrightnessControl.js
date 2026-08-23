@@ -57,10 +57,10 @@ export default function BrightnessControl({ label, hint, value, onChange }) {
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#0D1D18',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: '#172F27',
     padding: 12,
     marginBottom: 12,
   },
@@ -71,12 +71,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    color: '#0B2211',
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
   pct: {
-    color: '#4CAF50',
+    color: '#10B981',
     fontSize: 13,
     fontWeight: 'bold',
   },
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -104,13 +104,13 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   segmentOn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#10B981',
   },
   segmentOff: {
-    backgroundColor: '#1C4A2E',
+    backgroundColor: '#172F27',
   },
   hint: {
-    color: '#93A69B',
+    color: '#8EA89D',
     fontSize: 11,
     marginTop: 8,
   },
