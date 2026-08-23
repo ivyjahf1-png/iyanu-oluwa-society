@@ -10,6 +10,9 @@ export const KNOWN_ROUTES = new Set([
   'Savings',
   'Co-op Hub',
   'More',
+  'Welcome',
+  'SignIn',
+  'SignUp',
   'MeetingChat',
   'CallScreen',
   'Marketplace',
@@ -28,6 +31,7 @@ export const KNOWN_ROUTES = new Set([
   'AdminMarketplace',
   'AIAssistant',
   'AccountStatement',
+  'Announcements',
 ]);
 
 /**

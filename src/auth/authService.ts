@@ -3,12 +3,12 @@
  *
  * - Passwords are HASHED (SHA-256 via expo-crypto) before storage; the plain
  *   text never touches disk.
- * - Passcode and biometric flags live in expo-secure-store (encrypted on
- *   device). A graceful in-memory fallback keeps web/no-native builds working.
+ * - Credentials, passcode and biometric flags persist through AsyncStorage /
+ *   localStorage (./storage), so accounts survive reloads on web AND native.
  * - All methods are async and fail-safe: errors reject cleanly so callers can
  *   show friendly messages instead of crashing.
  */
-import * as SecureStore from 'expo-secure-store';
+import { storage } from './storage';
 import * as Crypto from 'expo-crypto';
 
 const KEYS = {
@@ -21,37 +21,28 @@ const KEYS = {
   SESSION: 'auth.session',
 };
 
-/** In-memory fallback used only when SecureStore is unavailable (e.g. web). */
-const memory = new Map<string, string>();
-
 async function secGet(key: string): Promise<string | null> {
   try {
-    const v = await SecureStore.getItemAsync(key);
-    // Web/no-native builds: SecureStore resolves null instead of throwing,
-    // so fall through to the in-memory fallback where secSet stored the value.
-    return v ?? memory.get(key) ?? null;
+    return await storage.getItem(key);
   } catch (e) {
-    return memory.get(key) ?? null;
+    console.warn('[auth] read failed for', key);
+    return null;
   }
 }
 
 async function secSet(key: string, value: string): Promise<void> {
-  // Always mirror to memory so web/no-native builds (where SecureStore is a
-  // no-op) can still read back what was written during this session.
-  memory.set(key, value);
   try {
-    await SecureStore.setItemAsync(key, value);
+    await storage.setItem(key, value);
   } catch (e) {
-    // Memory copy above already covers this platform.
+    console.warn('[auth] write failed for', key);
   }
 }
 
 async function secDel(key: string): Promise<void> {
-  memory.delete(key);
   try {
-    await SecureStore.deleteItemAsync(key);
+    await storage.removeItem(key);
   } catch (e) {
-    // Already removed from memory.
+    console.warn('[auth] delete failed for', key);
   }
 }
 
@@ -139,6 +130,7 @@ export async function registerAccount(email: string, password: string): Promise<
     await secSet(KEYS.EMAIL, normalized);
     await secSet(KEYS.SALT, salt);
     await secSet(KEYS.PWD_HASH, hash);
+    console.log('[auth] account created for', normalized);
 
     // Persist the account record (uid, email, displayName, createdAt).
     await syncUserRecord(normalized, normalized);
@@ -164,16 +156,21 @@ export async function loginWithPassword(email: string, password: string): Promis
     const storedHash = await secGet(KEYS.PWD_HASH);
 
     if (!storedEmail || !storedHash || !salt) {
+      console.log('[auth] login failed: no account exists yet');
       return { ok: false, error: 'No account found. Please create one first.' };
     }
     if (normalized !== storedEmail) {
+      console.log('[auth] login failed: email mismatch', normalized, 'vs', storedEmail);
       return { ok: false, error: 'No account found with this email' };
     }
 
     const attemptHash = await hashValue(password, salt);
     if (attemptHash !== storedHash) {
+      console.log('[auth] login failed: wrong password');
       return { ok: false, error: 'Wrong password' };
     }
+
+    console.log('[auth] login success for', normalized);
 
     await createSession(normalized);
     return { ok: true };
