@@ -13,6 +13,7 @@ export default function BankDetailsCard() {
   const { bankName, accountNumber, accountName } = useBankDetails();
 
   const copyAccountNumber = async () => {
+    if (!accountNumber) return;
     await Clipboard.setStringAsync(accountNumber);
     Alert.alert('Copied', `Account number ${accountNumber} copied to clipboard.`);
   };
@@ -26,25 +27,31 @@ export default function BankDetailsCard() {
 
       <View style={styles.detailRow}>
         <Text style={styles.detailLabel}>Bank Name</Text>
-        <Text style={styles.detailValue}>{bankName}</Text>
+        <Text style={styles.detailValue}>{bankName || 'Not configured'}</Text>
       </View>
 
-      <TouchableOpacity style={styles.detailRow} onPress={copyAccountNumber}>
+      <TouchableOpacity style={styles.detailRow} onPress={copyAccountNumber} disabled={!accountNumber}>
         <Text style={styles.detailLabel}>Account Number</Text>
         <View style={styles.copyRow}>
-          <Text style={[styles.detailValue, styles.accountNumber]}>{accountNumber}</Text>
-          <Copy size={15} color="#4CAF50" />
+          <Text style={[styles.detailValue, styles.accountNumber]}>
+            {accountNumber || 'Not configured'}
+          </Text>
+          {accountNumber ? <Copy size={15} color="#4CAF50" /> : null}
         </View>
       </TouchableOpacity>
 
       <View style={styles.detailRow}>
         <Text style={styles.detailLabel}>Account Name</Text>
-        <Text style={styles.detailValue}>{accountName}</Text>
+        <Text style={styles.detailValue}>{accountName || 'Not configured'}</Text>
       </View>
 
       <View style={styles.footerRow}>
         <ShieldCheck size={14} color="#4CAF50" />
-        <Text style={styles.footerText}>Tap the account number to copy</Text>
+        <Text style={styles.footerText}>
+          {accountNumber
+            ? 'Tap the account number to copy'
+            : 'Awaiting account details from the cooperative admin'}
+        </Text>
       </View>
     </View>
   );

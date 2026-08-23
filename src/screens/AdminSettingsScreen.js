@@ -17,11 +17,13 @@ import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { Landmark, CheckCircle2, Key } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { getAllSettings, saveSettings } from '../lib/supabase';
+import { useBankDetails } from '../context/BankContext';
 
 const ADMIN_SETTINGS_CACHE_KEY = '@admin_app_settings';
 
 export default function AdminSettingsScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
+  const { setBankDetails } = useBankDetails();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -118,6 +120,13 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     setSaving(false);
 
     if (saveSuccess) {
+      // Push the cooperative bank details into the global BankContext so
+      // member screens (Fund Wallet, Repay Loan) update immediately.
+      await setBankDetails({
+        bankName: bankNameInput,
+        accountNumber: accountNumberInput,
+        accountName: accountNameInput,
+      });
       Alert.alert('Saved', 'Payment gateway and cooperative bank details updated successfully.');
       navigation.goBack();
     } else {

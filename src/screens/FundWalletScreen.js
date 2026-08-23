@@ -16,6 +16,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
 import { supabase } from '../lib/supabase';
+import { useBankDetails } from '../context/BankContext';
 
 export default function FundWalletScreen({ navigation: rawNav, route }) {
   const navigation = useSafeNavigation(rawNav);
@@ -39,12 +40,9 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
   const [receipt, setReceipt] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Cooperative bank details come from app_settings (admin-managed).
-  const [coopBank, setCoopBank] = useState({
-    bankName: '',
-    accountNumber: '',
-    accountName: '',
-  });
+  // Cooperative bank details come from BankContext (admin-managed single
+  // source of truth — read-only here, editable only in Admin Settings).
+  const { bankName: coopBankName, accountNumber: coopAccountNumber, accountName: coopAccountName } = useBankDetails();
 
   useEffect(() => {
     loadProfileAndSettings();
@@ -62,15 +60,6 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
         setFlwAccountNumber(profile.flw_account_number || '');
         setFlwBankName(profile.flw_bank_name || 'Flutterwave');
       }
-    }
-    const { data: settings } = await supabase.from('app_settings').select('key, value');
-    if (settings) {
-      const map = Object.fromEntries(settings.map(r => [r.key, r.value]));
-      setCoopBank({
-        bankName: map.coop_bank_name || '',
-        accountNumber: map.coop_account_number || '',
-        accountName: map.coop_account_name || '',
-      });
     }
   };
 
@@ -243,21 +232,21 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
 
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Bank Name</Text>
-              <Text style={styles.detailValue}>{coopBank.bankName}</Text>
+              <Text style={styles.detailValue}>{coopBankName || 'Not configured'}</Text>
             </View>
             <TouchableOpacity
               style={styles.detailRow}
-              onPress={() => copyToClipboard(coopBank.accountNumber)}
+              onPress={() => coopAccountNumber && copyToClipboard(coopAccountNumber)}
             >
               <Text style={styles.detailLabel}>Account Number</Text>
               <View style={styles.copyRow}>
-                <Text style={[styles.detailValue, styles.accountNumber]}>{coopBank.accountNumber}</Text>
+                <Text style={[styles.detailValue, styles.accountNumber]}>{coopAccountNumber || "Not configured"}</Text>
                 <Copy size={15} color="#4CAF50" />
               </View>
             </TouchableOpacity>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Account Name</Text>
-              <Text style={styles.detailValue}>{coopBank.accountName}</Text>
+              <Text style={styles.detailValue}>{coopAccountName || "Not configured"}</Text>
             </View>
 
             <Text style={styles.label}>Amount</Text>
