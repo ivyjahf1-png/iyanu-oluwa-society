@@ -50,8 +50,12 @@ export function MarketItemsProvider({ children }) {
     persist(items.filter(i => i.id !== id));
   };
 
+  const updateItem = (id, updates) => {
+    persist(items.map(i => (i.id === id ? { ...i, ...updates } : i)));
+  };
+
   return (
-    <MarketItemsContext.Provider value={{ items, addItem, removeItem, hydrated }}>
+    <MarketItemsContext.Provider value={{ items, addItem, removeItem, updateItem, hydrated }}>
       {children}
     </MarketItemsContext.Provider>
   );

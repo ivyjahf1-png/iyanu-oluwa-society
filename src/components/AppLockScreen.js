@@ -45,9 +45,10 @@ export default function AppLockScreen() {
 
   const handlePasscodeDigit = (d) => {
     setError('');
-    const next = (passcode + d).slice(0, 6);
+    // Passcode is exactly 4 digits — extra presses are ignored.
+    const next = (passcode + d).slice(0, 4);
     setPasscode(next);
-    if (next.length === 4 || next.length === 6) {
+    if (next.length === 4) {
       submitPasscode(next);
     }
   };
@@ -96,12 +97,12 @@ export default function AppLockScreen() {
           {mode === 'passcode' && (
             <>
               <Text style={styles.title}>Enter Passcode</Text>
-              <Text style={styles.subtitle}>4 or 6 digits to unlock</Text>
+              <Text style={styles.subtitle}>Passcode must be 4 numbers</Text>
               <View style={styles.dots}>
                 {Array.from({ length: passcode.length }).map((_, i) => (
                   <View key={i} style={styles.dotFilled} />
                 ))}
-                {Array.from({ length: (passcode.length < 4 ? 4 : 6) - passcode.length }).map((_, i) => (
+                {Array.from({ length: 4 - passcode.length }).map((_, i) => (
                   <View key={`e${i}`} style={styles.dotEmpty} />
                 ))}
               </View>
@@ -136,7 +137,7 @@ export default function AppLockScreen() {
 
 /** Full email + password fallback — last resort when biometric/passcode fail. */
 function PasswordFallback() {
-  const { loginWithPassword, userEmail } = useAuth();
+  const { loginWithPassword, userEmail, logout } = useAuth();
   const [email, setEmail] = useState(userEmail || '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -151,6 +152,15 @@ function PasswordFallback() {
     const res = await loginWithPassword(email, password);
     setBusy(false);
     if (!res.ok) setError(res.error || 'Sign in failed');
+  };
+
+  const goSignUp = () => {
+    // The lock screen sits outside the navigator; signing out of this session
+    // returns to the app entry flow where "Create Account" is available.
+    Alert.alert('Sign Up', 'Sign out of the current session to create a new account?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Continue', onPress: () => logout() },
+    ]);
   };
 
   return (
@@ -182,6 +192,9 @@ function PasswordFallback() {
         ) : (
           <Text style={styles.signInText}>Sign In</Text>
         )}
+      </TouchableOpacity>
+      <TouchableOpacity onPress={goSignUp} hitSlop={{ top: 10, bottom: 10 }}>
+        <Text style={styles.signUpLink}>Sign up</Text>
       </TouchableOpacity>
     </View>
   );
@@ -244,4 +257,11 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   signInText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
+  signUpLink: {
+    color: '#4CAF50',
+    fontSize: 10,
+    fontWeight: '400',
+    textAlign: 'center',
+    marginTop: 12,
+  },
 });

@@ -10,13 +10,14 @@ import {
     Alert,
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { ChevronLeft } from 'lucide-react-native'
+import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native'
 import { useAuth } from '../context/AuthContext'
 
 export default function SignInScreen({ navigation }) {
   const { loginWithPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const validate = () => {
@@ -73,14 +74,27 @@ export default function SignInScreen({ navigation }) {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor="#6B7280"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+            <View style={styles.inputRow}>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor="#6B7280"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                style={styles.eyeBtn}
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                {showPassword ? (
+                  <EyeOff size={18} color="#A7F3D0" />
+                ) : (
+                  <Eye size={18} color="#A7F3D0" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           <TouchableOpacity
@@ -133,15 +147,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   input: {
-    backgroundColor: '#1C4A2E',
+    flex: 1,
+    backgroundColor: 'transparent',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     color: '#FFFFFF',
     fontSize: 15,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C4A2E',
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#1C4A2E',
   },
+  eyeBtn: { paddingHorizontal: 12 },
   primaryBtn: {
     backgroundColor: '#4CAF50',
     borderRadius: 14,

@@ -36,10 +36,19 @@ import {
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUser } from '../context/UserContext';
+import { useAuth } from '../context/AuthContext';
+import { deriveDisplayName } from '../auth/authService';
 
 export default function HomeScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { user } = useUser();
+  const { userEmail } = useAuth();
+  // Display name comes from the authenticated user's email
+  // (temitope.adewale@gmail.com -> "Temitope Adewale"); falls back to the
+  // saved profile name when no auth email exists yet.
+  const displayName = userEmail
+    ? deriveDisplayName(userEmail)
+    : user?.fullName || 'Member';
 
   // Existing state handlers preserved: visibility toggles for each balance area.
   const [showBalance, setShowBalance] = useState(false);
@@ -69,7 +78,7 @@ export default function HomeScreen({ navigation: rawNav }) {
           <View style={styles.greetingRow}>
             <View style={styles.greetingLeft}>
               <Text style={styles.greetingLine}>Good morning,</Text>
-              <Text style={styles.greetingName}>Temitope Adewale</Text>
+              <Text style={styles.greetingName}>{displayName}</Text>
               <View style={styles.societyRow}>
                 <ShieldCheck size={14} color="#4ADE80" />
                 <Text style={styles.societyText}>Iyanu Oluwa Society</Text>

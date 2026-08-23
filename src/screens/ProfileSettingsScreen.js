@@ -74,8 +74,8 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
   };
 
   const handleSavePasscode = async () => {
-    if (!/^\d{4}$|^\d{6}$/.test(newPasscode)) {
-      Alert.alert('Invalid Passcode', 'Passcode must be exactly 4 or 6 digits.');
+    if (!/^\d{4}$/.test(newPasscode)) {
+      Alert.alert('Invalid Passcode', 'Passcode must be exactly 4 digits.');
       return;
     }
     if (newPasscode !== confirmPasscode) {
@@ -292,11 +292,11 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           style={styles.input}
           value={newPasscode}
           onChangeText={(t) => setNewPasscode(t.replace(/[^0-9]/g, ''))}
-          placeholder={methods.passcode ? 'Change passcode (4 or 6 digits)' : 'Set passcode (4 or 6 digits)'}
+          placeholder={methods.passcode ? 'Change passcode (4 digits)' : 'Set passcode (4 digits)'}
           placeholderTextColor="#6B7280"
           keyboardType="number-pad"
           secureTextEntry
-          maxLength={6}
+          maxLength={4}
         />
         <TextInput
           style={styles.input}
@@ -306,7 +306,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           placeholderTextColor="#6B7280"
           keyboardType="number-pad"
           secureTextEntry
-          maxLength={6}
+          maxLength={4}
         />
         <TouchableOpacity style={styles.linkBtn} onPress={handleSavePasscode}>
           <KeyRound size={16} color="#4CAF50" />

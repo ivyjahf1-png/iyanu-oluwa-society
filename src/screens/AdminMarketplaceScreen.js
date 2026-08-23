@@ -10,6 +10,7 @@ import {
   ScrollView,
   Alert,
   Image,
+  Modal,
 } from 'react-native';
 import SafeImage from '../components/SafeImage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
@@ -19,6 +20,9 @@ import {
   PackageOpen,
   Trash2,
   Upload,
+  Eye,
+  Pencil,
+  X,
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
@@ -26,7 +30,7 @@ import { useMarketItems } from '../context/MarketItemsContext';
 
 export default function AdminMarketplaceScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
-  const { items, addItem, removeItem } = useMarketItems();
+  const { items, addItem, removeItem, updateItem } = useMarketItems();
 
   // Upload form state
   const [showForm, setShowForm] = useState(false);
@@ -38,6 +42,38 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
 
   // Real-time alphabetical search
   const [query, setQuery] = useState('');
+
+  // View / Edit modals
+  const [viewItem, setViewItem] = useState(null);
+  const [editItem, setEditItem] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editPrice, setEditPrice] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+
+  const openEdit = (item) => {
+    setEditItem(item);
+    setEditTitle(item.title || '');
+    setEditPrice(item.price || '');
+    setEditDescription(item.description || '');
+    setEditLocation(item.location || '');
+  };
+
+  const saveEdit = () => {
+    if (!editItem) return;
+    if (!editTitle.trim()) {
+      Alert.alert('Title required', 'Item title cannot be empty.');
+      return;
+    }
+    updateItem(editItem.id, {
+      title: editTitle.trim(),
+      price: editPrice.trim(),
+      description: editDescription.trim(),
+      location: editLocation.trim(),
+    });
+    setEditItem(null);
+    Alert.alert('Updated', `"${editTitle.trim()}" has been updated.`);
+  };
 
   const pickImage = async () => {
     try {
@@ -196,18 +232,166 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 <Text style={styles.itemPrice}>{item.price}</Text>
                 {item.location ? <Text style={styles.itemLocation}>{item.location}</Text> : null}
               </View>
-              <TouchableOpacity onPress={() => removeItem(item.id)} style={styles.deleteBtn}>
-                <Trash2 size={17} color="#C0392B" />
-              </TouchableOpacity>
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  onPress={() => setViewItem(item)}
+                  style={[styles.actionBtn, styles.viewBtn]}
+                >
+                  <Eye size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => openEdit(item)}
+                  style={[styles.actionBtn, styles.editBtn]}
+                >
+                  <Pencil size={16} color="#FFFFFF" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => removeItem(item.id)} style={styles.deleteBtn}>
+                  <Trash2 size={17} color="#C0392B" />
+                </TouchableOpacity>
+              </View>
             </View>
           ))
         )}
+
+        {/* View modal — read-only details */}
+        <Modal visible={!!viewItem} transparent animationType="slide" onRequestClose={() => setViewItem(null)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalSheet}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Item Details</Text>
+                <TouchableOpacity onPress={() => setViewItem(null)} style={styles.modalClose}>
+                  <X size={20} color="#0B2211" />
+                </TouchableOpacity>
+              </View>
+              {viewItem && (
+                <ScrollView showsVerticalScrollIndicator={true}>
+                  {viewItem.imageUri ? (
+                    <SafeImage source={{ uri: viewItem.imageUri }} style={styles.modalImage} />
+                  ) : null}
+                  <Text style={styles.modalName}>{viewItem.title}</Text>
+                  {!!viewItem.price && <Text style={styles.modalPrice}>{viewItem.price}</Text>}
+                  {!!viewItem.location && <Text style={styles.modalLocation}>Location: {viewItem.location}</Text>}
+                  {!!viewItem.description && <Text style={styles.modalDesc}>{viewItem.description}</Text>}
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </Modal>
+
+        {/* Edit modal — editable form */}
+        <Modal visible={!!editItem} transparent animationType="slide" onRequestClose={() => setEditItem(null)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalSheet}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Edit Item</Text>
+                <TouchableOpacity onPress={() => setEditItem(null)} style={styles.modalClose}>
+                  <X size={20} color="#0B2211" />
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                style={styles.editInput}
+                value={editTitle}
+                onChangeText={setEditTitle}
+                placeholder="Item name"
+                placeholderTextColor="#6B7280"
+              />
+              <TextInput
+                style={styles.editInput}
+                value={editPrice}
+                onChangeText={setEditPrice}
+                placeholder="Price"
+                placeholderTextColor="#6B7280"
+                keyboardType="decimal-pad"
+              />
+              <TextInput
+                style={[styles.editInput, styles.editTextarea]}
+                value={editDescription}
+                onChangeText={setEditDescription}
+                placeholder="Description"
+                placeholderTextColor="#6B7280"
+                multiline
+              />
+              <TextInput
+                style={styles.editInput}
+                value={editLocation}
+                onChangeText={setEditLocation}
+                placeholder="Location"
+                placeholderTextColor="#6B7280"
+              />
+              <TouchableOpacity style={styles.saveEditBtn} onPress={saveEdit}>
+                <Text style={styles.saveEditText}>Save Changes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  // View / Edit / Delete action buttons
+  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  actionBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewBtn: { backgroundColor: '#4CAF50' },
+  editBtn: { backgroundColor: '#2563EB' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    maxHeight: '85%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  modalTitle: { color: '#0B2211', fontSize: 17, fontWeight: 'bold' },
+  modalClose: { padding: 4 },
+  modalImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: '#EEF2F0',
+  },
+  modalName: { color: '#0B2211', fontSize: 18, fontWeight: 'bold' },
+  modalPrice: { color: '#4CAF50', fontSize: 16, fontWeight: '700', marginTop: 4 },
+  modalLocation: { color: '#6B7280', fontSize: 13, marginTop: 4 },
+  modalDesc: { color: '#374151', fontSize: 14, marginTop: 10, lineHeight: 20 },
+  editInput: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#111827',
+    backgroundColor: '#F9FAFB',
+    marginBottom: 12,
+  },
+  editTextarea: { height: 90, textAlignVertical: 'top' },
+  saveEditBtn: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  saveEditText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },

@@ -71,6 +71,45 @@ function randomSalt(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
+/**
+ * Derive a human-friendly display name from an email address:
+ *   temitope.adewale@gmail.com -> "Temitope Adewale"
+ *   john_doe@example.com       -> "John Doe"
+ */
+export function deriveDisplayName(email: string): string {
+  const local = (email || '').split('@')[0] || 'Member';
+  return local
+    .replace(/[._\-+]+/g, ' ')
+    .replace(/\d+/g, '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ') || 'Member';
+}
+
+/**
+ * Best-effort persistence of every newly created account into the database
+ * `users` table (uid, email, displayName, createdAt). Never throws — auth
+ * still succeeds even if the network/DB is unavailable.
+ */
+export async function syncUserRecord(uid: string, email: string): Promise<void> {
+  try {
+    const { supabase } = require('../lib/supabase');
+    await supabase.from('users').upsert(
+      {
+        uid,
+        email: email.trim().toLowerCase(),
+        displayName: deriveDisplayName(email),
+        createdAt: new Date().toISOString(),
+      },
+      { onConflict: 'uid' },
+    );
+  } catch (e) {
+    console.warn('[auth] user record sync skipped:', e?.message || e);
+  }
+}
+
 /* ============================ ACCOUNT / PASSWORD ============================ */
 
 export interface RegisterResult {
@@ -93,6 +132,9 @@ export async function registerAccount(email: string, password: string): Promise<
     await secSet(KEYS.EMAIL, normalized);
     await secSet(KEYS.SALT, salt);
     await secSet(KEYS.PWD_HASH, hash);
+
+    // Persist the account record (uid, email, displayName, createdAt).
+    await syncUserRecord(normalized, normalized);
 
     await createSession(normalized);
     return { ok: true };
@@ -158,8 +200,8 @@ export async function endSession(): Promise<void> {
 /** Save a 4/6-digit passcode (hashed) and enable it in one step. */
 export async function setPasscode(passcode: string): Promise<LoginResult> {
   try {
-    if (!/^\d{4}$|^\d{6}$/.test(passcode)) {
-      return { ok: false, error: 'Passcode must be 4 or 6 digits' };
+    if (!/^\d{4}$/.test(passcode)) {
+      return { ok: false, error: 'Passcode must be exactly 4 digits' };
     }
     const salt = randomSalt();
     const hash = await hashValue(passcode, salt);
