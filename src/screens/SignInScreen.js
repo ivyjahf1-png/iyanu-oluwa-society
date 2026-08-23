@@ -7,7 +7,8 @@ import {
   TextInput,
   SafeAreaView,
   StatusBar,
-    Alert,
+  Alert,
+  ActivityIndicator,
 } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native'
@@ -127,11 +128,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 12,
+    paddingTop: 56,
     paddingHorizontal: 16,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#1C4A2E',
-    marginBottom: 12,
   },
   backBtn: { padding: 6, marginRight: 8 },
   title: {
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  form: { paddingHorizontal: 24, gap: 20 },
+  form: { paddingHorizontal: 24, gap: 20, marginTop: 28, paddingBottom: 24 },
   inputGroup: { gap: 6 },
   label: {
     color: '#A7F3D0',
