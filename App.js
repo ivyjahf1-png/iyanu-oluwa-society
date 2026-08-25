@@ -11,6 +11,12 @@ import { navigationRef } from './src/navigation/navigationRef';
 import RouteGuard from './src/navigation/RouteGuard';
 import { AdminLockProvider } from './src/components/AdminLock';
 import BroadcastModal from './src/components/BroadcastModal';
+import * as SplashScreen from 'expo-splash-screen';
+import { Image, View as RNView, View, ActivityIndicator, StyleSheet } from 'react-native';
+
+// Keep the native splash screen visible while persisted auth/onboarding
+// state is restored. Hidden with a smooth fade once initialization finishes.
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function ThemedContainer({ children }) {
   const { isDark } = useAppTheme();
@@ -38,23 +44,37 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AppLockScreen from './src/components/AppLockScreen';
 import { TransactionsProvider } from './src/context/TransactionsContext';
 import { BannerProvider } from './src/context/BannerContext';
-import { View, ActivityIndicator } from 'react-native';
 import { startRealtimeSync } from './src/lib/realtime';
 
 /** Shows the app once auth state is restored; gates on the lock screen. */
 function AuthGate({ children }) {
-  const { restoring, userEmail, isLocked } = useAuth();
+  const { restoring, userEmail, isLocked, welcomeLoaded } = useAuth();
 
   useEffect(() => {
     // Supabase realtime channels + polling fallback for admin→user sync.
     startRealtimeSync();
   }, []);
 
-  if (restoring) {
+  // Hide the native splash with a smooth fade ONLY after both the session
+  // and the persisted onboarding flag have fully loaded — cleanly handing
+  // off into the Welcome / Dashboard flow without any flicker.
+  useEffect(() => {
+    if (!restoring && welcomeLoaded) {
+      SplashScreen.hideAsync({ fade: true }).catch(() => {});
+    }
+  }, [restoring, welcomeLoaded]);
+
+  if (restoring || !welcomeLoaded) {
+    // Branded static splash — logo centered on the configured splash background.
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0B2211' }}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-      </View>
+      <RNView style={splashStyles.container}>
+        <Image
+          resizeMode="contain"
+          source={require('./assets/logo.png')}
+          style={splashStyles.logo}
+        />
+        <ActivityIndicator size="small" color="#4CAF50" style={{ marginTop: 24 }} />
+      </RNView>
     );
   }
 
@@ -65,6 +85,16 @@ function AuthGate({ children }) {
 
   return children;
 }
+
+const splashStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logo: { width: 180, height: 180 },
+});
 
 export default function App() {
   return (

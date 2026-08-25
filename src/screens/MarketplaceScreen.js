@@ -39,10 +39,18 @@ const PRODUCTS = [
   { id: 8, title: 'Co-op Retail Space (Shop)', price: '₦ 12,000,000', location: 'Lagos', category: 'Land', icon: Pin },
 ];
 
-export default function MarketplaceScreen({ navigation: rawNav }) {
+// Route-param categories → in-app filter categories.
+const CATEGORY_PARAM_MAP = {
+  land_and_property: 'Land',
+  vehicles_and_appliances: 'Vehicles',
+};
+
+export default function MarketplaceScreen({ navigation: rawNav, route }) {
   const navigation = useSafeNavigation(rawNav);
   const { items: adminItems } = useMarketItems();
-  const [category, setCategory] = useState('All');
+  const [category, setCategory] = useState(
+    CATEGORY_PARAM_MAP[route?.params?.category] || 'All',
+  );
   const [query, setQuery] = useState('');
   const [favorites, setFavorites] = useState([]);
 

@@ -19,6 +19,7 @@ const KEYS = {
   PASSCODE_ENABLED: 'auth.passcodeEnabled',
   BIOMETRIC_ENABLED: 'auth.biometricEnabled',
   SESSION: 'auth.session',
+  WELCOME_DONE: 'auth.welcomeCompleted',
 };
 
 async function secGet(key: string): Promise<string | null> {
@@ -197,6 +198,17 @@ export async function getSession(): Promise<{ email: string } | null> {
 
 export async function endSession(): Promise<void> {
   await secDel(KEYS.SESSION);
+}
+
+/** True once the user has passed the Welcome/onboarding screen (persisted). */
+export async function getWelcomeCompleted(): Promise<boolean> {
+  const raw = await secGet(KEYS.WELCOME_DONE);
+  return raw === 'true';
+}
+
+/** Persist the hasCompletedWelcome onboarding flag. */
+export async function setWelcomeCompleted(done: boolean): Promise<void> {
+  await secSet(KEYS.WELCOME_DONE, done ? 'true' : 'false');
 }
 
 /**

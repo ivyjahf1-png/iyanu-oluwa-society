@@ -29,7 +29,7 @@ const ADMIN_ROUTES = new Set([
 ]);
 
 export default function RouteGuard() {
-  const { userEmail, restoring } = useAuth();
+  const { userEmail, restoring, hasCompletedWelcome } = useAuth();
   const { requestAdminAccess } = useAdminLock();
 
   const lastRouteRef = useRef(null);
@@ -38,6 +38,9 @@ export default function RouteGuard() {
   useEffect(() => {
     const unsubscribe = navigationRef.addListener('state', () => {
       if (!navigationRef.isReady()) return;
+      // Never route-judge while persisted auth/onboarding state is loading —
+      // this prevents startup flicker / false redirects.
+      if (restoring || !welcomeLoaded) return;
       const route = navigationRef.getCurrentRoute();
       const name = route?.name;
       if (!name || name === lastRouteRef.current) return;
@@ -45,9 +48,24 @@ export default function RouteGuard() {
       const prevName = lastRouteRef.current;
       lastRouteRef.current = name;
 
-      // --- A: Strict auth guard — redirect guests off protected screens. ---
-      if (!restoring && !userEmail && !PUBLIC_ROUTES.has(name)) {
-        navigationRef.reset({ index: 0, routes: [{ name: 'WelcomeScreen' }] });
+      // --- STAGE 1: Onboarding gate — Welcome must be completed first. ---
+      if (!hasCompletedWelcome) {
+        if (name !== 'WelcomeScreen') {
+          navigationRef.reset({ index: 0, routes: [{ name: 'WelcomeScreen' }] });
+        }
+        return;
+      }
+
+      // --- STAGE 2: Authentication gate. ---
+      if (!userEmail && !PUBLIC_ROUTES.has(name)) {
+        // Onboarded but not signed in → force the sign-in flow (not Welcome).
+        navigationRef.reset({ index: 0, routes: [{ name: 'SignInScreen' }] });
+        return;
+      }
+
+      // Authenticated users cannot fall back into onboarding screens.
+      if (userEmail && name === 'WelcomeScreen') {
+        navigationRef.reset({ index: 0, routes: [{ name: 'MainDashboard' }] });
         return;
       }
 
@@ -75,7 +93,7 @@ export default function RouteGuard() {
     });
 
     return unsubscribe;
-  }, [restoring, userEmail, requestAdminAccess]);
+  }, [restoring, welcomeLoaded, userEmail, hasCompletedWelcome, requestAdminAccess]);
 
   return null;
 }

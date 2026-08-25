@@ -23,10 +23,21 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { AUTH_COLORS, AUTH_GRADIENTS } from '../constants/theme';
+import { openExternalLink } from '../lib/webBrowser';
+import { useAuth } from '../context/AuthContext';
+
+const COOP_WEBSITE_URL = 'https://standardmutualsavings.com';
 
 export default function WelcomeScreen({ navigation }) {
   const [tapCount, setTapCount] = useState(0);
   const tapTimer = useRef(null);
+  const { completeWelcome } = useAuth();
+
+  /** Proceed to the auth flow — marks onboarding as completed (persisted). */
+  const goToAuth = (screen) => {
+    completeWelcome().catch(() => {});
+    navigation.navigate(screen);
+  };
 
   // Secret admin trigger: 5 rapid taps on the emblem within 2.5s.
   const handleLogoTap = () => {
@@ -53,7 +64,9 @@ export default function WelcomeScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.body}>
-            <TouchableOpacity activeOpacity={0.8} onPress={handleLogoTap} style={styles.logoRing}>
+            {/* Transparent logo — no background box or border so it blends
+                cleanly into the gradient screen background. */}
+            <TouchableOpacity activeOpacity={0.8} onPress={handleLogoTap} style={styles.logoWrap}>
               <Image
                 resizeMode="contain"
                 source={require('../../assets/logo.png')}
@@ -69,16 +82,24 @@ export default function WelcomeScreen({ navigation }) {
             <View style={styles.btnGroup}>
               <TouchableOpacity
                 style={styles.primaryBtn}
-                onPress={() => navigation.navigate('SignUpScreen')}
+                onPress={() => goToAuth('SignUpScreen')}
               >
                 <Text style={styles.primaryBtnTxt}>Sign Up</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.secondaryBtn}
-                onPress={() => navigation.navigate('SignInScreen')}
+                onPress={() => goToAuth('SignInScreen')}
               >
                 <Text style={styles.secondaryBtnTxt}>Sign In</Text>
+              </TouchableOpacity>
+
+              {/* Secondary web link — opens in branded in-app browser */}
+              <TouchableOpacity
+                style={styles.webLinkBtn}
+                onPress={() => openExternalLink(COOP_WEBSITE_URL)}
+              >
+                <Text style={styles.webLinkTxt}>Visit Our Website</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -93,15 +114,13 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   scrollContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
   body: { width: '100%', alignItems: 'center' },
-  logoRing: {
+  // Transparent wrapper: no border, no fill — the PNG's own alpha blends
+  // directly into the screen background. Keeps the secret admin tap gesture.
+  logoWrap: {
     alignItems: 'center',
     justifyContent: 'center',
     width: 152,
     height: 152,
-    borderRadius: 76,
-    borderWidth: 2,
-    borderColor: AUTH_COLORS.secondaryBorder,
-    backgroundColor: 'rgba(212, 175, 55, 0.08)',
     marginBottom: 24,
   },
   welcomeLogo: { width: 128, height: 128 },
@@ -143,5 +162,12 @@ const styles = StyleSheet.create({
     color: AUTH_COLORS.secondaryBorder,
     fontSize: 15,
     fontWeight: '600',
+  },
+  webLinkBtn: { alignItems: 'center', paddingVertical: 10 },
+  webLinkTxt: {
+    color: AUTH_COLORS.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });

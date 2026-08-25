@@ -10,6 +10,10 @@ import * as authService from '../auth/authService';
 export interface AuthState {
   userEmail: string | null;
   restoring: boolean;
+  /** True once the persisted onboarding flag has been read from storage. */
+  welcomeLoaded: boolean;
+  hasCompletedWelcome: boolean;
+  completeWelcome: () => Promise<void>;
   isLocked: boolean;
   methods: {
     password: boolean;
@@ -38,6 +42,10 @@ const AuthContext = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(true);
+  // Onboarding flag — persisted; false forces new users through Welcome first.
+  const [hasCompletedWelcome, setHasCompletedWelcome] = useState(false);
+  // True once the persisted flag has been read (gates the splash screen).
+  const [welcomeLoaded, setWelcomeLoaded] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [passcodeSet, setPasscodeSet] = useState(false);
   const [passcodeLockEnabled, setPasscodeLockEnabled] = useState(false);
@@ -69,6 +77,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })();
   }, []);
+
+  // Restore the persisted onboarding flag alongside the session.
+  useEffect(() => {
+    (async () => {
+      try {
+        const done = await authService.getWelcomeCompleted();
+        setHasCompletedWelcome(done);
+      } catch (e) {
+        /* default false — user goes through Welcome */
+      } finally {
+        setWelcomeLoaded(true);
+      }
+    })();
+  }, []);
+
+  /** Mark the Welcome/onboarding flow as completed (persisted). */
+  const completeWelcome = async () => {
+    setHasCompletedWelcome(true);
+    await authService.setWelcomeCompleted(true);
+  };
 
   /* ---- Lock when app returns from background (if any lock method on) ---- */
   useEffect(() => {
@@ -203,6 +231,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value: AuthState = {
     userEmail,
     restoring,
+    welcomeLoaded,
+    hasCompletedWelcome,
+    completeWelcome,
     isLocked,
     methods: {
       password: Boolean(userEmail),

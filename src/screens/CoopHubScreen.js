@@ -15,6 +15,10 @@ import {
   Users,
   ShieldCheck,
   ChevronRight,
+  Home,
+  Car,
+  MessageSquare,
+  MapPin,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -89,35 +93,65 @@ export default function CoopHubScreen({ navigation: rawNav }) {
           </TouchableOpacity>
         </View>
 
-        {/* Cooperative Marketplace hubs */}
+        {/* Cooperative Marketplace hubs — rich rows with category deep-links */}
         <Text style={styles.sectionHeader}>Cooperative Marketplace</Text>
-        <View style={styles.listContainer}>
+        <View style={styles.hubRows}>
+          {/* 1. Land & Property */}
           <TouchableOpacity
-            style={styles.hubListItem}
-            onPress={() => navigation.navigate('Marketplace')}
+            style={styles.hubRow}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Marketplace', { category: 'land_and_property' })}
           >
-            <View style={styles.listLeft}>
-              <ShoppingBag color="#A7F3D0" size={20} />
-              <View style={styles.listTextGroup}>
-                <Text style={styles.listTitle}>Land & Property</Text>
-                <Text style={styles.listSub}>Acquire plots with flexible payment plans.</Text>
-              </View>
+            <View style={[styles.hubRowIcon, { backgroundColor: '#10B981' }]}>
+              <Home color="#FFFFFF" size={24} />
             </View>
-            <ChevronRight color="#9CB8A6" size={18} />
+            <View style={styles.hubRowText}>
+              <Text style={styles.hubRowTitle}>Land & Property</Text>
+              <Text style={styles.hubRowSub}>Acquire plots with flexible payment plans</Text>
+            </View>
+            <View style={styles.hubRowBadges}>
+              <View style={styles.hubBadge}>
+                <MapPin color="#A7F3D0" size={18} />
+              </View>
+              <ChevronRight color="#A7F3D0" size={20} />
+            </View>
           </TouchableOpacity>
 
+          {/* 2. Vehicles, Home Appliances & Items */}
           <TouchableOpacity
-            style={styles.hubListItem}
-            onPress={() => navigation.navigate('Marketplace')}
+            style={styles.hubRow}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Marketplace', { category: 'vehicles_and_appliances' })}
           >
-            <View style={styles.listLeft}>
-              <ShoppingBag color="#A7F3D0" size={20} />
-              <View style={styles.listTextGroup}>
-                <Text style={styles.listTitle}>Vehicles, Home Appliances & Items</Text>
-                <Text style={styles.listSub}>Member financing &amp; marketplace catalog options.</Text>
-              </View>
+            <View style={[styles.hubRowIcon, { backgroundColor: '#3B82F6' }]}>
+              <Car color="#FFFFFF" size={24} />
             </View>
-            <ChevronRight color="#9CB8A6" size={18} />
+            <View style={styles.hubRowText}>
+              <Text style={styles.hubRowTitle}>Vehicles & Home Appliances</Text>
+              <Text style={styles.hubRowSub}>Member auto financing options</Text>
+            </View>
+            <View style={styles.hubRowBadges}>
+              <View style={[styles.hubBadge, { backgroundColor: '#1D2433' }]}>
+                <Car color="#93C5FD" size={18} />
+              </View>
+              <ChevronRight color="#A7F3D0" size={20} />
+            </View>
+          </TouchableOpacity>
+
+          {/* 3. Meeting Chat */}
+          <TouchableOpacity
+            style={[styles.hubRow, styles.hubRowLast]}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('MeetingChat')}
+          >
+            <View style={[styles.hubRowIcon, { backgroundColor: '#8B5CF6' }]}>
+              <MessageSquare color="#FFFFFF" size={24} />
+            </View>
+            <View style={styles.hubRowText}>
+              <Text style={styles.hubRowTitle}>Meeting Chat</Text>
+              <Text style={styles.hubRowSub}>Discuss & decide with members</Text>
+            </View>
+            <ChevronRight color="#A7F3D0" size={20} />
           </TouchableOpacity>
         </View>
 
@@ -153,6 +187,34 @@ container: { flex: 1, backgroundColor: '#091813' },
   actionTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '600', marginTop: 8 },
   actionDesc: { color: '#9CB8A6', fontSize: 10, marginTop: 2 },
   listContainer: { backgroundColor: '#0D1D18', borderRadius: 12, borderWidth: 1, borderColor: '#172F27', paddingHorizontal: 14 },
+  hubRows: { gap: 12, marginBottom: 16 },
+  hubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0F291B',
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#1B3D2A',
+  },
+  hubRowLast: { marginBottom: 0 },
+  hubRowIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  hubRowText: { flex: 1, marginRight: 8 },
+  hubRowTitle: { color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
+  hubRowSub: { color: '#9CB8A6', fontSize: 11, marginTop: 2 },
+  hubRowBadges: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  hubBadge: {
+    backgroundColor: '#143222',
+    padding: 7,
+    borderRadius: 8,
+  },
   listItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#1B3D28' },
   hubListItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#1B3D28' },
   listLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
