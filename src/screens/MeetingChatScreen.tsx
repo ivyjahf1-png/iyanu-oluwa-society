@@ -33,10 +33,11 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import { storage } from '../lib/storage';
 import { onMeetingMessage, broadcastMeetingMessage } from '../lib/meetingChat';
+import { useUser } from '../context/UserContext';
 
-// ---------------------------------------------------------------------------
+// ---
 // Types
-// ---------------------------------------------------------------------------
+// ---
 interface ChatMessage {
   id: string;
   sender: string;
@@ -77,9 +78,9 @@ interface OverflowAction {
   onPress: () => void;
 }
 
-// ---------------------------------------------------------------------------
+// ---
 // Constants
-// ---------------------------------------------------------------------------
+// ---
 const EMOJIS = [
   '😀', '😂', '🥰', '😍', '😎', '🤝', '👍', '👏',
   '🙏', '💪', '🔥', '✨', '🎉', '💰', '📈', '🏦',
@@ -100,6 +101,7 @@ const SEED_MESSAGES: ChatMessage[] = [
 
 export default function MeetingChatScreen({ navigation }: { navigation: any }) {
   const [activeTab, setActiveTab] = useState<string>('chats');
+  const { user } = useUser();
   const [isOnlineVisible, setIsOnlineVisible] = useState<boolean>(true);
   const [messages, setMessages] = useState<ChatMessage[]>(SEED_MESSAGES);
   const [inputText, setInputText] = useState<string>('');
@@ -147,9 +149,9 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     }
   }, [messages]);
 
-  // ------------------------------------------------------------------
+  // ---
   // Persistence — chat history survives refreshes and log-outs.
-  // ------------------------------------------------------------------
+  // ---
   const CHAT_KEY = '@ius_chat_messages';
 
   useEffect(() => {
@@ -174,9 +176,9 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     });
   }, [messages]);
 
-    // ------------------------------------------------------------------
+  // ---
   // Messaging helpers
-  // ------------------------------------------------------------------
+  // ---
   const pushMessage = (msg: ChatMessage): void => setMessages(prev => [...prev, msg]);
 
   // Real-time: render messages broadcast by other members instantly.
@@ -190,7 +192,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
           hour: '2-digit',
           minute: '2-digit',
         }),
-                isMe: false, // broadcast messages are from other members
+        isMe: false,
       });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -199,7 +201,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
 
   const appendEmoji = (emoji: string): void => setInputText(prev => prev + emoji);
 
-    const sendMessage = (): void => {
+  const sendMessage = (): void => {
     if (!inputText.trim()) return;
     const msgId = Date.now().toString();
     const now = Date.now();
@@ -347,7 +349,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
           sender: 'System',
           text: 'Group meeting created — invites sent to all members.',
           time: 'Now',
-          isMe: false,
+        isMe: false,
         });
       },
     },

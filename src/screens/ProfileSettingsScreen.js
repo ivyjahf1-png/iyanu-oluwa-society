@@ -33,7 +33,7 @@ import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProfileSettingsScreen({ navigation: rawNav }) {
-    const navigation = useSafeNavigation(rawNav);
+  const navigation = useSafeNavigation(rawNav);
   const { user, updateUser } = useUser();
   const {
     methods,
@@ -66,7 +66,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
   const [newPasscode, setNewPasscode] = useState('');
   const [confirmPasscode, setConfirmPasscode] = useState('');
 
-    const handleBiometricToggle = async (enabled) => {
+  const handleBiometricToggle = async (enabled) => {
     if (enabled) {
       const res = await enableBiometric();
       if (!res.ok) {
@@ -493,7 +493,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           secureTextEntry
         />
 
-                {/* Save */}
+        {/* Save */}
         <TouchableOpacity style={styles.saveBtn} onPress={saveAll}>
           <Lock size={17} color="#FFFFFF" />
           <Text style={styles.saveBtnText}>Save Changes</Text>
@@ -626,6 +626,21 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 9,
     fontWeight: 'bold',
+  },
+  signOutBtn: {
+    backgroundColor: '#DC2626',
+    borderRadius: 14,
+    paddingVertical: 15,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  signOutBtnText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   themeCardDesc: {
     color: '#8EA89D',
