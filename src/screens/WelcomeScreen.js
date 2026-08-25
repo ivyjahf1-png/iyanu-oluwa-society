@@ -3,7 +3,7 @@
  *
  * Design (cooperative dark theme):
  *   - Central gold-accented emblem logo.
- *   - "Welcome to Iyanu Oluwa Society" title.
+ *   - "Welcome to Standard Mutual Savings" title.
  *   - Subtitle: financial-hub tagline.
  *   - Sign Up (green filled) → SignUpScreen
  *   - Sign In  (outlined gold/emerald pill) → SignInScreen
@@ -61,7 +61,7 @@ export default function WelcomeScreen({ navigation }) {
               />
             </TouchableOpacity>
 
-            <Text style={styles.title}>Welcome to Iyanu Oluwa Society</Text>
+            <Text style={styles.title}>Welcome to Standard Mutual Savings</Text>
             <Text style={styles.subtitle}>
               Your financial hub for savings, loans, and cooperative growth.
             </Text>

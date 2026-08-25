@@ -162,7 +162,7 @@ export default function CooperativeBankSettings() {
             <Text style={styles.label}>Account Name</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. Iyanu Oluwa Society"
+              placeholder="e.g. Standard Mutual Savings"
               placeholderTextColor="#526E63"
               value={form.accountName}
               onChangeText={(text) => handleChange("accountName", text)}

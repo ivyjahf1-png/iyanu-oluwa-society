@@ -8,7 +8,7 @@ import { storage } from '../lib/storage';
  */
 const DEFAULTS = {
   fullName: 'Temitope Adewale',
-  email: 'temitope.adewale@iyanuoluwa.org',
+  email: 'temitope.adewale@standardmutual.org',
   phone: '',
   avatarUri: null,
   biometricEnabled: false,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -15,11 +15,55 @@ import {
   MaterialCommunityIcons,
   Feather,
 } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
+import { isAdminAccount } from '../lib/adminSecurity';
+import { useAdminLock } from '../components/AdminLock';
 
 export default function HomeScreen({ navigation }) {
+  // Centralized currency formatter — explicit Unicode escape so the ₦ symbol
+  // never suffers source-file encoding corruption (â‚¦ mojibake).
+  const formatCurrency = (amount) => `\u20A6${Number(amount).toLocaleString()}`;
+
   const [hideMainBalance, setHideMainBalance] = useState(true);
   const [hideSavingsBalance, setHideSavingsBalance] = useState(false);
   const [hideLoanBalance, setHideLoanBalance] = useState(true);
+  const shieldTapCount = useRef(0);
+  const shieldTapTimer = useRef(null);
+
+  // Admin visibility: the header shield is shown only to allowed admin accounts.
+  // When no admin allowlist is configured (env empty), this defaults to true so
+  // the existing admin passcode/biometric lock remains the sole gate.
+  const { userEmail } = useAuth();
+  const isAdminVisible = isAdminAccount(userEmail);
+
+  // Global admin verification: biometric prompt → PIN keypad fallback.
+  // Navigation to AdminSettings happens ONLY when access is granted.
+  const { requestAdminAccess } = useAdminLock();
+  const handleShieldAccess = async () => {
+    const granted = await requestAdminAccess();
+    if (granted && navigation?.navigate) {
+      navigation.navigate('AdminSettings');
+    }
+  };
+
+  // SECRET ADMIN TRIGGER — hidden on the brand logo inside the balance card.
+  // Requires 5 quick taps within a 3-second window; single taps do nothing
+  // visible (subtle no-op) so the backdoor stays completely hidden.
+  const logoTapCount = useRef(0);
+  const logoTapTimer = useRef(null);
+  const onBrandLogoTap = () => {
+    logoTapCount.current += 1;
+    if (logoTapTimer.current) clearTimeout(logoTapTimer.current);
+    logoTapTimer.current = setTimeout(() => {
+      if (logoTapCount.current >= 5) {
+        logoTapCount.current = 0;
+        handleShieldAccess();
+        return;
+      }
+      logoTapCount.current = 0;
+      // single/stray taps: silent no-op
+    }, 3000);
+  };
 
   // Safe navigation helper
   const navigateTo = (screenName) => {
@@ -34,7 +78,7 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#07120E" />
 
-      {/* FIXED TOP — Header + Available Balance Card stay static on screen */}
+      {/* FIXED TOP â€” Header + Available Balance Card stay static on screen */}
       <View style={styles.fixedTop}>
         {/* TOP HEADER */}
         <View style={styles.header}>
@@ -43,7 +87,7 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.userName}>Ivyjahf</Text>
             <View style={styles.badgeRow}>
               <Ionicons name="shield-checkmark" size={14} color="#00D084" />
-              <Text style={styles.societyName}>Iyanu Oluwa Society</Text>
+              <Text style={styles.societyName}>Standard Mutual Savings</Text>
             </View>
           </View>
 
@@ -69,14 +113,6 @@ export default function HomeScreen({ navigation }) {
             >
               <Ionicons name="ellipsis-horizontal" size={20} color="#E2E8F0" />
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.iconCircle, styles.adminButton]}
-              onPress={() => navigateTo('AdminSettings')}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="shield-checkmark" size={22} color="#07120E" />
-            </TouchableOpacity>
           </View>
         </View>
 
@@ -90,7 +126,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.cardLeft}>
             <Text style={styles.cardLabel}>Available Balance</Text>
             <Text style={styles.balanceText}>
-              {hideMainBalance ? '₦ **' : '₦ 250,000.00'}
+              {hideMainBalance ? `${formatCurrency('')} **` : formatCurrency(250000)}
             </Text>
 
             <TouchableOpacity
@@ -103,13 +139,17 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           <View style={styles.cardRight}>
-            <View style={styles.watermarkContainer}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onBrandLogoTap}
+              style={styles.watermarkContainer}
+            >
               <View style={styles.emblemOutline}>
                 <FontAwesome5 name="university" size={24} color="#D1D5DB" />
               </View>
-              <Text style={styles.watermarkTitle}>Iyanu Oluwa Society</Text>
+              <Text style={styles.watermarkTitle}>Standard Mutual Savings</Text>
               <Text style={styles.watermarkSub}>Community</Text>
-            </View>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.showBalanceBtn}
@@ -155,7 +195,7 @@ export default function HomeScreen({ navigation }) {
               </View>
             </View>
             <Text style={styles.subCardAmount}>
-              {hideSavingsBalance ? '₦ **' : '₦0.00'}
+              {hideSavingsBalance ? `${formatCurrency('')} **` : formatCurrency(0)}
             </Text>
             <View style={styles.divider} />
             <Text style={styles.subCardFooterText}>Total Savings</Text>
@@ -182,11 +222,11 @@ export default function HomeScreen({ navigation }) {
               </View>
             </View>
             <Text style={styles.subCardAmount}>
-              {hideLoanBalance ? '₦ **' : '₦ 50,000.00'}
+              {hideLoanBalance ? `${formatCurrency('')} **` : formatCurrency(50000)}
             </Text>
             <View style={styles.divider} />
             <Text style={styles.subCardFooterText}>
-              Paid: {hideLoanBalance ? '₦**' : '₦ 10,000.00'}
+              Paid: {hideLoanBalance ? `${formatCurrency('')}**` : formatCurrency(10000)}
             </Text>
           </TouchableOpacity>
         </View>

@@ -81,7 +81,7 @@ export default function AppLockScreen() {
         <View style={styles.body}>
           <View style={styles.logoRow}>
             <Lock size={22} color="#10B981" />
-            <Text style={styles.logoText}>Iyanu Oluwa Society</Text>
+            <Text style={styles.logoText}>Standard Mutual Savings</Text>
           </View>
 
           {mode === 'biometric' && (

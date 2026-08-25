@@ -1,5 +1,5 @@
 -- ============================================================================
--- Iyanu Oluwa Society — Hybrid Funding System
+-- Standard Mutual Savings — Hybrid Funding System
 -- Migration 0001: profiles, app_settings, deposits + RLS + storage bucket
 -- ============================================================================
 
@@ -92,7 +92,7 @@ insert into public.app_settings (key, value) values
   ('pass_fees_to_user', 'false'),
   ('coop_bank_name', 'Zenith Bank'),
   ('coop_account_number', '1234567890'),
-  ('coop_account_name', 'Iyanu Oluwa Society')
+  ('coop_account_name', 'Standard Mutual Savings')
 on conflict (key) do nothing;
 
 alter table public.app_settings enable row level security;

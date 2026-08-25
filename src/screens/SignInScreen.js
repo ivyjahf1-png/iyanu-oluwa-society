@@ -71,7 +71,7 @@ export default function SignInScreen({ navigation, route }) {
         return;
       }
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authenticate to access Iyanu Oluwa Society',
+        promptMessage: 'Authenticate to access Standard Mutual Savings',
         fallbackTitle: 'Use passcode',
       });
       if (result.success) {
@@ -175,7 +175,7 @@ export default function SignInScreen({ navigation, route }) {
             <Image resizeMode="contain" source={require('../../assets/logo.png')} style={styles.logo} />
           </View>
 
-          <Text style={styles.brandTitle}>Sign in to Iyanu Oluwa Society</Text>
+          <Text style={styles.brandTitle}>Sign in to Standard Mutual Savings</Text>
 
           {/* Biometric action row */}
           {bioAvailable && (

@@ -16,31 +16,89 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
   const [users, setUsers] = useState([]);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [resettingEmail, setResettingEmail] = useState(null);
 
+  /**
+   * Load every registered member profile from Supabase (`profiles` table,
+   * falling back to a `users` table when present). Normalises rows so the
+   * list shows full account metadata: name, email, registration date, status.
+   */
   const loadUsers = async () => {
     setLoading(true);
-    const list = [];
+    setLoadError(null);
+    let list = [];
     try {
-      const { data } = await supabase.from('profiles').select('*');
-      if (data) list.push(...data);
-      const { data: usersData } = await supabase.from('users').select('*');
-      if (usersData) list.push(...usersData);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      if (data) {
+        list = data.map((p) => ({
+          id: p.id || p.uid,
+          uid: p.uid || p.id,
+          displayName: p.display_name || p.full_name || p.name || p.username || 'Member',
+          email: p.email || null,
+          phone: p.phone || null,
+          status: p.status || p.account_status || 'active',
+          createdAt: p.created_at || null,
+          balance: p.balance ?? p.savings ?? 0,
+          loanOutstanding: p.loan_outstanding ?? p.loanOutstanding ?? 0,
+        }));
+      }
     } catch (e) {
-      console.log('[usermgmt] db load failed', e?.message);
+      console.log('[usermgmt] profiles load failed:', e?.message);
+      // Fallback: some deployments keep members in a `users` table instead.
+      try {
+        const { data: usersData } = await supabase.from('users').select('*').limit(200);
+        if (usersData) {
+          list = usersData.map((p) => ({
+            id: p.id || p.uid,
+            uid: p.uid || p.id,
+            displayName: p.displayName || p.fullName || p.name || 'Member',
+            email: p.email || null,
+            phone: p.phone || null,
+            status: p.status || 'active',
+            createdAt: p.created_at || p.createdAt || null,
+            balance: p.balance ?? p.savings ?? 0,
+            loanOutstanding: p.loanOutstanding ?? 0,
+          }));
+        }
+      } catch (e2) {
+        console.log('[usermgmt] users fallback failed:', e2?.message);
+      }
+      if (list.length === 0) {
+        setLoadError(
+          e?.message?.includes('does not exist')
+            ? 'The "profiles" table was not found in Supabase. Create it (id uuid, display_name, email, status, created_at) to enable member management.'
+            : `Could not load members: ${e?.message || 'unknown error'}. Check your Supabase connection and RLS policies.`,
+        );
+      }
     }
-    setUsers(list.slice(0, 200));
+    setUsers(list);
     setLoading(false);
   };
 
   useEffect(() => { loadUsers(); }, []);
 
+  /** Trigger Supabase's native password-reset email for this member. */
   const sendPasswordReset = async (u) => {
     const email = u.email;
     if (!email) { Alert.alert('No Email', 'This member has no email on file.'); return; }
+    setResettingEmail(email);
     try {
-      if (supabase.auth?.resetPasswordForEmail) await supabase.auth.resetPasswordForEmail(email);
-    } catch (e) { console.log('[usermgmt] reset err', e?.message); }
-    Alert.alert('Reset Sent', `A password-reset link/code was sent to ${email}.`);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: process.env.EXPO_PUBLIC_PASSWORD_RESET_URL || undefined,
+      });
+      if (error) throw error;
+      Alert.alert('Reset Sent', `A password-reset link was emailed to ${email}.`);
+    } catch (e) {
+      console.log('[usermgmt] reset err:', e?.message);
+      Alert.alert('Reset Failed', e?.message || `Could not send a reset email to ${email}.`);
+    }
+    setResettingEmail(null);
   };
 
   const suspendUser = async (u) => {
@@ -88,24 +146,49 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
       ) : filtered.length === 0 ? (
         <View style={styles.center}>
           <Users size={40} color="#9CB8A6" />
-          <Text style={styles.empty}>No members found yet.</Text>
+          <Text style={styles.empty}>{loadError || 'No members found yet.'}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadUsers}>
+            <RefreshCcw size={15} color="#FFFFFF" />
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={true}>
           {filtered.map((u, i) => (
             <View key={u.id || u.uid || i} style={styles.userCard}>
               <View style={styles.userInfo}>
-                <Text style={styles.userName}>{u.displayName || u.fullName || 'Member'}</Text>
+                <View style={styles.nameRow}>
+                  <Text style={styles.userName}>{u.displayName || u.fullName || 'Member'}</Text>
+                  <View style={[styles.statusPill, u.status === 'suspended' ? styles.statusSuspended : styles.statusActive]}>
+                    <Text style={styles.statusText}>{String(u.status || 'active').toUpperCase()}</Text>
+                  </View>
+                </View>
                 <Text style={styles.userEmail}>{u.email || '—'}</Text>
                 {u.phone ? <Text style={styles.userMeta}>Phone: {u.phone}</Text> : null}
+                {u.createdAt ? (
+                  <Text style={styles.userMeta}>
+                    Registered: {new Date(u.createdAt).toLocaleDateString('en-GB', {
+                      day: '2-digit', month: 'short', year: 'numeric',
+                    })}
+                  </Text>
+                ) : null}
                 <Text style={styles.userMeta}>
-                  Savings: ₦{Number(u.balance || u.savings || 0).toLocaleString()} • Loan: ₦{Number(u.loanOutstanding || 0).toLocaleString()}
+                  Savings: ₦{Number(u.balance || 0).toLocaleString()} • Loan: ₦{Number(u.loanOutstanding || 0).toLocaleString()}
                 </Text>
+
+                {/* Password reset action */}
+                <TouchableOpacity
+                  style={[styles.resetEmailBtn, resettingEmail === u.email && styles.btnDisabled]}
+                  onPress={() => sendPasswordReset(u)}
+                  disabled={!u.email || resettingEmail === u.email}
+                >
+                  <KeyRound size={14} color="#FFFFFF" />
+                  <Text style={styles.resetEmailText}>
+                    {resettingEmail === u.email ? 'Sending…' : 'Send Password Reset Email'}
+                  </Text>
+                </TouchableOpacity>
               </View>
               <View style={styles.actions}>
-                <TouchableOpacity style={[styles.actionBtn, styles.resetBtn]} onPress={() => sendPasswordReset(u)}>
-                  <KeyRound size={16} color="#FFFFFF" />
-                </TouchableOpacity>
                 <TouchableOpacity style={[styles.actionBtn, styles.suspendBtn]} onPress={() => suspendUser(u)}>
                   <ShieldAlert size={16} color="#FFFFFF" />
                 </TouchableOpacity>
@@ -130,12 +213,28 @@ const styles = StyleSheet.create({
   empty: { color: '#A7F3D0', fontSize: 14, textAlign: 'center', marginTop: 12 },
   userCard: {
     backgroundColor: '#0D1D18', borderRadius: 14, marginHorizontal: 16, marginBottom: 10,
-    padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
   },
   userInfo: { flex: 1 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   userName: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
+  statusPill: { borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  statusActive: { backgroundColor: 'rgba(16,185,129,0.18)' },
+  statusSuspended: { backgroundColor: 'rgba(192,57,43,0.25)' },
+  statusText: { color: '#A7F3D0', fontSize: 9, fontWeight: '700' },
   userEmail: { color: '#10B981', fontSize: 12, marginTop: 2 },
   userMeta: { color: '#8EA89D', fontSize: 11, marginTop: 2 },
+  resetEmailBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#2563EB',
+    borderRadius: 9, paddingVertical: 7, paddingHorizontal: 12, marginTop: 10, alignSelf: 'flex-start',
+  },
+  resetEmailText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
+  btnDisabled: { opacity: 0.55 },
+  retryBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#10B981',
+    borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, marginTop: 14,
+  },
+  retryText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   actions: { flexDirection: 'row', gap: 8, marginLeft: 10 },
   actionBtn: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   resetBtn: { backgroundColor: '#2563EB' },

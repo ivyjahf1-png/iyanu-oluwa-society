@@ -9,7 +9,7 @@ export default function SocietyScreen() {
     <ScreenWrapper>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Text style={styles.headerTitle}>Society Hub</Text>
-        <Text style={styles.headerSub}>Iyanu Oluwa Cooperative Community</Text>
+        <Text style={styles.headerSub}>Standard Mutual Cooperative Community</Text>
 
         <View style={styles.card}>
           <View style={styles.row}>

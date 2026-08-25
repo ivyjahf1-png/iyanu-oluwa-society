@@ -40,7 +40,33 @@ export default function BroadcastModal() {
     }
   }, [current, hasShown]);
 
-  if (!show || current.kind === 'photo') return null;
+  if (!show) return null;
+
+  // Photo-only banner: full-bleed image popup with a dismiss (X) button.
+  if (current.kind === 'photo') {
+    return (
+      <Modal visible transparent animationType="fade" onRequestClose={() => dismissBanner(current.id)}>
+        <View style={styles.overlay}>
+          <View style={[styles.card, styles.photoCard]}>
+            {current.imageUri ? (
+              <SafeImage source={{ uri: current.imageUri }} style={styles.photoImage} resizeMode="cover" />
+            ) : (
+              <View style={styles.heroPlaceholder}>
+                <Text style={styles.heroEmoji}>🏦</Text>
+              </View>
+            )}
+            <TouchableOpacity
+              style={styles.photoCloseBtn}
+              onPress={() => dismissBanner(current.id)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <X size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={() => dismissBanner(current.id)}>
@@ -111,6 +137,14 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardContent: { paddingBottom: 8 },
+  photoCard: { maxWidth: 320, position: 'relative' },
+  photoImage: { width: '100%', height: 340 },
+  photoCloseBtn: {
+    position: 'absolute', top: 10, right: 10,
+    width: 30, height: 30, borderRadius: 15,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center', alignItems: 'center',
+  },
   heroImage: { width: '100%', height: 190 },
   heroPlaceholder: {
     width: '100%',

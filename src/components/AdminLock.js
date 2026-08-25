@@ -23,8 +23,10 @@ import {
   verifyAdminPasscode,
   isAdminSecure,
   isAdminBiometricEnabled,
+  getAdminPasscodeLength,
   getMasterRecoveryKey,
   resetAdminSecurity,
+  DEFAULT_ADMIN_PIN,
 } from '../lib/adminSecurity';
 
 const AdminLockContext = createContext(null);
@@ -39,6 +41,11 @@ export function useAdminLock() {
 export function AdminLockProvider({ children }) {
   const [visible, setVisible] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [pinLength, setPinLength] = useState(6);
+  // True when a master passcode has been configured; false → default '1234' mode.
+  const [configured, setConfigured] = useState(true);
+  const [error, setError] = useState('');
   const [pin, setPin] = useState('');
   const [busy, setBusy] = useState(false);
   const [recoveryVisible, setRecoveryVisible] = useState(false);
@@ -51,6 +58,7 @@ export function AdminLockProvider({ children }) {
   const complete = useCallback((granted) => {
     setVisible(false);
     setPin('');
+    setError('');
     setRecoveryVisible(false);
     setRecoveryKey('');
     if (resolverRef.current) {
@@ -60,16 +68,18 @@ export function AdminLockProvider({ children }) {
   }, []);
 
   const verifyPin = useCallback(
-    async (code) => {
-      if (!/^\d{6}$/.test(code)) return;
+    async (code, len) => {
+      const expectLen = len || 6;
+      if (!new RegExp(`^\\d{${expectLen}}$`).test(code) && code !== DEFAULT_ADMIN_PIN) return;
       setBusy(true);
       const ok = await verifyAdminPasscode(code);
       setBusy(false);
       if (ok) {
         complete(true);
       } else {
+        // Clear red error — entry is rejected and the modal stays up.
         setPin('');
-        Alert.alert('Access Denied', 'Incorrect admin passcode. Please try again.');
+        setError('Incorrect passcode. Access denied — try again.');
       }
     },
     [complete],
@@ -89,15 +99,37 @@ export function AdminLockProvider({ children }) {
     setBusy(false);
   }, [complete]);
 
+  /** True only when the device has biometric hardware with enrolled traits. */
+  const checkBiometricAvailability = useCallback(async () => {
+    try {
+      const [hasHardware, enrolled] = await Promise.all([
+        LocalAuthentication.hasHardwareAsync(),
+        LocalAuthentication.isEnrolledAsync(),
+      ]);
+      const available = Boolean(hasHardware && enrolled);
+      setBiometricAvailable(available);
+      return available;
+    } catch (e) {
+      setBiometricAvailable(false);
+      return false;
+    }
+  }, []);
+
   /**
    * Request admin access. Resolves `true` only when the admin authenticates.
-   * Returns immediately (true) if no admin security is configured yet.
+   * When no passcode is configured yet, the modal still appears and accepts
+   * the default PIN ('1234') so first-time setup stays possible.
    */
   const requestAdminAccess = useCallback(async () => {
     const secured = await isAdminSecure();
-    if (!secured) return true;
+    setConfigured(secured);
     const bio = await isAdminBiometricEnabled();
+    const len = secured ? await getAdminPasscodeLength() : DEFAULT_ADMIN_PIN.length;
+    setPinLength(len);
     setBiometricEnabled(bio);
+    // Only auto-trigger the native prompt when biometrics are both enabled
+    // AND actually available (hardware present + trait enrolled) on device.
+    await checkBiometricAvailability();
     setPin('');
     setVisible(true);
     return new Promise((resolve) => {
@@ -105,18 +137,20 @@ export function AdminLockProvider({ children }) {
     });
   }, []);
 
-  // Auto-attempt biometrics when the lock opens and biometrics are enabled.
+  // Auto-attempt biometrics when the lock opens and biometrics are enabled
+  // AND available on the device.
   useEffect(() => {
-    if (visible && biometricEnabled) {
+    if (visible && biometricEnabled && biometricAvailable) {
       const t = setTimeout(tryBiometric, 350);
       return () => clearTimeout(t);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, biometricEnabled]);
+  }, [visible, biometricEnabled, biometricAvailable]);
 
-  // Auto-submit when 6 digits are entered on the keypad.
+  // Auto-submit once the configured number of digits has been entered.
   useEffect(() => {
-    if (pin.length === 6) verifyPin(pin);
+    setError('');
+    if (pin.length === pinLength) verifyPin(pin, pinLength);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pin]);
 
@@ -173,12 +207,14 @@ export function AdminLockProvider({ children }) {
 
             <Text style={styles.title}>Admin Access Required</Text>
             <Text style={styles.subtitle}>
-              Enter your 6-digit passcode to continue
+              {configured
+                ? `Enter your ${pinLength}-digit passcode to continue`
+                : `No passcode set yet — enter the default PIN (${DEFAULT_ADMIN_PIN}) to configure access`}
             </Text>
 
             {/* Pin dots */}
             <View style={styles.dotsRow}>
-              {[0, 1, 2, 3, 4, 5].map((i) => (
+              {Array.from({ length: pinLength }, (_, i) => (
                 <View
                   key={i}
                   style={[styles.dot, i < pin.length && styles.dotFilled]}
@@ -186,7 +222,10 @@ export function AdminLockProvider({ children }) {
               ))}
             </View>
 
-            {biometricEnabled && (
+            {/* Inline validation error (red) */}
+            {!!error && <Text style={styles.errorText}>⚠ {error}</Text>}
+
+            {biometricEnabled && biometricAvailable && (
               <TouchableOpacity style={styles.bioBtn} onPress={tryBiometric} disabled={busy}>
                 <Fingerprint size={26} color="#10B981" />
                 <Text style={styles.bioBtnText}>Use Fingerprint / Face ID</Text>
@@ -199,7 +238,7 @@ export function AdminLockProvider({ children }) {
                 <TouchableOpacity
                   key={d}
                   style={styles.key}
-                  onPress={() => !busy && setPin((p) => (p.length < 6 ? p + d : p))}
+                  onPress={() => !busy && setPin((p) => (p.length < pinLength ? p + d : p))}
                 >
                   <Text style={styles.keyText}>{d}</Text>
                 </TouchableOpacity>
@@ -207,7 +246,7 @@ export function AdminLockProvider({ children }) {
               <View style={styles.key} />
               <TouchableOpacity
                 style={styles.key}
-                onPress={() => !busy && setPin((p) => (p.length < 6 ? p + '0' : p))}
+                onPress={() => !busy && setPin((p) => (p.length < pinLength ? p + '0' : p))}
               >
                 <Text style={styles.keyText}>0</Text>
               </TouchableOpacity>
@@ -342,8 +381,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   keyText: { color: '#FFFFFF', fontSize: 20, fontWeight: '600' },
-  cancelBtn: { marginTop: 16, padding: 8 },
+   cancelBtn: { marginTop: 16, padding: 8 },
   cancelText: { color: '#8EA89D', fontSize: 13, fontWeight: '600' },
+  errorText: {
+    color: '#F87171',
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
   recoveryCard: {
     width: '100%',
     maxWidth: 360,

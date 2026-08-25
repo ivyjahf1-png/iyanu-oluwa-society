@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithBiometric = async () => {
     try {
       const res = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Unlock Iyanu Oluwa Society',
+        promptMessage: 'Unlock Standard Mutual Savings',
         fallbackLabel: 'Use passcode',
       });
       if (res.success) {

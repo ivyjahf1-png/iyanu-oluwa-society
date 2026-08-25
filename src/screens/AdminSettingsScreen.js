@@ -14,17 +14,39 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Landmark, CheckCircle2, Key, Megaphone, ChevronRight, ShieldCheck, Eye, EyeOff, Store, BadgeCheck, Users, UserCog, Trash2 } from 'lucide-react-native';
+import {
+  Landmark,
+  CheckCircle2,
+  Key,
+  Megaphone,
+  ChevronRight,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  Store,
+  BadgeCheck,
+  Users,
+  UserCog,
+  Trash2,
+  Bot,
+  Palette,
+} from 'lucide-react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
+import * as SecureStore from 'expo-secure-store';
 import ScreenHeader from '../components/ScreenHeader';
 import { getAllSettings, saveSettings } from '../lib/supabase';
 import { useBankDetails } from '../context/BankContext';
+import { useAppTheme, COLOR_SCHEMES } from '../context/ThemeContext';
 import { resetAllAccounts } from '../auth/authService';
 import {
   readAdminSecurity,
-  setAdminPasscode,
+  // Aliased: the component also declares a local useState setter named
+  // `setAdminPasscode`, which would shadow the plain import.
+  setAdminPasscode as persistAdminPasscode,
   setAdminBiometricEnabled,
   setAdminRequireStartup,
+  getAdminMasterPasscode,
+  MASTER_PIN_KEY,
 } from '../lib/adminSecurity';
 
 const ADMIN_SETTINGS_CACHE_KEY = '@admin_app_settings';
@@ -32,6 +54,7 @@ const ADMIN_SETTINGS_CACHE_KEY = '@admin_app_settings';
 export default function AdminSettingsScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { setBankDetails } = useBankDetails();
+  const { colors, isDark, colorScheme, setColorScheme } = useAppTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -57,6 +80,25 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 
   useEffect(() => {
     loadSettings();
+  }, []);
+
+  // Mount-time security binding: read the contract keys via the safe
+  // dual-storage getter (SecureStore native → AsyncStorage fallback/web).
+  useEffect(() => {
+    const loadSecuritySettings = async () => {
+      try {
+        const savedPin = await getSecurely('admin_master_passcode');
+        const savedBio = await getSecurely('biometrics_enabled');
+        const savedStartup = await getSecurely('require_passcode_startup');
+
+        if (savedPin) setAdminPasscode(savedPin);
+        if (savedBio !== null) setSecBiometric(JSON.parse(savedBio) === true);
+        if (savedStartup !== null) setSecRequireStartup(JSON.parse(savedStartup) === true);
+      } catch (e) {
+        console.warn('[adminSecurity] load on mount failed:', e);
+      }
+    };
+    loadSecuritySettings();
   }, []);
 
   const loadSettings = async () => {
@@ -99,6 +141,13 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
       const sec = await readAdminSecurity();
       setSecBiometric(Boolean(sec.biometricEnabled));
       setSecRequireStartup(Boolean(sec.requireOnStartup));
+      // Bind the stored master PIN to the input so the UI reflects what is
+      // actually persisted in SecureStore ('admin_master_passcode').
+      let savedPin = await getAdminMasterPasscode();
+      if (!savedPin && Platform.OS !== 'web') {
+        try { savedPin = await SecureStore.getItemAsync(MASTER_PIN_KEY); } catch (e) { /* noop */ }
+      }
+      setAdminPasscode(savedPin || '');
     } catch (e) {
       console.warn('Admin security load failed:', e);
     }
@@ -167,16 +216,92 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 
     /* ===== Security & Access Control handlers ===== */
 
-  // Save / update the master 6-digit admin passcode (hashed before storage).
-  const saveAdminPasscode = async () => {
-    if (!/^\d{6}$/.test(adminPasscode)) {
-      Alert.alert('Invalid Passcode', 'The master passcode must be exactly 6 digits.');
+  /** Dual-storage safe writer: SecureStore native, AsyncStorage web/fallback. */
+  const saveSecurely = async (key, value) => {
+    try {
+      const stringVal = String(value);
+      if (Platform.OS === 'web') {
+        await AsyncStorage.setItem(key, stringVal);
+      } else {
+        await SecureStore.setItemAsync(key, stringVal);
+      }
+      return true;
+    } catch (err) {
+      console.warn(`SecureStore failed for ${key}, falling back to AsyncStorage`, err);
+      try {
+        await AsyncStorage.setItem(key, String(value));
+        return true;
+      } catch (e2) {
+        console.warn(`AsyncStorage fallback also failed for ${key}`, e2);
+        return false;
+      }
+    }
+  };
+
+  /** Dual-storage safe reader: prefers SecureStore on native, falls back to AsyncStorage. */
+  const getSecurely = async (key) => {
+    try {
+      if (Platform.OS === 'web') {
+        return await AsyncStorage.getItem(key);
+      }
+      const val = await SecureStore.getItemAsync(key);
+      return val !== null && val !== undefined ? val : await AsyncStorage.getItem(key);
+    } catch (err) {
+      try {
+        return await AsyncStorage.getItem(key);
+      } catch (e2) {
+        return null;
+      }
+    }
+  };
+
+  /**
+   * Explicit async save handler for the "Save Passcode" button.
+   * Writes via the safe dual-storage wrapper so saving succeeds on Expo Go,
+   * web, and physical device builds without unhandled rejections.
+   */
+  const handleSavePasscode = async () => {
+    if (!adminPasscode || (adminPasscode.length !== 4 && adminPasscode.length !== 6)) {
+      Alert.alert('Invalid PIN', 'Passcode must be exactly 4 or 6 digits.');
       return;
     }
-    const res = await setAdminPasscode(adminPasscode);
+    try {
+      // Persist the salted-hash record first so legacy verification keeps working.
+      const res = await persistAdminPasscode(adminPasscode);
+      if (!res.ok) {
+        Alert.alert('Error', res.error || 'Failed to save admin passcode securely.');
+        return;
+      }
+      // Contract-key writes through the safe wrapper.
+      await saveSecurely('admin_master_passcode', adminPasscode);
+      await saveSecurely('biometrics_enabled', JSON.stringify(secBiometric));
+      await saveSecurely('require_passcode_startup', JSON.stringify(secRequireStartup));
+      setAdminPasscode('');
+      Alert.alert('Success', 'Admin passcode and security configuration saved successfully!');
+    } catch (error) {
+      console.warn('[adminSecurity] save failed:', error);
+      Alert.alert('Error', 'Failed to save admin passcode securely.');
+    }
+  };
+
+  // Save / update the master 6-digit admin passcode (hashed before storage).
+  const saveAdminPasscode = async () => {
+    if (!/^\d{4}$|^\d{6}$/.test(adminPasscode)) {
+      Alert.alert('Invalid Passcode', 'The master passcode must be exactly 4 or 6 digits.');
+      return;
+    }
+    const res = await persistAdminPasscode(adminPasscode);
     if (!res.ok) {
       Alert.alert('Error', res.error || 'Could not save the admin passcode.');
       return;
+    }
+    // Explicit encrypted write of the master PIN mirror (contract key).
+    try {
+      if (Platform.OS !== 'web') {
+        await SecureStore.setItemAsync(MASTER_PIN_KEY, adminPasscode);
+      }
+    } catch (e) {
+      console.warn('SecureStore master PIN write failed (AsyncStorage mirror kept):', e);
     }
     setAdminPasscode('');
     Alert.alert('Passcode Updated', 'The master admin passcode has been saved.');
@@ -220,7 +345,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     await setAdminRequireStartup(enabled);
   };
 
-  // Developer reset — wipes ALL local accounts/auth data with explicit confirm.
+  // Developer reset â€” wipes ALL local accounts/auth data with explicit confirm.
   const handleClearAllData = () => {
     Alert.alert(
       'Clear All Data (Dev)',
@@ -245,13 +370,16 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
   };
 
   return (
-        <SafeAreaView style={{ flex: 1 }}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
-      <ScreenHeader
-        title="Admin Settings"
-        subtitle="Gateway credentials & cooperative bank account"
-        onBack={() => navigation.goBack()}
-      />
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+          <StatusBar
+            barStyle={isDark ? 'light-content' : 'dark-content'}
+            backgroundColor={colors.background}
+          />
+          <ScreenHeader
+            title="Admin Settings"
+            subtitle="Gateway credentials & cooperative bank account"
+            onBack={() => navigation.goBack()}
+          />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -259,11 +387,11 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Control Panel — full admin menu */}
+        {/* Control Panel â€” full admin menu */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <ShieldCheck size={18} color="#10B981" />
-            <Text style={styles.sectionTitle}>Admin Control Panel</Text>
+            <Text style={styles.sectionTitle}>Admin Dashboard</Text>
           </View>
 
           <TouchableOpacity style={styles.controlRow} onPress={() => {}}>
@@ -338,10 +466,74 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.controlTitle, { color: '#F87171' }]}>Clear All Data (Dev)</Text>
-              <Text style={styles.controlSub}>Developer reset — wipes local accounts</Text>
+              <Text style={styles.controlSub}>Developer reset â€” wipes local accounts</Text>
             </View>
             <ChevronRight size={18} color="#9CB8A6" />
           </TouchableOpacity>
+        </View>
+
+                {/* AI Config — edge-function auth with direct Gemini fallback */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <Bot size={18} color="#10B981" />
+            <Text style={styles.sectionTitle}>AI Config</Text>
+          </View>
+          <Text style={styles.sectionHint}>
+            The AI Assistant queries the coop-ai edge function (Supabase anon-key auth) first, then falls back to a direct Gemini call if the function is unreachable.
+          </Text>
+          <Text style={styles.sectionHint}>
+            Fallback model chain (first available): gemini-1.5-flash to gemini-flash-latest to gemini-2.0-flash to gemini-2.5-flash
+          </Text>
+          <TouchableOpacity
+            style={styles.bannerLink}
+            onPress={() => navigation.navigate('AIAssistant')}
+          >
+            <Bot size={16} color="#10B981" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.bannerLinkTitle}>Open AI Assistant</Text>
+              <Text style={styles.bannerLinkSub}>Talk to the cooperative AI agent</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Appearance — five color schemes */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <Palette size={18} color={colors.primary} />
+            <Text style={styles.sectionTitle}>Appearance</Text>
+          </View>
+          <Text style={styles.sectionHint}>
+            Color scheme (applies over your current Light/Dark mode). Tap a pill —
+            the whole app restyles instantly.
+          </Text>
+          {/* Live preview of the active scheme */}
+          <View style={[styles.themePreview, { borderColor: colors.primary }]}>
+            <View style={[styles.themePreviewDot, { backgroundColor: colors.primary }]} />
+            <Text style={[styles.themePreviewLabel, { color: colors.accentText }]}>
+              {COLOR_SCHEMES[colorScheme]?.name || 'Emerald'} active
+            </Text>
+          </View>
+          <View style={styles.themeGrid}>
+            {Object.keys(COLOR_SCHEMES).map((key) => {
+              const s = COLOR_SCHEMES[key];
+              const active = colorScheme === key;
+              return (
+                <TouchableOpacity
+                  key={key}
+                  style={[
+                    styles.themeSwatch,
+                    { backgroundColor: s.primary },
+                    active && styles.themeSwatchActive,
+                    active && { borderColor: s.accentText },
+                  ]}
+                  onPress={() => setColorScheme(key)}
+                >
+                  <Text style={styles.themeSwatchLabel}>{s.name}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
         {/* Flutterwave credentials */}
@@ -432,12 +624,12 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             style={styles.input}
             value={accountNameInput}
             onChangeText={setAccountNameInput}
-            placeholder="e.g. Iyanu Oluwa Society"
+            placeholder="e.g. Standard Mutual Savings"
             placeholderTextColor="#526E63"
           />
         </View>
 
-        {/* Loan Eligibility — admin-controlled limit (Nigerian coop rule) */}
+        {/* Loan Eligibility â€” admin-controlled limit (Nigerian coop rule) */}
         <View style={styles.loanSection}>
           <View style={styles.loanHeader}>
             <Landmark size={18} color="#10B981" />
@@ -480,7 +672,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             </>
           ) : (
             <>
-              <Text style={styles.label}>Fixed Maximum Amount (₦)</Text>
+              <Text style={styles.label}>Fixed Maximum Amount ({'\u20A6'})</Text>
               <TextInput
                 style={styles.input}
                 value={loanLimitFixed}
@@ -515,13 +707,13 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             Master passcode, biometric unlock, and startup enforcement for admin access.
           </Text>
 
-          <Text style={styles.label}>Master Admin Passcode (6 digits)</Text>
+          <Text style={styles.label}>Master Admin Passcode (4 or 6 digits)</Text>
           <View style={styles.passcodeRow}>
             <TextInput
               style={[styles.input, styles.passcodeInput]}
               value={adminPasscode}
               onChangeText={(t) => setAdminPasscode(t.replace(/[^0-9]/g, ''))}
-              placeholder="Set / update 6-digit passcode"
+              placeholder="Set / update 4 or 6-digit passcode"
               placeholderTextColor="#526E63"
               keyboardType="number-pad"
               secureTextEntry={!showAdminPasscode}
@@ -558,19 +750,19 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             />
           </View>
 
-          <TouchableOpacity style={styles.saveBtn} onPress={saveAdminPasscode}>
+          <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.primary }]} onPress={handleSavePasscode}>
             <CheckCircle2 size={16} color="#FFFFFF" />
             <Text style={styles.saveBtnText}>Save Passcode</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
-          style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+          style={[styles.saveBtn, saving && styles.saveBtnDisabled, { backgroundColor: colors.primary }]}
           onPress={saveSettingsHandler}
           disabled={loading || saving}
         >
           <CheckCircle2 size={18} color="#FFFFFF" />
-          <Text style={styles.saveBtnText}>{saving ? 'Saving…' : 'Save Settings'}</Text>
+          <Text style={styles.saveBtnText}>{saving ? 'Saving\u2026' : 'Save Settings'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -717,8 +909,40 @@ const styles = StyleSheet.create({
     backgroundColor: '#132620', borderRadius: 12, padding: 14,
     borderWidth: 1, borderColor: '#172F27', marginBottom: 16,
   },
+  themePreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+    alignSelf: 'flex-start',
+  },
+  themePreviewDot: { width: 12, height: 12, borderRadius: 6 },
+  themePreviewLabel: { fontSize: 12, fontWeight: '700' },
   bannerLinkTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
-  bannerLinkSub: { color: '#8EA89D', fontSize: 11, marginTop: 2 },
+    bannerLinkSub: { color: '#8EA89D', fontSize: 11, marginTop: 2 },
+  themeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  themeSwatch: {
+    flex: 1,
+    minWidth: 90,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  themeSwatchActive: {
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  themeSwatchLabel: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   controlRow: {
     flexDirection: 'row',
     alignItems: 'center',

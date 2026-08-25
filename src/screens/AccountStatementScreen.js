@@ -82,7 +82,7 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
         </style>
       </head>
       <body>
-        <div class="tag">IYANU OLUWA SOCIETY</div>
+        <div class="tag">STANDARD MUTUAL SAVINGS</div>
         <div class="brand">Account Statement</div>
         <div class="meta">
           Member: Temitope Adewale<br/>
@@ -111,7 +111,7 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
           <tr><td class="k"><b>Closing Balance</b></td><td class="v">₦${fmt(totals.closing)}</td></tr>
         </table>
         <div class="footer">
-          This is a computer-generated statement of the Iyanu Oluwa Cooperative Society and is
+          This is a computer-generated statement of the Standard Mutual Cooperative Society and is
           valid without signature.
         </div>
       </body>
