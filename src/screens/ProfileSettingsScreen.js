@@ -24,6 +24,7 @@ import {
   Sun,
   Moon,
   Sparkles,
+  LogOut,
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
@@ -32,7 +33,7 @@ import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProfileSettingsScreen({ navigation: rawNav }) {
-  const navigation = useSafeNavigation(rawNav);
+    const navigation = useSafeNavigation(rawNav);
   const { user, updateUser } = useUser();
   const {
     methods,
@@ -40,6 +41,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
     disableBiometric,
     setPasscode,
     setPasscodeEnabled,
+    logout,
   } = useAuth();
   const isInitialRender = useRef(true);
 
@@ -64,7 +66,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
   const [newPasscode, setNewPasscode] = useState('');
   const [confirmPasscode, setConfirmPasscode] = useState('');
 
-  const handleBiometricToggle = async (enabled) => {
+    const handleBiometricToggle = async (enabled) => {
     if (enabled) {
       const res = await enableBiometric();
       if (!res.ok) {
@@ -76,6 +78,21 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
       await disableBiometric();
     }
   };
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.warn('[ProfileSettings] logout error:', e?.message || e);
+      // Still fall through so users always land back on the auth flow.
+    }
+    // Reset to the Welcome screen (auth flow entry point).
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'WelcomeScreen' }],
+    });
+  };
+
 
   const handleSavePasscode = async () => {
     if (!/^\d{4}$/.test(newPasscode)) {
@@ -476,10 +493,16 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           secureTextEntry
         />
 
-        {/* Save */}
+                {/* Save */}
         <TouchableOpacity style={styles.saveBtn} onPress={saveAll}>
           <Lock size={17} color="#FFFFFF" />
           <Text style={styles.saveBtnText}>Save Changes</Text>
+        </TouchableOpacity>
+
+        {/* Sign Out */}
+        <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+          <LogOut size={17} color="#FFFFFF" />
+          <Text style={styles.signOutBtnText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

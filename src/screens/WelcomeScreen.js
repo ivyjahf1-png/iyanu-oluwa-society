@@ -1,21 +1,34 @@
-import React, { useState, useRef } from 'react';
+/**
+ * WelcomeScreen — landing screen for unauthenticated users.
+ *
+ * Design (cooperative dark theme):
+ *   - Central gold-accented emblem logo.
+ *   - "Welcome to Iyanu Oluwa Society" title.
+ *   - Subtitle: financial-hub tagline.
+ *   - Sign Up (green filled) → SignUpScreen
+ *   - Sign In  (outlined gold/emerald pill) → SignInScreen
+ *   - Hidden 5-tap-on-logo gesture → AdminSettingsScreen
+ */
+import React, { useRef, useState } from 'react';
 import {
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
-  View,
   TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  Image,
+  View,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import { AUTH_COLORS, AUTH_GRADIENTS } from '../constants/theme';
 
 export default function WelcomeScreen({ navigation }) {
-  // Hidden admin trigger: 5 taps on the logo within 2.5 seconds.
   const [tapCount, setTapCount] = useState(0);
   const tapTimer = useRef(null);
 
+  // Secret admin trigger: 5 rapid taps on the emblem within 2.5s.
   const handleLogoTap = () => {
     setTapCount((prev) => {
       const next = prev + 1;
@@ -27,105 +40,107 @@ export default function WelcomeScreen({ navigation }) {
       }
       return next;
     });
-    // Auto-reset after 2.5s of inactivity
     if (tapTimer.current) clearTimeout(tapTimer.current);
     tapTimer.current = setTimeout(() => setTapCount(0), 2500);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor='#091813' barStyle="light-content" />
-      <LinearGradient colors={['#091813', '#1A3A24']} style={styles.gradient}>
-        <View style={styles.content}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={handleLogoTap}
-            style={styles.logoPlaceholder}
-          >
-            <Image
-              resizeMode="contain"
-              source={require('../../assets/logo.png')}
-              style={styles.welcomeLogo}
-            />
-          </TouchableOpacity>
-
-          <Text style={styles.societyTitle}>Welcome to Iyanu Oluwa Society</Text>
-          <Text style={styles.tagline}>
-            Your financial hub for savings, loans, and cooperative growth.
-          </Text>
-
-          <View style={styles.btnGroup}>
-            <TouchableOpacity
-              style={styles.primaryBtn}
-              onPress={() => navigation.navigate('SignUpScreen')}
-            >
-              <Text style={styles.primaryBtnTxt}>Sign Up</Text>
+      <StatusBar backgroundColor={AUTH_COLORS.background} barStyle="light-content" />
+      <LinearGradient colors={AUTH_GRADIENTS.screen} style={styles.gradient}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.body}>
+            <TouchableOpacity activeOpacity={0.8} onPress={handleLogoTap} style={styles.logoRing}>
+              <Image
+                resizeMode="contain"
+                source={require('../../assets/logo.png')}
+                style={styles.welcomeLogo}
+              />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.secondaryBtn}
-              onPress={() => navigation.navigate('SignInScreen')}
-            >
-              <Text style={styles.secondaryBtnTxt}>Sign In</Text>
-            </TouchableOpacity>
+            <Text style={styles.title}>Welcome to Iyanu Oluwa Society</Text>
+            <Text style={styles.subtitle}>
+              Your financial hub for savings, loans, and cooperative growth.
+            </Text>
+
+            <View style={styles.btnGroup}>
+              <TouchableOpacity
+                style={styles.primaryBtn}
+                onPress={() => navigation.navigate('SignUpScreen')}
+              >
+                <Text style={styles.primaryBtnTxt}>Sign Up</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.secondaryBtn}
+                onPress={() => navigation.navigate('SignInScreen')}
+              >
+                <Text style={styles.secondaryBtnTxt}>Sign In</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </LinearGradient>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#091813' },
-  gradient: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  content: { width: '100%', alignItems: 'center', paddingHorizontal: 24 },
-  logoPlaceholder: {
+  container: { flex: 1, backgroundColor: AUTH_COLORS.background },
+  gradient: { flex: 1 },
+  scrollContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
+  body: { width: '100%', alignItems: 'center' },
+  logoRing: {
     alignItems: 'center',
-    marginBottom: 32,
-  },
-  welcomeLogo: {
-    width: 140,
-    height: 140,
-    marginBottom: 20,
+    justifyContent: 'center',
+    width: 152,
+    height: 152,
+    borderRadius: 76,
     borderWidth: 2,
-    borderColor: '#D4AF37',
-    borderRadius: 28,
+    borderColor: AUTH_COLORS.secondaryBorder,
+    backgroundColor: 'rgba(212, 175, 55, 0.08)',
+    marginBottom: 24,
   },
-  societyTitle: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: 'bold',
+  welcomeLogo: { width: 128, height: 128 },
+  title: {
+    color: AUTH_COLORS.textPrimary,
+    fontSize: 24,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  tagline: {
-    color: '#9BB8AC',
+  subtitle: {
+    color: AUTH_COLORS.textSecondary,
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 36,
+    paddingHorizontal: 16,
   },
   btnGroup: { width: '100%', gap: 14 },
   primaryBtn: {
-    backgroundColor: '#0D5C46',
+    backgroundColor: AUTH_COLORS.primary,
     borderRadius: 26,
-    paddingVertical: 14,
+    paddingVertical: 15,
     alignItems: 'center',
   },
   primaryBtnTxt: {
-    color: '#FFFFFF',
+    color: AUTH_COLORS.textPrimary,
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   secondaryBtn: {
-    backgroundColor: 'rgba(197, 165, 72, 0.08)',
+    backgroundColor: AUTH_COLORS.secondaryFill,
     borderRadius: 26,
-    paddingVertical: 13,
+    paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#C4A743',
+    borderColor: AUTH_COLORS.secondaryBorder,
   },
   secondaryBtnTxt: {
-    color: '#E5C15A',
+    color: AUTH_COLORS.secondaryBorder,
     fontSize: 15,
     fontWeight: '600',
   },

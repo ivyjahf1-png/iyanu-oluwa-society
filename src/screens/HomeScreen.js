@@ -259,7 +259,7 @@ export default function HomeScreen({ navigation }) {
         {/* COOPERATIVE HUB SECTION */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Cooperative Hub</Text>
-          <TouchableOpacity onPress={() => navigateTo('CooperativeHub')}>
+          <TouchableOpacity onPress={() => navigateTo('Marketplace')}>
             <Text style={styles.viewAllText}>View All &gt;</Text>
           </TouchableOpacity>
         </View>

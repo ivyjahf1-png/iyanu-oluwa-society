@@ -29,6 +29,7 @@ export const KNOWN_ROUTES = new Set([
   'FundWallet',
   'AdminDeposits',
   'ProfileSettings',
+  'Profile',
   'Notifications',
   'AddFunds',
   'BankTransfer',

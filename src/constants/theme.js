@@ -29,3 +29,27 @@ export const GRADIENTS = {
   orangeBtn: ['#F97316', '#78350F'],
   purpleBtn: ['#A855F7', '#4C1D95'],
 };
+
+/**
+ * Auth flow palette (Welcome / Sign Up / Sign In).
+ * Kept separate so the dark "cooperative" onboarding aesthetic is isolated
+ * and easy to evolve without touching the main app theme.
+ */
+export const AUTH_COLORS = {
+  background: '#0B1412',
+  backgroundAlt: '#102420',
+  primary: '#059669', // solid deep green
+  secondaryBorder: '#D4AF37', // gold accent for outlined buttons / logo rings
+  secondaryFill: 'rgba(212, 175, 55, 0.10)',
+  inputBg: 'rgba(13, 37, 29, 0.55)',
+  inputBorder: '#1E3A30',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#9BB8AC',
+  placeholder: '#5A7A6F',
+  cardBorder: '#172F27',
+};
+
+export const AUTH_GRADIENTS = {
+  screen: ['#0B1412', '#1F3A30'],
+  greenBtn: ['#059669', '#1DA649'],
+};

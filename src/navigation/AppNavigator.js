@@ -132,6 +132,7 @@ export default function AppNavigator() {
           <Stack.Screen name="FundWallet" component={FundWalletScreen} />
           <Stack.Screen name="AdminDeposits" component={AdminDepositsScreen} />
           <Stack.Screen name="ProfileSettings" component={ProfileSettingsScreen} />
+          <Stack.Screen name="Profile" component={ProfileSettingsScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
           <Stack.Screen name="AddFunds" component={AddFundsScreen} />
           <Stack.Screen name="BankTransfer" component={BankTransferScreen} />

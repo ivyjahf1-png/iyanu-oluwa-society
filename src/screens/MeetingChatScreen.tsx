@@ -32,6 +32,7 @@ import {
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import { storage } from '../lib/storage';
+import { onMeetingMessage, broadcastMeetingMessage } from '../lib/meetingChat';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -173,21 +174,51 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     });
   }, [messages]);
 
-  // ------------------------------------------------------------------
+    // ------------------------------------------------------------------
   // Messaging helpers
   // ------------------------------------------------------------------
   const pushMessage = (msg: ChatMessage): void => setMessages(prev => [...prev, msg]);
 
+  // Real-time: render messages broadcast by other members instantly.
+  useEffect(() => {
+    return onMeetingMessage((payload) => {
+      pushMessage({
+        id: payload.id,
+        sender: payload.senderName,
+        text: payload.messageText,
+        time: new Date(payload.timestamp).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+                isMe: false, // broadcast messages are from other members
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const appendEmoji = (emoji: string): void => setInputText(prev => prev + emoji);
 
-  const sendMessage = (): void => {
+    const sendMessage = (): void => {
     if (!inputText.trim()) return;
+    const msgId = Date.now().toString();
+    const now = Date.now();
+    // Local optimistic render (existing ChatMessage shape).
     pushMessage({
-      id: Date.now().toString(),
+      id: msgId,
       sender: 'Me',
       text: inputText.trim(),
       time: 'Now',
       isMe: true,
+    });
+    // Real-time broadcast to other members (full payload contract).
+    broadcastMeetingMessage({
+      id: msgId,
+      senderId: user?.id ?? 'current',
+      senderName: user?.fullName ?? user?.email ?? 'Me',
+      messageText: inputText.trim(),
+      timestamp: now,
+      avatar: user?.avatarUri ?? null,
     });
     setInputText('');
   };

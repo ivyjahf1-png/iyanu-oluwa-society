@@ -1,19 +1,31 @@
+/**
+ * SignUpScreen � cooperative auth sign-up.
+ *
+ * Design (dark theme):
+ *   - Top multi-step progress indicator.
+ *   - Gold-accented emblem logo at the top.
+ *   - Heading: "Create Your Account".
+ *   - Inputs: Full Name, Email Address, Phone Number, Password, Confirm Password
+ *     (dark translucent fields, thin subtle borders, light placeholders).
+ *   - Footer: "Already have an account? Sign In" -> SignInScreen.
+ *   - Continue button (green filled) -> registers via AuthContext -> MainDashboard.
+ */
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
-  View,
-  TouchableOpacity,
   TextInput,
-  ScrollView,
-  SafeAreaView,
-  StatusBar,
-  Alert,
-  ActivityIndicator,
-  Image,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
+import { AUTH_COLORS, AUTH_GRADIENTS } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 
 export default function SignUpScreen({ navigation }) {
@@ -29,6 +41,10 @@ export default function SignUpScreen({ navigation }) {
 
   const validate = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!fullName.trim()) {
+      Alert.alert('Missing Name', 'Please enter your full name.');
+      return false;
+    }
     if (!emailRegex.test(email)) {
       Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return false;
@@ -51,49 +67,43 @@ export default function SignUpScreen({ navigation }) {
   const handleSignUp = async () => {
     if (!validate()) return;
     setSubmitting(true);
-    // Registers via AuthContext — password is hashed + stored securely.
-    const res = await registerAccount(email, password);
-    setSubmitting(false);
-    if (!res.ok) {
-      Alert.alert('Sign Up Failed', res.error || 'Could not create your account.');
-      return;
+    try {
+      const res = await registerAccount(email.trim(), password);
+      if (!res.ok) {
+        Alert.alert('Sign Up Failed', res.error || 'Could not create your account.');
+        return;
+      }
+      navigation.replace('MainDashboard');
+    } catch (e) {
+      Alert.alert('Sign Up Failed', 'Could not create your account.');
+    } finally {
+      setSubmitting(false);
     }
-    navigation.replace('MainDashboard');
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor='#091813' barStyle="light-content" />
-      <LinearGradient colors={['#091813', '#1A3A24']} style={styles.gradient}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <ChevronLeft color="#FFFFFF" size={24} />
-          </TouchableOpacity>
-          <Text style={styles.title}>Create Account</Text>
-        </View>
-
-        <View style={styles.steps}>
-          <Text style={styles.stepsLabel}>Step 1 of 2 · Account Details</Text>
-          <View style={styles.stepsTrack}>
-            <View style={[styles.stepsFill, { width: '50%' }]} />
+      <StatusBar backgroundColor={AUTH_COLORS.background} barStyle="light-content" />
+      <LinearGradient colors={AUTH_GRADIENTS.screen} style={styles.gradient}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.stepIndicator}>
+            <View style={[styles.stepSegment, styles.stepSegmentActive]} />
+            <View style={[styles.stepSegment, { marginLeft: 8 }]} />
           </View>
-        </View>
+          <Text style={styles.stepLabel}>Step 1 of 2 - Account Details</Text>
 
-        <View style={styles.form}>
-          <Image
-            resizeMode="contain"
-            source={require('../../assets/logo.png')}
-            style={styles.brandLogo}
-          />
-          <Text style={styles.brandTitle}>Create your account</Text>
+          <View style={styles.logoWrapper}>
+            <Image resizeMode="contain" source={require('../../assets/logo.png')} style={styles.logo} />
+          </View>
+
+          <Text style={styles.heading}>Create Your Account</Text>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Full Name</Text>
             <TextInput
               style={styles.input}
               placeholder="e.g. Temitope Adewale"
-              placeholderTextColor="#526E63"
+              placeholderTextColor={AUTH_COLORS.placeholder}
               value={fullName}
               onChangeText={setFullName}
               autoCapitalize="words"
@@ -105,7 +115,7 @@ export default function SignUpScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="you@example.com"
-              placeholderTextColor="#526E63"
+              placeholderTextColor={AUTH_COLORS.placeholder}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -118,7 +128,7 @@ export default function SignUpScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="e.g. +234 801 234 5678"
-              placeholderTextColor="#526E63"
+              placeholderTextColor={AUTH_COLORS.placeholder}
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
@@ -129,23 +139,18 @@ export default function SignUpScreen({ navigation }) {
             <Text style={styles.label}>Password</Text>
             <View style={styles.inputRow}>
               <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor="#526E63"
+                style={styles.inputFlex}
+                placeholder="........."
+                placeholderTextColor={AUTH_COLORS.placeholder}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
               />
               <TouchableOpacity
-                style={styles.eyeBtn}
                 onPress={() => setShowPassword(!showPassword)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                {showPassword ? (
-                  <EyeOff size={18} color="#A7F3D0" />
-                ) : (
-                  <Eye size={18} color="#A7F3D0" />
-                )}
+                {showPassword}
               </TouchableOpacity>
             </View>
           </View>
@@ -154,23 +159,18 @@ export default function SignUpScreen({ navigation }) {
             <Text style={styles.label}>Confirm Password</Text>
             <View style={styles.inputRow}>
               <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor="#526E63"
+                style={styles.inputFlex}
+                placeholder="........."
+                placeholderTextColor={AUTH_COLORS.placeholder}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirmPassword}
               />
               <TouchableOpacity
-                style={styles.eyeBtn}
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                {showConfirmPassword ? (
-                  <EyeOff size={18} color="#A7F3D0" />
-                ) : (
-                  <Eye size={18} color="#A7F3D0" />
-                )}
+                {showConfirmPassword}
               </TouchableOpacity>
             </View>
           </View>
@@ -181,7 +181,7 @@ export default function SignUpScreen({ navigation }) {
             disabled={submitting}
           >
             {submitting ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color={AUTH_COLORS.textPrimary} />
             ) : (
               <Text style={styles.primaryBtnTxt}>Continue</Text>
             )}
@@ -193,7 +193,6 @@ export default function SignUpScreen({ navigation }) {
               <Text style={styles.link}>Sign In</Text>
             </TouchableOpacity>
           </View>
-        </View>
         </ScrollView>
       </LinearGradient>
     </SafeAreaView>
@@ -201,102 +200,97 @@ export default function SignUpScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: AUTH_COLORS.background },
   gradient: { flex: 1 },
-  header: {
+  scrollContent: { paddingHorizontal: 24, paddingVertical: 24 },
+  stepIndicator: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#172F27',
-    marginBottom: 12,
+    alignSelf: 'stretch',
+    gap: 6,
+    marginBottom: 6,
   },
-  backBtn: { padding: 6, marginRight: 8 },
-  steps: { paddingHorizontal: 24, marginBottom: 14 },
-  stepsLabel: {
-    color: '#A7F3D0',
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  stepsTrack: {
-    height: 6,
+  stepSegment: {
+    flex: 1,
+    height: 5,
     borderRadius: 3,
-    backgroundColor: '#172F27',
-    overflow: 'hidden',
+    backgroundColor: AUTH_COLORS.cardBorder,
   },
-  stepsFill: { height: 6, borderRadius: 3, backgroundColor: '#D4AF37' },
-  scrollContent: { paddingBottom: 40 },
-  title: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  form: { paddingHorizontal: 24, gap: 20 },
-  brandLogo: {
-    width: 96,
-    height: 96,
-    alignSelf: 'center',
-    borderRadius: 48,
-    borderWidth: 1.5,
-    borderColor: '#10B981',
-    marginBottom: 4,
-  },
-  brandTitle: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  inputGroup: { gap: 6 },
-  label: {
-    color: '#A7F3D0',
+  stepSegmentActive: { backgroundColor: AUTH_COLORS.secondaryBorder },
+  stepLabel: {
+    color: AUTH_COLORS.textSecondary,
     fontSize: 12,
     fontWeight: '600',
+    marginBottom: 18,
+    textAlign: 'center',
   },
+  logoWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 104,
+    height: 104,
+    alignSelf: 'center',
+    borderRadius: 52,
+    borderWidth: 1.5,
+    borderColor: AUTH_COLORS.secondaryBorder,
+    backgroundColor: 'rgba(212, 175, 55, 0.08)',
+    marginBottom: 16,
+  },
+  logo: { width: 88, height: 88 },
+  heading: {
+    color: AUTH_COLORS.textPrimary,
+    fontSize: 22,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 22,
+  },
+  inputGroup: { gap: 6, marginBottom: 18 },
+  label: { color: AUTH_COLORS.textSecondary, fontSize: 12, fontWeight: '600' },
   input: {
-    backgroundColor: '#172F27',
+    backgroundColor: AUTH_COLORS.inputBg,
+    color: AUTH_COLORS.textPrimary,
+    fontSize: 15,
+    placeholderTextColor: AUTH_COLORS.placeholder,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    color: '#FFFFFF',
-    fontSize: 15,
     borderWidth: 1,
-    borderColor: '#1E3A30',
+    borderColor: AUTH_COLORS.inputBorder,
+  },
+  inputFlex: {
+    flex: 1,
+    backgroundColor: AUTH_COLORS.inputBg,
+    color: AUTH_COLORS.textPrimary,
+    fontSize: 15,
+    placeholderTextColor: AUTH_COLORS.placeholder,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: AUTH_COLORS.inputBorder,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#172F27',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#1E3A30',
+    gap: 8,
   },
-  eyeBtn: { paddingHorizontal: 12 },
   primaryBtn: {
-    backgroundColor: '#10B981',
-    borderRadius: 14,
-    paddingVertical: 14,
+    backgroundColor: AUTH_COLORS.primary,
+    borderRadius: 26,
+    paddingVertical: 15,
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 4,
   },
   primaryBtnTxt: {
-    color: '#FFFFFF',
+    color: AUTH_COLORS.textPrimary,
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 8,
+    marginTop: 18,
     gap: 4,
   },
-  footerTxt: { color: '#A7F3D0', fontSize: 13 },
-  link: {
-    color: '#10B981',
-    fontSize: 13,
-    fontWeight: '600',
-  },
+  footerTxt: { color: AUTH_COLORS.textSecondary, fontSize: 13 },
+  link: { color: AUTH_COLORS.primary, fontSize: 13, fontWeight: '600' },
 });
