@@ -29,7 +29,7 @@ const ADMIN_ROUTES = new Set([
 ]);
 
 export default function RouteGuard() {
-  const { userEmail, restoring, hasCompletedWelcome } = useAuth();
+    const { userEmail, restoring, welcomeLoaded, hasCompletedWelcome } = useAuth();
   const { requestAdminAccess } = useAdminLock();
 
   const lastRouteRef = useRef(null);
