@@ -4,12 +4,21 @@ import { storage } from './storage';
 /**
  * Supabase client for the mobile app.
  *
- * Supply the project URL and anon key via app.json `extra` or the two
+ * Supply the project URL and anon key via env (`EXPO_PUBLIC_*`) or the two
  * constants below. The anon key is safe to ship in the client — all
  * privileged operations are protected by Row Level Security.
  */
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://YOUR-PROJECT.supabase.co';
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'YOUR-ANON-KEY';
+const SUPABASE_URL =
+  process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://kvvodpeewrbdbdtlvzuc.supabase.co';
+const SUPABASE_ANON_KEY =
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_IYYIjXd6jKg1JSeFEiUwhA_b492WoLD';
+
+/** True when the anon key placeholder has not been replaced yet. */
+export const SUPABASE_UNCONFIGURED =
+  !process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY &&
+  (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === 'sb_publishable_IYYIjXd6jKg1JSeFEiUwhA_b492WoLD');
+
+export const SUPABASE_PROJECT_URL = SUPABASE_URL;
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {

@@ -433,22 +433,6 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
           </View>
           <Text style={styles.themeCardDesc}>Deep green dark mode styling.</Text>
         </TouchableOpacity>
-        {themeMode === 'dark' && (
-          <>
-            <BrightnessControl
-              label="Contrast Increase"
-              hint="Higher values deepen the dark background contrast."
-              value={darkContrast}
-              onChange={setDarkContrast}
-            />
-            <BrightnessControl
-              label="Contrast Decrease"
-              hint="Soften the dark contrast level."
-              value={100 - darkContrast}
-              onChange={val => setDarkContrast(100 - val)}
-            />
-          </>
-        )}
 
         {/* Live preview of the selected appearance */}
         <View style={[styles.previewBox, { backgroundColor: getPreviewBg() }]}>

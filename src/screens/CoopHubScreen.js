@@ -89,6 +89,38 @@ export default function CoopHubScreen({ navigation: rawNav }) {
           </TouchableOpacity>
         </View>
 
+        {/* Cooperative Marketplace hubs */}
+        <Text style={styles.sectionHeader}>Cooperative Marketplace</Text>
+        <View style={styles.listContainer}>
+          <TouchableOpacity
+            style={styles.hubListItem}
+            onPress={() => navigation.navigate('Marketplace')}
+          >
+            <View style={styles.listLeft}>
+              <ShoppingBag color="#A7F3D0" size={20} />
+              <View style={styles.listTextGroup}>
+                <Text style={styles.listTitle}>Land & Property</Text>
+                <Text style={styles.listSub}>Acquire plots with flexible payment plans.</Text>
+              </View>
+            </View>
+            <ChevronRight color="#9CB8A6" size={18} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.hubListItem}
+            onPress={() => navigation.navigate('Marketplace')}
+          >
+            <View style={styles.listLeft}>
+              <ShoppingBag color="#A7F3D0" size={20} />
+              <View style={styles.listTextGroup}>
+                <Text style={styles.listTitle}>Vehicles, Home Appliances & Items</Text>
+                <Text style={styles.listSub}>Member financing &amp; marketplace catalog options.</Text>
+              </View>
+            </View>
+            <ChevronRight color="#9CB8A6" size={18} />
+          </TouchableOpacity>
+        </View>
+
         {/* Member directory list */}
         <Text style={styles.sectionHeader}>Members</Text>
         <View style={styles.listContainer}>
@@ -122,6 +154,9 @@ container: { flex: 1, backgroundColor: '#091813' },
   actionDesc: { color: '#9CB8A6', fontSize: 10, marginTop: 2 },
   listContainer: { backgroundColor: '#0D1D18', borderRadius: 12, borderWidth: 1, borderColor: '#172F27', paddingHorizontal: 14 },
   listItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#1B3D28' },
-  listLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  listTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '500' },
+  hubListItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#1B3D28' },
+  listLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  listTextGroup: { flex: 1 },
+  listTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
+  listSub: { color: '#9CB8A6', fontSize: 11, marginTop: 2 },
 });

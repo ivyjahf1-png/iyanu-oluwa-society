@@ -7,6 +7,10 @@ import { MarketItemsProvider } from './src/context/MarketItemsContext';
 import { AnnouncementsProvider } from './src/context/AnnouncementsContext';
 import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
+import { navigationRef } from './src/navigation/navigationRef';
+import RouteGuard from './src/navigation/RouteGuard';
+import { AdminLockProvider } from './src/components/AdminLock';
+import BroadcastModal from './src/components/BroadcastModal';
 
 function ThemedContainer({ children }) {
   const { isDark } = useAppTheme();
@@ -21,7 +25,13 @@ function ThemedContainer({ children }) {
       border: isDark ? '#1C4A2E' : '#E5E7EB',
     },
   };
-  return <NavigationContainer theme={navTheme}>{children}</NavigationContainer>;
+  return (
+    <NavigationContainer ref={navigationRef} theme={navTheme}>
+      {children}
+      <RouteGuard />
+      <BroadcastModal />
+    </NavigationContainer>
+  );
 }
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -68,9 +78,11 @@ export default function App() {
               <MarketItemsProvider>
                 <BankProvider>
                   <ThemeProvider>
-                    <ThemedContainer>
-                      <AppNavigator />
-                    </ThemedContainer>
+                    <AdminLockProvider>
+                      <ThemedContainer>
+                        <AppNavigator />
+                      </ThemedContainer>
+                    </AdminLockProvider>
                   </ThemeProvider>
                 </BankProvider>
               </MarketItemsProvider>

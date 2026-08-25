@@ -1,5 +1,5 @@
 /**
- * SignUpScreen — cooperative auth sign-up.
+ * SignUpScreen ï¿½ cooperative auth sign-up.
  *
  * Design (dark theme):
  *   - Top multi-step progress indicator.
@@ -10,7 +10,7 @@
  *   - Footer: "Already have an account? Sign In" -> SignInScreen.
  *   - Continue button (green filled) -> registers via AuthContext -> MainDashboard.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -38,6 +38,21 @@ export default function SignUpScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const registeredRef = useRef(false);
+
+  // New User Registration Enforcer â€” block back/dismiss navigation so the
+  // registration form cannot be skipped via hardware back or gestures.
+  // Forward navigation (e.g. the "Sign In" footer link) is still permitted.
+  useEffect(() => {
+    const unsub = navigation.addListener('beforeRemove', (e) => {
+      if (registeredRef.current) return; // allow cleanup after success
+      const type = e.data && e.data.action && e.data.action.type;
+      const blocked = !type || type === 'GO_BACK' || type === 'POP' || type === 'POP_TO_TOP';
+      if (blocked) e.preventDefault();
+    });
+    return unsub;
+  }, [navigation]);
+
 
   const validate = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -73,6 +88,7 @@ export default function SignUpScreen({ navigation }) {
         Alert.alert('Sign Up Failed', res.error || 'Could not create your account.');
         return;
       }
+      registeredRef.current = true; // allow the guarded replace to proceed
       navigation.replace('MainDashboard');
     } catch (e) {
       Alert.alert('Sign Up Failed', 'Could not create your account.');

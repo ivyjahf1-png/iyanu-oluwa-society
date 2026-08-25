@@ -14,416 +14,488 @@ import {
   GestureResponderEvent,
 } from 'react-native';
 import {
+  ChevronLeft,
   Phone,
   Video,
-  Send,
-  Smile,
-  Paperclip,
+  MoreHorizontal,
   Eye,
   EyeOff,
-  Mic,
-  MoreHorizontal,
-  ChevronLeft,
   Search,
-  Play,
-  FileText,
+  Smile,
+  Paperclip,
   Camera,
+  Send,
+  Mic,
+  Play,
+  Download,
+  X,
+  FileText,
+  Check,
+  Pencil,
+  Trash2,
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import { storage } from '../lib/storage';
-import { onMeetingMessage, broadcastMeetingMessage } from '../lib/meetingChat';
-import { useUser } from '../context/UserContext';
+import { onMeetingMessage, broadcastMeetingMessage, MeetingMessage } from '../lib/meetingChat';
 
-// ---
-// Types
-// ---
+/** Local message model used for rendering. */
 interface ChatMessage {
   id: string;
-  sender: string;
+  type: 'text' | 'image' | 'system' | 'voice' | 'file';
+  senderId: string;
+  senderName: string;
+  senderPhone?: string;
+  avatarUrl?: string | null;
   text?: string;
-  time: string;
-  isMe?: boolean;
-  isAi?: boolean;
-  isVoice?: boolean;
-  duration?: string;
-  isFile?: boolean;
+  mediaUrl?: string | null;
   fileName?: string;
   fileSize?: string;
-  fileUri?: string;
-  isImage?: boolean;
-  imageUri?: string;
+  duration?: string;
+  time: string; // "HH:MM"
+  isMe: boolean;
+  edited?: boolean;
 }
 
-type ThemeKey = 'forest' | 'ocean' | 'sunset';
-
-interface ChatTheme {
-  label: string;
-  headerBg: string;
-  pageBg: string;
-  mineBg: string;
-  otherBg: string;
-  inputBg: string;
+/** Connected member profile used for member/array state. */
+interface UserProfile {
+  id: string;
+  fullName: string;
+  email: string;
+  [key: string]: any;
 }
 
-interface VoiceState {
-  pressing: boolean;
-  recording: boolean;
-  seconds: number;
-  startY: number;
-}
-
-interface OverflowAction {
-  label: string;
-  onPress: () => void;
-}
-
-// ---
-// Constants
-// ---
 const EMOJIS = [
   '😀', '😂', '🥰', '😍', '😎', '🤝', '👍', '👏',
   '🙏', '💪', '🔥', '✨', '🎉', '💰', '📈', '🏦',
   '❤️', '🙌', '😅', '😊', '🤔', '📢', '🗓️', '✅',
 ];
 
-const CHAT_THEMES: Record<ThemeKey, ChatTheme> = {
-  forest: { label: 'Forest', headerBg: '#091813', pageBg: '#091813', mineBg: '#1F5C39', otherBg: '#0D1D18', inputBg: '#0D1D18' },
-  ocean: { label: 'Ocean', headerBg: '#0B3D5C', pageBg: '#082436', mineBg: '#12617E', otherBg: '#0E3040', inputBg: '#0E3040' },
-  sunset: { label: 'Sunset', headerBg: '#5C2E2B', pageBg: '#2A1512', mineBg: '#8A4B3D', otherBg: '#3B201C', inputBg: '#3B201C' },
-};
+/** Format an epoch ms into an "HH:MM" clock label. */
+function nowClock(): string {
+  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+const AVATAR_COLORS = ['#10B981', '#38BDF8', '#F59E0B', '#A78BFA', '#F87171', '#2DD4BF'];
 
 const SEED_MESSAGES: ChatMessage[] = [
-  { id: '1', sender: 'President Okon', text: 'Good morning executive members, meeting begins at 4 PM.', time: '09:15 AM', isMe: false },
-  { id: '2', sender: 'Coop AI', text: 'Reminder: 12 members have pending monthly dues.', time: '09:16 AM', isAi: true },
-  { id: '3', sender: 'Me', text: 'Received. Will join prompt.', time: '09:20 AM', isMe: true },
+  {
+    id: 's1', type: 'system', senderId: 'sys', senderName: 'System',
+    text: '~ 4EVERGREEN joined using a group link.', time: nowClock(), isMe: false,
+  },
+  {
+    id: 's2', type: 'text', senderId: 'u1', senderName: '~ EMMEE',
+    senderPhone: '+234 806 906 4406', avatarUrl: null,
+    text: 'Good morning executives. Meeting assets are uploaded — review before 4 PM.',
+    time: nowClock(), isMe: false,
+  },
+  {
+    id: 's3', type: 'text', senderId: 'me', senderName: 'Me',
+    senderPhone: '+234 803 000 0000', avatarUrl: null,
+    text: 'Received. Will review shortly.', time: nowClock(), isMe: true,
+  },
+  {
+    id: 's4', type: 'system', senderId: 'sys', senderName: 'System',
+    text: '+234 803 800 7071 left', time: nowClock(), isMe: false,
+  },
 ];
-
 export default function MeetingChatScreen({ navigation }: { navigation: any }) {
-  const [activeTab, setActiveTab] = useState<string>('chats');
-  const { user } = useUser();
-  const [isOnlineVisible, setIsOnlineVisible] = useState<boolean>(true);
   const [messages, setMessages] = useState<ChatMessage[]>(SEED_MESSAGES);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [inputText, setInputText] = useState<string>('');
-
-  // Chat settings — themes / wallpaper / avatar
-  const [themeKey, setThemeKey] = useState<ThemeKey>('forest');
-  const theme: ChatTheme = CHAT_THEMES[themeKey];
-  const [wallpaperUri, setWallpaperUri] = useState<string | null>(null);
-  const [avatarUri, setAvatarUri] = useState<string | null>(null);
-
-  // Panels & modals
+  const [isOnlineVisible, setIsOnlineVisible] = useState<boolean>(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
-  const [customStickers, setCustomStickers] = useState<string[]>([]);
   const [showOverflowMenu, setShowOverflowMenu] = useState<boolean>(false);
-  const [showChatSettings, setShowChatSettings] = useState<boolean>(false);
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewerUri, setViewerUri] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState<boolean>(false);
+  const [actionMsgId, setActionMsgId] = useState<string | null>(null);
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<string>('');
 
-  // Voice note drag gesture
-  const [voiceState, setVoiceState] = useState<VoiceState>({
-    pressing: false,
-    recording: false,
-    seconds: 0,
-    startY: 0,
+  const [voiceState, setVoiceState] = useState({
+    pressing: false, recording: false, seconds: 0, startY: 0,
   });
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
 
-  // Recording duration ticker
+  const senderId = 'me';
+  const senderName = 'Me';
+  const senderPhone = '+234 803 000 0000';
+
+  // Auto-scroll to the newest message.
   useEffect(() => {
-    if (voiceState.recording) {
-      timerRef.current = setInterval(() => {
-        setVoiceState(v => ({ ...v, seconds: v.seconds + 1 }));
-      }, 1000);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [voiceState.recording]);
+    if (scrollRef.current) scrollRef.current.scrollToEnd({ animated: true });
+  }, [messages.length]);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollToEnd({ animated: true });
-    }
-  }, [messages]);
-
-  // ---
-  // Persistence — chat history survives refreshes and log-outs.
-  // ---
-  const CHAT_KEY = '@ius_chat_messages';
-
+  // ---------- Persistence ----------
+  const CHAT_KEY = '@ius_chat_messages_v2';
   useEffect(() => {
     (async () => {
       try {
         const raw = await storage.getItem(CHAT_KEY);
-        if (!raw) return;
-        const saved: ChatMessage[] = JSON.parse(raw);
-        if (Array.isArray(saved) && saved.length > 0) {
-          setMessages(saved);
+        if (raw) {
+          const saved: ChatMessage[] = JSON.parse(raw);
+          if (Array.isArray(saved) && saved.length) setMessages(saved);
         }
-      } catch (e) {
-        console.log('[chat] failed to restore history:', e);
-      }
+      } catch (e) { console.log('[chat] restore failed:', e); }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   useEffect(() => {
-    storage.setItem(CHAT_KEY, JSON.stringify(messages)).catch(e => {
-      console.log('[chat] failed to persist:', e);
-    });
+    storage.setItem(CHAT_KEY, JSON.stringify(messages)).catch(() => {});
   }, [messages]);
 
-  // ---
-  // Messaging helpers
-  // ---
-  const pushMessage = (msg: ChatMessage): void => setMessages(prev => [...prev, msg]);
-
-  // Real-time: render messages broadcast by other members instantly.
+  // ---------- Real-time multi-user sync ----------
+  // Auto-subscribe on load: incoming messages render immediately, no refresh.
   useEffect(() => {
     return onMeetingMessage((payload) => {
       pushMessage({
         id: payload.id,
-        sender: payload.senderName,
-        text: payload.messageText,
-        time: new Date(payload.timestamp).toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-        isMe: false,
+        type: payload.type === 'system' ? 'system' : 'text',
+        senderId: payload.senderId,
+        senderName: payload.senderName || 'Member',
+        senderPhone: payload.senderPhone,
+        avatarUrl: payload.avatarUrl ?? null,
+        text: payload.text,
+        mediaUrl: payload.mediaUrl ?? null,
+        time: payload.timestamp || nowClock(),
+        isMe: payload.senderId === senderId,
       });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const pushMessage = (msg: ChatMessage) => setMessages(prev => [...prev, msg]);
 
-  const appendEmoji = (emoji: string): void => setInputText(prev => prev + emoji);
+  const clock = nowClock();
+
+  /** Broadcast a message to all other connected members in the shared schema. */
+  const broadcast = (msg: Partial<MeetingMessage> & { id: string; type: MeetingMessage['type'] }) => {
+    broadcastMeetingMessage({
+      id: msg.id,
+      senderId: msg.senderId || senderId,
+      senderName: msg.senderName || senderName,
+      senderPhone: senderPhone,
+      avatarUrl: null,
+      text: msg.text,
+      mediaUrl: msg.mediaUrl || null,
+      timestamp: clock,
+      type: msg.type,
+    }).catch(() => {});
+  };
 
   const sendMessage = (): void => {
     if (!inputText.trim()) return;
-    const msgId = Date.now().toString();
-    const now = Date.now();
-    // Local optimistic render (existing ChatMessage shape).
+    const msgId = `t-${Date.now()}`;
     pushMessage({
-      id: msgId,
-      sender: 'Me',
-      text: inputText.trim(),
-      time: 'Now',
-      isMe: true,
+      id: msgId, type: 'text', senderId, senderName, senderPhone, avatarUrl: null,
+      text: inputText.trim(), time: clock, isMe: true,
     });
-    // Real-time broadcast to other members (full payload contract).
-    broadcastMeetingMessage({
-      id: msgId,
-      senderId: user?.id ?? 'current',
-      senderName: user?.fullName ?? user?.email ?? 'Me',
-      messageText: inputText.trim(),
-      timestamp: now,
-      avatar: user?.avatarUri ?? null,
-    });
+    broadcast({ id: msgId, text: inputText.trim(), type: 'text' });
     setInputText('');
   };
 
-  const fmtDuration = (s: number): string =>
-    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const appendEmoji = (e: string) => setInputText(prev => prev + e);
 
-  // Voice note: drag UP to record, drag DOWN to complete & send.
-  const onMicTouchStart = (e: GestureResponderEvent): void => {
-    setVoiceState({
-      pressing: true,
-      recording: false,
-      seconds: 0,
-      startY: e.nativeEvent.pageY,
-    });
-  };
-
-  const onMicTouchMove = (e: GestureResponderEvent): void => {
-    const dy = e.nativeEvent.pageY - voiceState.startY;
-    if (voiceState.pressing && !voiceState.recording && dy < -40) {
-      setVoiceState(prev => ({ ...prev, recording: true }));
-    }
-  };
-
-  const finalizeVoiceNote = (): void => {
-    const secs = voiceState.seconds;
-    const wasRecording = voiceState.recording;
-    if (timerRef.current) clearInterval(timerRef.current);
-    setVoiceState({ pressing: false, recording: false, seconds: 0, startY: 0 });
-    if (wasRecording && secs > 0) {
-      pushMessage({
-        id: `v-${Date.now()}`,
-        sender: 'Me',
-        time: 'Now',
-        isMe: true,
-        isVoice: true,
-        duration: fmtDuration(secs),
-      });
-    }
-  };
-
-  const onMicTouchEnd = (): void => {
-    // Releasing (drag back down) completes and sends the voice note.
-    finalizeVoiceNote();
-  };
-
-  // Media importer — files, photos & audio from device storage.
-  const pickAttachment = async (): Promise<void> => {
+  // ---------- Media ----------
+  const lunchImage = async (): Promise<void> => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['image/*', 'audio/*', 'video/*', 'application/pdf'],
-        copyToCacheDirectory: true,
-      });
+      const result = await DocumentPicker.getDocumentAsync({ type: 'image/*', copyToCacheDirectory: true });
       if (result.canceled || !result.assets || result.assets.length === 0) return;
       const file = result.assets[0];
+      const msgId = `i-${Date.now()}`;
       pushMessage({
-        id: `f-${Date.now()}`,
-        sender: 'Me',
-        time: 'Now',
-        isMe: true,
-        isFile: true,
-        fileName: file.name,
-        fileUri: file.uri,
-        fileSize: `${Math.max(1, Math.round((file.size || 0) / 1024))} KB`,
+        id: msgId, type: 'image', senderId, senderName, senderPhone, avatarUrl: null,
+        mediaUrl: file.uri, fileName: file.name, fileSize: `${Math.max(1, Math.round((file.size || 0) / 1024))} KB`,
+        time: clock, isMe: true,
       });
+      broadcast({ id: msgId, text: '', mediaUrl: file.uri, type: 'image' });
+    } catch (e) {
+      Alert.alert('Import error', 'Could not import the selected image.');
+    }
+  };
+
+  const pickAttachment = async (): Promise<void> => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
+      const file = result.assets[0];
+      const msgId = `f-${Date.now()}`;
+      pushMessage({
+        id: msgId, type: 'file', senderId, senderName, senderPhone, avatarUrl: null,
+        mediaUrl: file.uri, fileName: file.name,
+        fileSize: `${Math.max(1, Math.round((file.size || 0) / 1024))} KB`,
+        time: clock, isMe: true,
+      });
+      broadcast({ id: msgId, text: '', mediaUrl: file.uri, type: 'text' });
     } catch (e) {
       Alert.alert('Import error', 'Could not import the selected file.');
     }
   };
 
-  const pickImageAsset = (purpose: 'sticker' | 'wallpaper' | 'avatar'): void => {
-    DocumentPicker.getDocumentAsync({ type: 'image/*', copyToCacheDirectory: true })
-      .then(result => {
-        if (result.canceled || !result.assets || result.assets.length === 0) return;
-        const uri: string = result.assets[0].uri;
-        if (purpose === 'sticker') setCustomStickers(prev => [...prev, uri]);
-        else if (purpose === 'wallpaper') setWallpaperUri(uri);
-        else if (purpose === 'avatar') setAvatarUri(uri);
-      })
-      .catch(() => Alert.alert('Import error', 'Could not open the picker.'));
-  };
-
-  const sendCustomSticker = (uri: string): void => {
-    pushMessage({
-      id: `s-${Date.now()}`,
-      sender: 'Me',
-      time: 'Now',
-      isMe: true,
-      isImage: true,
-      imageUri: uri,
-    });
-  };
-
-  // Download / save a photo or file locally (web triggers a browser
-  // download; native opens the system share-save sheet).
   const downloadMedia = async (uri: string, name?: string): Promise<void> => {
     try {
       if (!uri) throw new Error('No file location');
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, {
-          mimeType: name && name.endsWith('.pdf') ? 'application/pdf' : undefined,
+          mimeType: name && name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : undefined,
           dialogTitle: name ? `Save ${name}` : 'Save file',
         });
       } else {
         Alert.alert('Download', 'Saving is not supported on this device.');
       }
     } catch (e) {
- Alert.alert('Download failed', (e as Error).message || 'Could not save the file.');
+      Alert.alert('Download failed', (e as Error).message || 'Could not save the file.');
     }
   };
-  // Overflow menu actions — every target is a registered route.
-  const overflowActions: OverflowAction[] = [
-    {
-      label: 'Group Call Initiation',
-      onPress: () => {
-        setShowOverflowMenu(false);
-        navigation.navigate('CallScreen', { type: 'voice' });
-      },
-    },
-    {
-      label: 'Create Group Meeting',
-      onPress: () => {
-        setShowOverflowMenu(false);
-        pushMessage({
-          id: `m-${Date.now()}`,
-          sender: 'System',
-          text: 'Group meeting created — invites sent to all members.',
-          time: 'Now',
-        isMe: false,
-        });
-      },
-    },
-    {
-      label: 'Search Chat History',
-      onPress: () => {
-        setShowOverflowMenu(false);
-        setShowSearch(true);
-      },
-    },
-    {
-      label: 'Chat Settings',
-      onPress: () => {
-        setShowOverflowMenu(false);
-        setShowChatSettings(true);
-      },
-    },
-  ];
 
-  const visibleMessages: ChatMessage[] =
-    showSearch && searchQuery.trim()
-      ? messages.filter(m =>
-          (m.text ?? '').toLowerCase().includes(searchQuery.trim().toLowerCase()),
-        )
-      : messages;
+  // ---------- Clear / edit / delete ----------
+  /** Purge the whole conversation for this session (persisted too). */
+  const clearChat = (): void => {
+    setConfirmClear(false);
+    setEditingMsgId(null);
+    setActionMsgId(null);
+    setMessages([]);
+  };
 
+  /** Permanently remove a single message. */
+  const deleteMessage = (id: string): void => {
+    setActionMsgId(null);
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
+
+  /** Enter inline editing mode for one of my own messages. */
+  const beginEditMessage = (msg: ChatMessage): void => {
+    setActionMsgId(null);
+    setEditingMsgId(msg.id);
+    setEditDraft(msg.text || '');
+  };
+
+  /** Commit the edited text and flag the bubble with an "(edited)" tag. */
+  const saveEditedMessage = (): void => {
+    const text = editDraft.trim();
+    if (!text || !editingMsgId) return;
+    setMessages(prev =>
+      prev.map(m => (m.id === editingMsgId ? { ...m, text, edited: true } : m)),
+    );
+    setEditingMsgId(null);
+    setEditDraft('');
+  };
+
+  // ---------- Voice note ----------
+  const fmtDuration = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  const onMicTouchStart = (e: GestureResponderEvent) => {
+    setVoiceState({ pressing: true, recording: false, seconds: 0, startY: e.nativeEvent.pageY });
+  };
+  const onMicTouchMove = (e: GestureResponderEvent) => {
+    const dy = e.nativeEvent.pageY - voiceState.startY;
+    if (voiceState.pressing && !voiceState.recording && dy < -40) {
+      setVoiceState(prev => ({ ...prev, recording: true }));
+    }
+  };
+  useEffect(() => {
+    if (voiceState.recording) {
+      timerRef.current = setInterval(() => setVoiceState(v => ({ ...v, seconds: v.seconds + 1 })), 1000);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [voiceState.recording]);
+  const onMicTouchEnd = (): void => {
+    const secs = voiceState.seconds;
+    const wasRecording = voiceState.recording;
+    if (timerRef.current) clearInterval(timerRef.current);
+    setVoiceState({ pressing: false, recording: false, seconds: 0, startY: 0 });
+    if (wasRecording && secs > 0) {
+      const msgId = `v-${Date.now()}`;
+      pushMessage({
+        id: msgId, type: 'voice', senderId, senderName, senderPhone, avatarUrl: null,
+        duration: fmtDuration(secs), time: clock, isMe: true,
+      });
+    }
+  };
+
+  // ---------- Render helpers ----------
+  const renderSystemPill = (label: string, kind: 'system' | 'date') => (
+    <View key={`sep-${label}`} style={styles.systemPillRow}>
+      <View style={[styles.systemPill, kind === 'date' && styles.datePill]}>
+        <Text style={styles.systemPillText}>{label}</Text>
+      </View>
+    </View>
+  );
+
+  const avatarColor = (id: string) => {
+    let n = 0;
+    for (let i = 0; i < id.length; i++) n += id.charCodeAt(i);
+    return AVATAR_COLORS[n % AVATAR_COLORS.length];
+  };
+
+  const renderMessage = (msg: ChatMessage) => {
+    if (msg.type === 'system') return renderSystemPill(msg.text || '', 'system');
+    if (msg.isMe) {
+      return (
+        <View key={msg.id} style={styles.outRow}>
+          <TouchableOpacity
+            style={styles.outBubble}
+            activeOpacity={0.85}
+            delayLongPress={350}
+            onLongPress={
+              msg.type === 'text' && !voiceState.recording
+                ? () => setActionMsgId(msg.id)
+                : undefined
+            }
+          >
+            {msg.type === 'image' && msg.mediaUrl ? (
+              <TouchableOpacity onPress={() => setViewerUri(msg.mediaUrl as string)}>
+                <Image source={{ uri: msg.mediaUrl }} style={styles.outImage} />
+                {msg.fileSize ? (
+                  <View style={styles.downloadBadge}>
+                    <Download size={12} color="#FFFFFF" />
+                    <Text style={styles.downloadBadgeText}>{msg.fileSize}</Text>
+                  </View>
+                ) : null}
+              </TouchableOpacity>
+            ) : msg.type === 'file' ? (
+              <TouchableOpacity style={styles.fileCard} onPress={() => downloadMedia(msg.mediaUrl || '', msg.fileName)}>
+                <FileText size={18} color="#A7F3D0" />
+                <View style={{ flex: 1, marginLeft: 8 }}>
+                  <Text style={styles.outText} numberOfLines={1}>{msg.fileName || 'Attachment'}</Text>
+                  <Text style={styles.outSubtext}>{msg.fileSize || ''}</Text>
+                </View>
+                <Download size={16} color="#A7F3D0" />
+              </TouchableOpacity>
+            ) : msg.type === 'voice' ? (
+              <View style={styles.voiceRow}>
+                <Play size={18} color="#A7F3D0" />
+                {[4, 9, 6, 11, 7, 10, 5].map((h, i) => (
+                  <View key={i} style={[styles.waveBar, { height: h }]} />
+                ))}
+                <Text style={styles.voiceDuration}>{msg.duration || '0:00'}</Text>
+              </View>
+            ) : editingMsgId === msg.id ? (
+              <View style={styles.editBox}>
+                <TextInput
+                  style={styles.editInput}
+                  value={editDraft}
+                  onChangeText={setEditDraft}
+                  multiline
+                  autoFocus
+                  placeholderTextColor="#6B7F76"
+                />
+                <View style={styles.editActions}>
+                  <TouchableOpacity
+                    style={styles.editCancel}
+                    onPress={() => {
+                      setEditingMsgId(null);
+                      setEditDraft('');
+                    }}
+                  >
+                    <X size={14} color="#9CB8A6" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.editSave, !editDraft.trim() && { opacity: 0.5 }]}
+                    onPress={saveEditedMessage}
+                    disabled={!editDraft.trim()}
+                  >
+                    <Check size={14} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.outText}>{msg.text || ''}</Text>
+            )}
+            <View style={styles.outMetaRow}>
+              {msg.edited ? <Text style={styles.editedTag}>(edited)</Text> : null}
+              <Text style={styles.outTime}>{msg.time}</Text>
+              <Check size={13} color="#A7F3D0" />
+            </View>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    // Incoming — avatar left, gold sender name, phone right-aligned.
+    return (
+      <View key={msg.id} style={styles.inRow}>
+        <View style={[styles.avatar, { backgroundColor: avatarColor(msg.senderId) }]}>
+          {msg.avatarUrl ? (
+            <Image source={{ uri: msg.avatarUrl }} style={styles.avatarImage} />
+          ) : (
+            <Text style={styles.avatarText}>{(msg.senderName || '?').charAt(0).toUpperCase()}</Text>
+          )}
+        </View>
+        <View style={styles.inCard}>
+          <View style={styles.inHeaderRow}>
+            <Text style={styles.inSenderName} numberOfLines={1}>{msg.senderName}</Text>
+            {msg.senderPhone ? (
+              <Text style={styles.inSenderPhone} numberOfLines={1}>{msg.senderPhone}</Text>
+            ) : null}
+          </View>
+          {msg.type === 'image' && msg.mediaUrl ? (
+            <TouchableOpacity onPress={() => setViewerUri(msg.mediaUrl as string)}>
+              <Image source={{ uri: msg.mediaUrl }} style={styles.inImage} />
+              {msg.fileSize ? (
+                <View style={styles.downloadBadge}>
+                  <Download size={12} color="#FFFFFF" />
+                  <Text style={styles.downloadBadgeText}>{msg.fileSize}</Text>
+                </View>
+              ) : null}
+            </TouchableOpacity>
+          ) : msg.type === 'file' ? (
+            <TouchableOpacity style={styles.fileCard} onPress={() => downloadMedia(msg.mediaUrl || '', msg.fileName)}>
+              <FileText size={18} color="#A7F3D0" />
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={styles.inText} numberOfLines={1}>{msg.fileName || 'Attachment'}</Text>
+                <Text style={styles.inSubtext}>{msg.fileSize || ''}</Text>
+              </View>
+              <Download size={16} color="#A7F3D0" />
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.inText}>{msg.text || ''}</Text>
+          )}
+          <Text style={styles.inTime}>{msg.time}</Text>
+        </View>
+      </View>
+    );
+  };
+
+  const visibleMessages = showSearch && searchQuery.trim()
+    ? messages.filter(m => (m.text || '').toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    : messages;
+
+  // ---------- Render ----------
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.pageBg }]}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.headerBg} />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#0B1412" />
 
-      {/* Header — back button, avatar, actions & overflow menu */}
-      <View style={[styles.header, { backgroundColor: theme.headerBg }]}>
+      {/* Header */}
+      <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <ChevronLeft size={24} color="#FFFFFF" />
         </TouchableOpacity>
-
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => pickImageAsset('avatar')}>
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>CG</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.groupName}>Co-op General Assembly</Text>
-            <Text style={styles.onlineStatus}>
-              {isOnlineVisible ? '34 members online' : 'Status Hidden (Ghost Mode)'}
-            </Text>
-          </View>
+        <View style={styles.headerInfo}>
+          <Text style={styles.groupName}>Co-op General Assembly</Text>
+          <Text style={styles.onlineStatus}>
+            {isOnlineVisible ? '34 members online' : 'Status Hidden (Ghost Mode)'}
+          </Text>
         </View>
-
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={() => navigation.navigate('CallScreen', { type: 'voice' })}>
-            <Phone color="#FFFFFF" size={20} />
+            <Phone size={20} color="#A7F3D0" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('CallScreen', { type: 'video' })}>
-            <Video color="#FFFFFF" size={20} />
+            <Video size={20} color="#A7F3D0" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsOnlineVisible(!isOnlineVisible)}>
-            {isOnlineVisible ? <Eye color="#FFFFFF" size={20} /> : <EyeOff color="#FFD700" size={20} />}
+          <TouchableOpacity onPress={() => setIsOnlineVisible(v => !v)}>
+            {isOnlineVisible ? <Eye size={20} color="#FFFFFF" /> : <EyeOff size={20} color="#FFD700" />}
           </TouchableOpacity>
-          {/* Overflow (three dots) menu trigger */}
           <TouchableOpacity onPress={() => setShowOverflowMenu(true)}>
-            <MoreHorizontal color="#FFFFFF" size={22} />
+            <MoreHorizontal size={22} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Chat history search bar */}
+      {/* Search */}
       {showSearch ? (
-        <View style={[styles.searchBar, { backgroundColor: theme.inputBg }]}>
+        <View style={styles.searchBar}>
           <Search size={16} color="#9CB8A6" />
           <TextInput
             style={styles.searchInput}
@@ -432,480 +504,383 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
             placeholder="Search chat history..."
             placeholderTextColor="#9CB8A6"
           />
-          <TouchableOpacity
-            onPress={() => {
-              setSearchQuery('');
-              setShowSearch(false);
-            }}
-          >
+          <TouchableOpacity onPress={() => { setSearchQuery(''); setShowSearch(false); }}>
             <Text style={styles.searchCancel}>Cancel</Text>
           </TouchableOpacity>
         </View>
       ) : null}
 
-      {/* Secondary navigation bar */}
-      <View style={[styles.tabBar, { backgroundColor: theme.headerBg }]}>
-        {(['chats', 'status', 'calls'] as const).map(tab => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
-          >
-            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-              {tab.toUpperCase()}
-            </Text>
+      {/* Message threads */}
+      <ScrollView
+        style={styles.scrollView}
+        ref={scrollRef}
+        contentContainerStyle={styles.messageList}
+        showsVerticalScrollIndicator={false}
+      >
+        {renderSystemPill('Today', 'date')}
+        {visibleMessages.map(renderMessage)}
+        {visibleMessages.length === 0 ? (
+          <Text style={styles.noResults}>No messages match your search.</Text>
+        ) : null}
+      </ScrollView>
+
+      {/* Voice note recording bar */}
+      {voiceState.recording ? (
+        <View style={styles.recordingBar}>
+          <Mic size={20} color="#FF3B30" />
+          <Text style={styles.recordingText}>Recording… {fmtDuration(voiceState.seconds)}</Text>
+          <Text style={styles.recordingHint}>Drag down to send</Text>
+        </View>
+      ) : null}
+
+      {/* Emoji picker */}
+      {showEmojiPicker ? (
+        <View style={styles.emojiPanel}>
+          <View style={styles.emojiGrid}>
+            {EMOJIS.map(e => (
+              <TouchableOpacity key={e} onPress={() => appendEmoji(e)}>
+                <Text style={styles.emojiCell}>{e}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {/* Bottom input bar — professional layout */}
+      <View style={styles.inputBar}>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => setShowEmojiPicker(v => !v)}>
+          <Smile size={22} color="#A7F3D0" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconBtn} onPress={pickAttachment}>
+          <Paperclip size={20} color="#A7F3D0" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconBtn} onPress={lunchImage}>
+          <Camera size={22} color="#A7F3D0" />
+        </TouchableOpacity>
+
+        <TextInput
+          style={styles.textInput}
+          value={inputText}
+          onChangeText={setInputText}
+          placeholder="Message"
+          placeholderTextColor="#6B7F76"
+          onSubmitEditing={sendMessage}
+        />
+
+        {inputText.trim() ? (
+          <TouchableOpacity onPress={sendMessage} style={styles.voiceNoteBtn}>
+            <Send size={18} color="#FFFFFF" />
           </TouchableOpacity>
-        ))}
+        ) : (
+          <View
+            style={[styles.voiceNoteBtn, voiceState.recording && styles.recordingBtn]}
+            onTouchStart={onMicTouchStart}
+            onTouchMove={onMicTouchMove}
+            onTouchEnd={onMicTouchEnd}
+          >
+            <Mic size={18} color="#FFFFFF" />
+          </View>
+        )}
       </View>
 
-      {/* Main Chat Body */}
-      {activeTab === 'chats' ? (
-        <View style={styles.chatContainer}>
-          {/* Wallpaper layer */}
-          {wallpaperUri ? (
-            <Image source={{ uri: wallpaperUri }} style={styles.wallpaper} blurRadius={2} />
-          ) : null}
-
-          <ScrollView
-            style={styles.scrollView}
-            ref={scrollRef}
-            contentContainerStyle={[styles.messageList, styles.grow]}
-            showsVerticalScrollIndicator={false}
-          >
-            {visibleMessages.length === 0 ? (
-              <Text style={styles.noResults}>No messages match your search.</Text>
-            ) : null}
-
-            {visibleMessages.map(msg => (
-              <View
-                key={msg.id}
-                style={[
-                  styles.msgBubble,
-                  msg.isMe ? styles.myMsg : styles.otherMsg,
-                  msg.isAi && styles.aiMsg,
-                  {
-                    backgroundColor: msg.isAi
-                      ? '#38201D'
-                      : msg.isMe
-                      ? theme.mineBg
-                      : theme.otherBg,
-                  },
-                ]}
-              >
-                {!msg.isMe && !msg.isAi && msg.sender ? (
-                  <Text style={styles.senderName}>{msg.sender}</Text>
-                ) : null}
-
-                {msg.isVoice ? (
-                  <View style={styles.voiceRow}>
-                    <Play size={18} color="#4CAF50" />
-                    {[3, 8, 5, 10, 6, 9, 4, 7].map((h, i) => (
-                      <View key={i} style={[styles.waveBar, { height: h }]} />
-                    ))}
-                    <Text style={styles.voiceDuration}>{msg.duration ?? '0:00'}</Text>
-                  </View>
-                ) : msg.isFile ? (
-                  <TouchableOpacity
-                    style={styles.fileDownloadCard}
-                    onPress={() => downloadMedia(msg.fileUri || '', msg.fileName)}
-                  >
-                    <FileText size={22} color="#A7F3D0" />
-                    <View style={{ flex: 1, marginLeft: 8 }}>
-                      <Text style={styles.msgText} numberOfLines={1}>
-                        {msg.fileName ?? 'Attachment'}
-                      </Text>
-                      <Text style={styles.fileSize}>{msg.fileSize ?? ''}</Text>
-                    </View>
-                    <Text style={styles.downloadBtn}>Download</Text>
-                  </TouchableOpacity>
-                ) : msg.isImage && msg.imageUri ? (
-                  <TouchableOpacity onPress={() => setViewerUri(msg.imageUri as string)}>
-                    <Image source={{ uri: msg.imageUri }} style={styles.stickerImage} />
-                    <Text style={styles.mediaHint}>Tap to view full size</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <Text style={styles.msgText}>{msg.text ?? ''}</Text>
-                )}
-                <Text style={styles.msgTime}>{msg.time}</Text>
-              </View>
-            ))}
-          </ScrollView>
-
-          {/* Voice note recording bar (drag up on mic) */}
-          {voiceState.recording ? (
-            <View style={styles.recordingBar}>
-              <Mic size={20} color="#FF3B30" />
-              <Text style={styles.recordingText}>
-                Recording… {fmtDuration(voiceState.seconds)}
-              </Text>
-              <Text style={styles.recordingHint}>Drag down to send</Text>
-            </View>
-          ) : null}
-
-          {/* Bottom input architecture — mic drag-to-record */}
-          <View style={[styles.inputContainer, { backgroundColor: theme.inputBg }]}>
-            <TouchableOpacity
-              style={styles.iconBtn}
-              onPress={() => setShowEmojiPicker(!showEmojiPicker)}
-            >
-              <Smile color="#9CB8A6" size={22} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn} onPress={pickAttachment}>
-              <Paperclip color="#9CB8A6" size={20} />
-            </TouchableOpacity>
-
-            <TextInput
-              onChangeText={setInputText}
-              placeholder="Type a message..."
-              placeholderTextColor="#9CB8A6"
-              style={styles.textInput}
-              value={inputText}
-            />
-
-            {/* Microphone — drag up to record, drag down to send */}
-            <View
-              style={[styles.micBtn, voiceState.recording && styles.micBtnRecording]}
-              onTouchStart={onMicTouchStart}
-              onTouchMove={onMicTouchMove}
-              onTouchEnd={onMicTouchEnd}
-            >
-              <Mic color="#FFFFFF" size={20} />
-            </View>
-
-            <TouchableOpacity onPress={sendMessage} style={styles.sendBtn}>
-              <Send color="#FFFFFF" size={18} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Emoji picker & sticker creator panel */}
-          {showEmojiPicker ? (
-            <View style={[styles.emojiPanel, { backgroundColor: theme.inputBg }]}>
-              <View style={styles.emojiGrid}>
-                {EMOJIS.map(e => (
-                  <TouchableOpacity key={e} onPress={() => appendEmoji(e)}>
-                    <Text style={styles.emojiCell}>{e}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <View style={styles.stickerSection}>
-                <TouchableOpacity
-                  style={styles.createStickerBtn}
-                  onPress={() => pickImageAsset('sticker')}
-                >
-                  <Camera size={15} color="#FFFFFF" />
-                  <Text style={styles.createStickerText}>Create Custom Emoji</Text>
-                </TouchableOpacity>
-
-                {customStickers.length > 0 ? (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    {customStickers.map(uri => (
-                      <TouchableOpacity key={uri} onPress={() => sendCustomSticker(uri)}>
-                        <Image source={{ uri }} style={styles.stickerChip} />
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                ) : (
-                  <Text style={styles.stickerHint}>Pick a photo to create a custom sticker.</Text>
-                )}
-              </View>
-            </View>
-          ) : null}
-        </View>
-      ) : (
-        <View style={styles.centerContainer}>
-          <Text style={{ color: '#FFFFFF' }}>{activeTab.toUpperCase()} Section Active</Text>
-        </View>
-      )}
-
       {/* Overflow menu modal */}
-      <Modal visible={showOverflowMenu} transparent animationType="fade">
+      <Modal visible={showOverflowMenu} transparent animationType="fade"
+        onRequestClose={() => setShowOverflowMenu(false)}>
         <TouchableOpacity style={styles.menuOverlay} onPress={() => setShowOverflowMenu(false)}>
           <View style={styles.menuSheet}>
-            {overflowActions.map(action => (
-              <TouchableOpacity
-                key={action.label}
-                style={styles.menuRow}
-                onPress={() => {
-                  try {
-                    action.onPress();
-                  } catch (e) {
-                    Alert.alert('Coming Soon', 'This feature will be available soon.');
-                  }
-                }}
-              >
-                <Text style={styles.menuRowText}>{action.label}</Text>
+            {[
+              { label: 'Group Call Initiation', onPress: () => navigation.navigate('CallScreen', { type: 'voice' }) },
+              { label: 'Search Chat History', onPress: () => { setShowSearch(true); } },
+              { label: 'Download All Media', onPress: () => Alert.alert('Coming Soon', 'Bulk download coming soon.') },
+              { label: 'Clear Chat', danger: true, onPress: () => setConfirmClear(true) },
+            ].map(action => (
+              <TouchableOpacity key={action.label} style={styles.menuRow} onPress={() => { setShowOverflowMenu(false); action.onPress(); }}>
+                <Text style={[styles.menuRowText, action.danger && styles.menuRowDanger]}>{action.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </TouchableOpacity>
       </Modal>
 
-      {/* Chat settings modal — themes / wallpaper / avatar */}
-      <Modal visible={showChatSettings} transparent animationType="slide">
-        <View style={styles.settingsOverlay}>
-          <View style={styles.settingsSheet}>
-            <View style={styles.settingsHeaderRow}>
-              <Text style={styles.settingsTitle}>Chat Settings</Text>
-              <TouchableOpacity onPress={() => setShowChatSettings(false)}>
-                <Text style={styles.settingsDone}>Done</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.settingsLabel}>Theme</Text>
-            <View style={styles.themeRow}>
-              {(Object.keys(CHAT_THEMES) as ThemeKey[]).map(key => (
-                <TouchableOpacity
-                  key={key}
-                  style={[
-                    styles.themeChip,
-                    { backgroundColor: CHAT_THEMES[key].headerBg },
-                    themeKey === key && styles.themeChipActive,
-                  ]}
-                  onPress={() => setThemeKey(key)}
-                >
-                  <Text style={styles.themeChipText}>{CHAT_THEMES[key].label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.settingsLabel}>Wallpaper</Text>
-            <TouchableOpacity
-              style={styles.pickerBtn}
-              onPress={() => pickImageAsset('wallpaper')}
-            >
-              <Camera size={16} color="#FFFFFF" />
-              <Text style={styles.pickerBtnText}>Choose device photo</Text>
-            </TouchableOpacity>
-            {wallpaperUri ? (
-              <Image source={{ uri: wallpaperUri }} style={styles.wallpaperPreview} />
-            ) : null}
-
-            <Text style={styles.settingsLabel}>Profile Photo</Text>
-            <TouchableOpacity
-              style={styles.pickerBtn}
-              onPress={() => pickImageAsset('avatar')}
-            >
-              <Camera size={16} color="#FFFFFF" />
-              <Text style={styles.pickerBtnText}>Update chat avatar</Text>
-            </TouchableOpacity>
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatarPreview} />
-            ) : null}
-          </View>
+      {/* Image viewer modal */}
+      <Modal visible={!!viewerUri} transparent animationType="fade"
+        onRequestClose={() => setViewerUri(null)}>
+        <View style={styles.viewerOverlay}>
+          <TouchableOpacity style={styles.viewerClose} onPress={() => setViewerUri(null)}>
+            <X size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+          {viewerUri ? <Image source={{ uri: viewerUri }} style={styles.viewerImage} resizeMode="contain" /> : null}
         </View>
       </Modal>
 
-    {/* Attachment image viewer */}
-    <Modal transparent visible={!!viewerUri} animationType="fade" onRequestClose={() => setViewerUri(null)}>
-      <TouchableOpacity style={styles.viewerBackdrop} activeOpacity={1} onPress={() => setViewerUri(null)}>
-        <Image source={{ uri: viewerUri || '' }} style={styles.viewerImage} resizeMode="contain" />
-      </TouchableOpacity>
-    </Modal>
-  </SafeAreaView>
+      {/* Message action sheet — long-press on my own message */}
+      <Modal
+        visible={!!actionMsgId}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActionMsgId(null)}
+      >
+        <TouchableOpacity style={styles.actionOverlay} activeOpacity={1} onPress={() => setActionMsgId(null)}>
+          <View style={styles.actionSheet}>
+            <Text style={styles.actionTitle}>Message options</Text>
+
+            <TouchableOpacity
+              style={styles.actionRow}
+              onPress={() => {
+                const msg = messages.find(m => m.id === actionMsgId);
+                if (msg) beginEditMessage(msg);
+              }}
+            >
+              <Pencil size={17} color="#A7F3D0" />
+              <Text style={[styles.actionText, { color: '#A7F3D0' }]}>Edit Chat</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionRow, styles.actionRowLast]}
+              onPress={() => actionMsgId && deleteMessage(actionMsgId)}
+            >
+              <Trash2 size={17} color="#F87171" />
+              <Text style={[styles.actionText, { color: '#F87171' }]}>Delete Chat</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Clear-chat confirmation */}
+      <Modal
+        visible={confirmClear}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmClear(false)}
+      >
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmCard}>
+            <Trash2 size={22} color="#F87171" />
+            <Text style={styles.confirmTitle}>Clear Chat?</Text>
+            <Text style={styles.confirmText}>
+              This will erase the entire meeting conversation. This cannot be undone.
+            </Text>
+            <View style={styles.confirmActions}>
+              <TouchableOpacity style={styles.confirmCancel} onPress={() => setConfirmClear(false)}>
+                <Text style={styles.confirmCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.confirmOk} onPress={clearChat}>
+                <Text style={styles.confirmOkText}>Clear</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
+
+
 const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0B1412' },
+  header: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#0D1D18', paddingHorizontal: 12, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: '#1C4A2E',
+  },
+  backBtn: { padding: 6 },
+  headerInfo: { flex: 1, marginLeft: 10 },
+  groupName: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  onlineStatus: { color: '#A7F3D0', fontSize: 11, marginTop: 2 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  searchBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#0D1D18', paddingHorizontal: 12, paddingVertical: 8,
+    borderBottomWidth: 1, borderBottomColor: '#1C4A2E',
+  },
+  searchInput: { flex: 1, color: '#FFFFFF', fontSize: 13, paddingVertical: 4 },
+  searchCancel: { color: '#10B981', fontSize: 13, fontWeight: '600' },
   scrollView: { flex: 1 },
-  grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 10 },
-  backBtn: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center', marginRight: 4 },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  messageList: { paddingHorizontal: 12, paddingVertical: 12, paddingBottom: 8, flexGrow: 1 },
+
+  // System / date pills
+  systemPillRow: { alignItems: 'center', marginVertical: 10 },
+  systemPill: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 6 },
+  datePill: { backgroundColor: 'rgba(16,185,129,0.16)' },
+  systemPillText: { color: '#9CB8A6', fontSize: 12, fontWeight: '600' },
+
+  // Incoming
+  inRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12, marginRight: 40 },
   avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#172F27',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 34, height: 34, borderRadius: 17,
+    justifyContent: 'center', alignItems: 'center', marginRight: 8, overflow: 'hidden',
   },
-  avatarImage: { width: 38, height: 38, borderRadius: 19 },
-  avatarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
-  groupName: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' },
-  onlineStatus: { color: '#A7F3D0', fontSize: 10 },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 14, marginLeft: 8 },
-  searchBar: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, marginHorizontal: 12, paddingHorizontal: 10, marginBottom: 6 },
-  searchInput: { flex: 1, color: '#FFFFFF', fontSize: 13, paddingVertical: 8, marginLeft: 8 },
-  searchCancel: { color: '#10B981', fontSize: 12, fontWeight: '600' },
-  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#172F27' },
-  tab: { flex: 1, paddingVertical: 10, alignItems: 'center' },
-  activeTab: { borderBottomWidth: 3, borderBottomColor: '#10B981' },
-  tabText: { color: '#9CB8A6', fontSize: 11, fontWeight: 'bold' },
-  activeTabText: { color: '#FFFFFF' },
-  chatContainer: { flex: 1 },
-  wallpaper: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.25 },
-  messageList: { padding: 14 },
-  mediaHint: { color: '#A7F3D0', fontSize: 9, marginTop: 4, textAlign: 'center' },
-  fileDownloadCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#172F27',
-    borderRadius: 10,
-    padding: 10,
-    minWidth: 180,
+  avatarImage: { width: '100%', height: '100%' },
+  avatarText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  inCard: {
+    flex: 1, backgroundColor: '#12261F', borderRadius: 14,
+    borderTopLeftRadius: 4, paddingHorizontal: 12, paddingVertical: 9,
+    borderWidth: 1, borderColor: '#1C4A2E',
   },
-  downloadBtn: { color: '#10B981', fontWeight: 'bold', fontSize: 11, marginLeft: 10 },
-  noResults: { color: '#9CB8A6', fontSize: 12, textAlign: 'center', marginTop: 20 },
-  msgBubble: { borderRadius: 12, padding: 10, marginBottom: 10, maxWidth: '82%' },
-  myMsg: { alignSelf: 'flex-end' },
-  otherMsg: { alignSelf: 'flex-start' },
-  aiMsg: { borderColor: '#10B981', borderWidth: 1 },
-  senderName: { color: '#A7F3D0', fontSize: 10, fontWeight: 'bold', marginBottom: 2 },
-  msgText: { color: '#FFFFFF', fontSize: 13 },
-  msgTime: { color: '#8E8E93', fontSize: 9, textAlign: 'right', marginTop: 4 },
-  fileSize: { color: '#9CB8A6', fontSize: 9, marginTop: 2 },
-  voiceRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  waveBar: { width: 3, borderRadius: 2, backgroundColor: '#10B981', marginHorizontal: 1 },
-  voiceDuration: { color: '#A7F3D0', fontSize: 10, marginLeft: 6 },
-  fileRow: { flexDirection: 'row', alignItems: 'center' },
-  stickerImage: { width: 120, height: 120, borderRadius: 10 },
-  viewerBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  inHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  inSenderName: { color: '#D4AF37', fontSize: 12, fontWeight: '700', flexShrink: 1, marginRight: 8 },
+  inSenderPhone: { color: '#6B7F76', fontSize: 10, flexShrink: 1 },
+  inText: { color: '#F1F5F1', fontSize: 14, lineHeight: 20 },
+  inSubtext: { color: '#9CB8A6', fontSize: 11, marginTop: 2 },
+  inTime: { color: '#6B7F76', fontSize: 10, alignSelf: 'flex-end', marginTop: 6 },
+  inImage: { width: '100%', height: 180, borderRadius: 10, marginTop: 6 },
+
+  // Outgoing
+  outRow: { alignItems: 'flex-end', marginBottom: 12, marginLeft: 60 },
+  outBubble: {
+    backgroundColor: '#10B981', borderRadius: 14, borderTopRightRadius: 4,
+    paddingHorizontal: 12, paddingVertical: 8, maxWidth: '100%',
   },
-  viewerClose: { position: 'absolute', top: 40, right: 20 },
-  viewerCloseText: { color: '#FFFFFF', fontSize: 28 },
-  viewerImage: { width: '90%', height: '80%' },
+  outText: { color: '#07120E', fontSize: 14, lineHeight: 20, fontWeight: '500' },
+  outSubtext: { color: '#064E3B', fontSize: 11, marginTop: 2 },
+  outImage: { width: 200, height: 140, borderRadius: 10, marginBottom: 4 },
+  outMetaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 4 },
+  outTime: { color: '#064E3B', fontSize: 10, fontWeight: '600' },
+
+  // Shared media / download
+  downloadBadge: {
+    position: 'absolute', bottom: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 3,
+  },
+  downloadBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '600' },
+  fileCard: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
+  voiceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  waveBar: { width: 3, borderRadius: 2, backgroundColor: '#A7F3D0' },
+  voiceDuration: { color: '#A7F3D0', fontSize: 12, marginLeft: 6 },
+
+  // Recording bar
   recordingBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#3B0A0A',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    gap: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#3A1D24', paddingHorizontal: 16, paddingVertical: 8, marginHorizontal: 12, borderRadius: 12, marginBottom: 6,
   },
-  recordingText: { color: '#FF6B60', fontSize: 12, fontWeight: '600', flex: 1 },
-  recordingHint: { color: '#9CB8A6', fontSize: 10 },
-  inputContainer: { flexDirection: 'row', alignItems: 'center', padding: 8, gap: 6 },
-  iconBtn: { padding: 6 },
-  textInput: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    color: '#FFFFFF',
-    fontSize: 13,
-  },
-  micBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#10B981',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  micBtnRecording: { backgroundColor: '#FF3B30' },
-  sendBtn: { backgroundColor: '#10B981', padding: 10, borderRadius: 20 },
-  emojiPanel: { padding: 12, maxHeight: 260 },
+  recordingText: { color: '#F87171', fontSize: 13, fontWeight: '600' },
+  recordingHint: { color: '#9CB8A6', fontSize: 11, marginLeft: 'auto' },
+
+  // Emoji panel
+  emojiPanel: { backgroundColor: '#0D1D18', padding: 10, maxHeight: 160 },
   emojiGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
   emojiCell: { fontSize: 24, padding: 6 },
-  stickerSection: {
-    marginTop: 10,
+
+  // Bottom input bar
+  inputBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: '#0D1D18', paddingHorizontal: 12, paddingVertical: 10,
+    borderTopWidth: 1, borderTopColor: '#1C4A2E',
+  },
+  iconBtn: { padding: 4 },
+  textInput: {
+    flex: 1, height: 42, borderRadius: 21, backgroundColor: '#132620',
+    paddingHorizontal: 16, color: '#FFFFFF', fontSize: 14,
+  },
+  voiceNoteBtn: {
+    width: 42, height: 42, borderRadius: 21, backgroundColor: '#10B981',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  recordingBtn: { backgroundColor: '#FF3B30' },
+
+  // Modals
+  noResults: { color: '#9CB8A6', fontSize: 13, textAlign: 'center', marginTop: 24 },
+  menuOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'flex-end', padding: 16 },
+  menuSheet: { backgroundColor: '#132620', borderRadius: 14, paddingVertical: 6, width: 230, marginTop: 80 },
+  menuRow: { paddingVertical: 13, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#1C4A2E' },
+  menuRowText: { color: '#FFFFFF', fontSize: 13, fontWeight: '500' },
+  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+  viewerClose: { position: 'absolute', top: 46, right: 20, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 16, padding: 8, zIndex: 10 },
+  viewerImage: { width: '100%', height: '80%' },
+
+  // Message action sheet
+  actionOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  actionSheet: {
+    width: '100%',
+    maxWidth: 300,
+    backgroundColor: '#0D1D18',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#1C4A2E',
+    paddingVertical: 4,
+  },
+  actionTitle: {
+    color: '#9CB8A6',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    paddingVertical: 10,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
     borderTopWidth: 1,
     borderTopColor: '#172F27',
-    paddingTop: 10,
   },
-  createStickerBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: '#10B981',
-    borderRadius: 10,
-    paddingVertical: 8,
-    marginBottom: 10,
-  },
-  createStickerText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
-  stickerChip: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
-    marginRight: 8,
-    borderWidth: 2,
-    borderColor: '#10B981',
-  },
-  stickerHint: { color: '#9CB8A6', fontSize: 11 },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  menuOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'flex-end',
-    padding: 16,
-  },
-  menuSheet: {
-    backgroundColor: '#132620',
-    borderRadius: 14,
+  actionRowLast: { borderBottomWidth: 0 },
+  actionText: { fontSize: 14, fontWeight: '600' },
+
+  // Inline edit (meeting chat)
+  editBox: { minWidth: 160 },
+  editInput: {
+    color: '#07120E',
+    fontSize: 14,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
     paddingVertical: 6,
-    width: 230,
-    marginTop: 90,
+    marginBottom: 6,
   },
-  menuRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEF2F0',
-  },
-  menuRowText: { color: '#091813', fontSize: 13, fontWeight: '500', marginLeft: 10 },
-  settingsOverlay: {
+  editActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
+  editCancel: { padding: 5 },
+  editSave: { backgroundColor: '#064E3B', borderRadius: 8, padding: 5 },
+
+  // (edited) tag
+  editedTag: { color: '#064E3B', fontSize: 10, fontStyle: 'italic', marginRight: 4 },
+
+  // Clear-chat confirmation
+  confirmOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  settingsSheet: {
-    backgroundColor: '#132620',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    maxHeight: '85%',
-  },
-  settingsHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    padding: 24,
   },
-  settingsTitle: { color: '#091813', fontSize: 16, fontWeight: 'bold' },
-  settingsDone: { color: '#10B981', fontSize: 14, fontWeight: 'bold' },
-  settingsLabel: {
-    color: '#091813',
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 14,
-    marginBottom: 8,
+  confirmCard: {
+    width: '100%',
+    maxWidth: 330,
+    backgroundColor: '#0D1D18',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#1C4A2E',
+    padding: 22,
+    alignItems: 'center',
   },
-  themeRow: { flexDirection: 'row', gap: 10 },
-  themeChip: {
+  confirmTitle: { color: '#FFFFFF', fontSize: 17, fontWeight: 'bold', marginTop: 10 },
+  confirmText: {
+    color: '#9CB8A6',
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 18,
+  },
+  confirmActions: { flexDirection: 'row', gap: 12, alignSelf: 'stretch' },
+  confirmCancel: {
     flex: 1,
-    alignItems: 'center',
     paddingVertical: 12,
     borderRadius: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  themeChipActive: { borderColor: '#10B981' },
-  themeChipText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' },
-  pickerBtn: {
-    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: '#1C4A2E',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#10B981',
-    borderRadius: 12,
-    paddingVertical: 11,
   },
-  pickerBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
-  wallpaperPreview: { width: '100%', height: 110, borderRadius: 12, marginTop: 10 },
-  avatarPreview: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginTop: 10,
-    alignSelf: 'center',
-  },
+  confirmCancelText: { color: '#9CB8A6', fontWeight: '600', fontSize: 13 },
+  confirmOk: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: '#DC2626', alignItems: 'center' },
+  confirmOkText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
 });
+

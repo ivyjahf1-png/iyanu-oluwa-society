@@ -2,8 +2,12 @@
 /// <reference lib="deno.ns" />
 
 // ============================================================================
-// Coop AI Assistant — Universal (Supabase Edge Function)
+// Coop AI Assistant — Universal Chat Endpoint (Supabase Edge Function)
 // Deno runtime — deploy with:  supabase functions deploy coop-ai
+//
+// Equivalent of:  POST /api/chat
+//   Body:  { userMessage: string, chatHistory?: Array<{ role, content|text }> }
+//   Resp:  { reply: string }
 //
 // Handles BOTH cooperative app actions (savings, loans, repayments) and any
 // general knowledge / real-world / creative / conversational question via the
@@ -14,8 +18,20 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const GEMINI_ENDPOINT =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_BASE =
+  'https://generativelanguage.googleapis.com/v1beta';
+
+/**
+ * Model fallback chain. Google retires older models over time
+ * (gemini-1.5-flash now returns 404 NOT_FOUND), so we try current models in
+ * order until one accepts the request. `gemini-flash-latest` is Google's
+ * rolling alias for the newest stable Flash model.
+ */
+const GEMINI_MODELS = [
+  'gemini-flash-latest',
+  'gemini-2.0-flash',
+  'gemini-2.5-flash',
+];
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -24,7 +40,15 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const SYSTEM_INSTRUCTION = `You are an intelligent, friendly, and adaptive AI Assistant embedded in the cooperative platform. You provide clear, accurate answers for cooperative financial tasks (savings, loan requirements, repayment formulas) as well as any general knowledge, technical, real-world, creative, or conversational questions the user asks outside of the app context.`;
+const SYSTEM_PROMPT = `
+You are an intelligent, versatile, and supportive AI assistant embedded in the application.
+
+Core Behavior:
+1. Versatile Knowledge: Answer both general knowledge questions and app-specific inquiries accurately and directly.
+2. Direct Openings: Jump straight into the answer without introductory fluff or robotic setup phrases (e.g., avoid "Here is a list of...", "Sure, I can help with that").
+3. Clear Structure: Prioritize scannability using bullet points, inline bolding, and markdown tables for comparative or complex data.
+4. Tone & Style: Maintain an authentic, grounded, and helpful tone.
+`;
 
 // Optional Supabase client (anon) — reserved for future app-data lookups.
 const supabase = createClient(
@@ -34,8 +58,9 @@ const supabase = createClient(
 );
 
 interface ChatTurn {
-  role: 'user' | 'model';
-  text: string;
+  role: 'user' | 'model' | 'assistant' | 'system';
+  text?: string;
+  content?: string;
 }
 
 Deno.serve(async (req: Request) => {
@@ -59,42 +84,66 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { prompt, history } = await req.json();
+    const body = await req.json();
 
-    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
-      return new Response(JSON.stringify({ error: 'Missing prompt' }), {
+    // New contract: { userMessage, chatHistory }
+    // Legacy contract (kept for backward compatibility): { prompt, history }
+    const userMessage: string = body?.userMessage ?? body?.prompt;
+    const chatHistory: ChatTurn[] =
+      Array.isArray(body?.chatHistory) ? body.chatHistory :
+      Array.isArray(body?.history) ? body.history : [];
+
+    if (!userMessage || typeof userMessage !== 'string' || !userMessage.trim()) {
+      return new Response(JSON.stringify({ error: 'Missing userMessage' }), {
         status: 400,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
 
-    // Build the conversation contents (prior turns + the new user prompt).
-    const turns: ChatTurn[] = Array.isArray(history) ? history : [];
+    const toText = (t: ChatTurn) => String(t?.text ?? t?.content ?? '');
+    const toRole = (r: string) => (r === 'assistant' || r === 'system' ? 'model' : 'user');
+
+    // Build the conversation contents (prior turns + the new user message).
     const contents = [
-      ...turns
-        .filter(t => t && (t.role === 'user' || t.role === 'model') && t.text)
-        .map(t => ({ role: t.role, parts: [{ text: String(t.text) }] })),
-      { role: 'user', parts: [{ text: prompt }] },
+      ...chatHistory
+        .filter(t => t && ['user', 'model', 'assistant', 'system'].includes(t.role) && toText(t))
+        .map(t => ({ role: toRole(t.role), parts: [{ text: toText(t) }] })),
+      { role: 'user', parts: [{ text: userMessage }] },
     ];
 
-    const geminiResponse = await fetch(`${GEMINI_ENDPOINT}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-        contents,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 1024,
-          topP: 0.95,
+    // Try each model in the chain until one accepts the request. This keeps
+    // the assistant working when Google retires a specific model version.
+    let geminiResponse: Response | null = null;
+    let lastErrorText = '';
+    for (const model of GEMINI_MODELS) {
+      const res = await fetch(
+        `${GEMINI_API_BASE}/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents,
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1000,
+              topP: 0.95,
+            },
+          }),
         },
-      }),
-    });
+      );
+      if (res.ok) {
+        geminiResponse = res;
+        break;
+      }
+      lastErrorText = await res.text();
+      // 404 = model retired/unavailable for this key → try the next model.
+      if (res.status !== 404) break;
+    }
 
-    if (!geminiResponse.ok) {
-      const errText = await geminiResponse.text();
+    if (!geminiResponse) {
       return new Response(
-        JSON.stringify({ error: 'Gemini request failed', detail: errText }),
+        JSON.stringify({ error: 'Gemini request failed', detail: lastErrorText }),
         { status: 502, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
       );
     }

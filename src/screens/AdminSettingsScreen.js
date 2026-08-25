@@ -14,25 +14,20 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Landmark, CheckCircle2, Key, Megaphone, ChevronRight, ShieldCheck, Eye, EyeOff } from 'lucide-react-native';
+import { Landmark, CheckCircle2, Key, Megaphone, ChevronRight, ShieldCheck, Eye, EyeOff, Store, BadgeCheck, Users, UserCog, Trash2 } from 'lucide-react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import ScreenHeader from '../components/ScreenHeader';
 import { getAllSettings, saveSettings } from '../lib/supabase';
 import { useBankDetails } from '../context/BankContext';
+import { resetAllAccounts } from '../auth/authService';
+import {
+  readAdminSecurity,
+  setAdminPasscode,
+  setAdminBiometricEnabled,
+  setAdminRequireStartup,
+} from '../lib/adminSecurity';
 
 const ADMIN_SETTINGS_CACHE_KEY = '@admin_app_settings';
-const ADMIN_SECURITY_KEY = '@admin_security';
-
-// Simple deterministic hash so the admin passcode is never stored in plain text.
-function hashPasscode(code, salt) {
-  let h = 0x811c9dc5;
-  const input = salt + ':' + code;
-  for (let i = 0; i < input.length; i++) {
-    h ^= input.charCodeAt(i);
-    h = Math.imul(h, 0x01000193) >>> 0;
-  }
-  return 'fnv:' + h.toString(16) + ':' + input.length;
-}
 
 export default function AdminSettingsScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
@@ -97,16 +92,13 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     setAccountNumberInput(loadedData.coop_account_number || '');
     setAccountNameInput(loadedData.coop_account_name || '');
     setLoanLimitMode(loadedData.loan_limit_mode || 'percent');
-    setLoanLimitPercent(loadedData.loan_limit_percent || '200');
+        setLoanLimitPercent(loadedData.loan_limit_percent || '200');
     setLoanLimitFixed(loadedData.loan_limit_fixed || '');
-    // Security & Access Control (persisted in @admin_security)
+    // Security & Access Control (persisted via adminSecurity/SecureStore)
     try {
-      const rawSec = await AsyncStorage.getItem(ADMIN_SECURITY_KEY);
-      if (rawSec) {
-        const sec = JSON.parse(rawSec);
-        setSecBiometric(Boolean(sec.biometricEnabled));
-        setSecRequireStartup(Boolean(sec.requireOnStartup));
-      }
+      const sec = await readAdminSecurity();
+      setSecBiometric(Boolean(sec.biometricEnabled));
+      setSecRequireStartup(Boolean(sec.requireOnStartup));
     } catch (e) {
       console.warn('Admin security load failed:', e);
     }
@@ -173,7 +165,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     }
   };
 
-  /* ===== Security & Access Control handlers ===== */
+    /* ===== Security & Access Control handlers ===== */
 
   // Save / update the master 6-digit admin passcode (hashed before storage).
   const saveAdminPasscode = async () => {
@@ -181,31 +173,20 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
       Alert.alert('Invalid Passcode', 'The master passcode must be exactly 6 digits.');
       return;
     }
-    try {
-      const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      const existingRaw = await AsyncStorage.getItem(ADMIN_SECURITY_KEY);
-      const sec = existingRaw ? JSON.parse(existingRaw) : {};
-      sec.salt = salt;
-      sec.passcodeHash = hashPasscode(adminPasscode, salt);
-      await AsyncStorage.setItem(ADMIN_SECURITY_KEY, JSON.stringify(sec));
-      setAdminPasscode('');
-      Alert.alert('Passcode Updated', 'The master admin passcode has been saved.');
-    } catch (e) {
-      console.warn('Admin passcode save failed:', e);
-      Alert.alert('Error', 'Could not save the admin passcode.');
+    const res = await setAdminPasscode(adminPasscode);
+    if (!res.ok) {
+      Alert.alert('Error', res.error || 'Could not save the admin passcode.');
+      return;
     }
+    setAdminPasscode('');
+    Alert.alert('Passcode Updated', 'The master admin passcode has been saved.');
   };
 
   // Enable/disable fingerprint / FaceID with native verification first.
   const toggleBiometric = async (enabled) => {
     if (!enabled) {
       setSecBiometric(false);
-      try {
-        const rawSec = await AsyncStorage.getItem(ADMIN_SECURITY_KEY);
-        const sec = rawSec ? JSON.parse(rawSec) : {};
-        sec.biometricEnabled = false;
-        await AsyncStorage.setItem(ADMIN_SECURITY_KEY, JSON.stringify(sec));
-      } catch (e) { console.warn('biometric persist failed:', e); }
+      await setAdminBiometricEnabled(false);
       return;
     }
     try {
@@ -225,12 +206,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
       });
       if (!res.success) return; // keep toggle OFF on failure/cancel
       setSecBiometric(true);
-      try {
-        const rawSec = await AsyncStorage.getItem(ADMIN_SECURITY_KEY);
-        const sec = rawSec ? JSON.parse(rawSec) : {};
-        sec.biometricEnabled = true;
-        await AsyncStorage.setItem(ADMIN_SECURITY_KEY, JSON.stringify(sec));
-      } catch (e) { console.warn('biometric persist failed:', e); }
+      await setAdminBiometricEnabled(true);
       Alert.alert('Biometric Enabled', 'Fingerprint / FaceID can now unlock admin access.');
     } catch (e) {
       console.warn('biometric error:', e);
@@ -241,14 +217,31 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
   // Enforce passcode checks at app startup.
   const toggleRequireStartup = async (enabled) => {
     setSecRequireStartup(enabled);
-    try {
-      const rawSec = await AsyncStorage.getItem(ADMIN_SECURITY_KEY);
-      const sec = rawSec ? JSON.parse(rawSec) : {};
-      sec.requireOnStartup = enabled;
-      await AsyncStorage.setItem(ADMIN_SECURITY_KEY, JSON.stringify(sec));
-    } catch (e) {
-      console.warn('startup flag persist failed:', e);
-    }
+    await setAdminRequireStartup(enabled);
+  };
+
+  // Developer reset — wipes ALL local accounts/auth data with explicit confirm.
+  const handleClearAllData = () => {
+    Alert.alert(
+      'Clear All Data (Dev)',
+      'This will permanently wipe all local accounts, passcodes, biometric flags and session data. This cannot be undone. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Wipe All Data',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await resetAllAccounts();
+              Alert.alert('Data Cleared', 'All local account data has been wiped.');
+              navigation.navigate('WelcomeScreen');
+            } catch (e) {
+              Alert.alert('Error', 'Could not clear data.');
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -266,6 +259,91 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Control Panel — full admin menu */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <ShieldCheck size={18} color="#10B981" />
+            <Text style={styles.sectionTitle}>Admin Control Panel</Text>
+          </View>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => {}}>
+            <View style={[styles.controlIcon, { backgroundColor: '#0F4C38' }]}>
+              <Landmark size={18} color="#10B981" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Admin Settings</Text>
+              <Text style={styles.controlSub}>Configure cooperative bank account</Text>
+            </View>
+            <Text style={styles.controlPill}>Open</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminDeposits')}>
+            <View style={[styles.controlIcon, { backgroundColor: '#123B63' }]}>
+              <BadgeCheck size={18} color="#38BDF8" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Verify Deposits</Text>
+              <Text style={styles.controlSub}>Review pending manual funding proofs</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminMarketplace')}>
+            <View style={[styles.controlIcon, { backgroundColor: '#40301A' }]}>
+              <Store size={18} color="#F59E0B" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Marketplace Dashboard</Text>
+              <Text style={styles.controlSub}>Upload & manage marketplace inventory</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('Announcements')}>
+            <View style={[styles.controlIcon, { backgroundColor: '#33205A' }]}>
+              <Megaphone size={18} color="#A78BFA" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Channels & Announcements</Text>
+              <Text style={styles.controlSub}>Broadcast announcements to members</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('SocietyHub')}>
+            <View style={[styles.controlIcon, { backgroundColor: '#0E4A45' }]}>
+              <Users size={18} color="#2DD4BF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Society Hub</Text>
+              <Text style={styles.controlSub}>Membership status & community activities</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminUserManagement')}>
+            <View style={[styles.controlIcon, { backgroundColor: '#3B2450' }]}>
+              <UserCog size={18} color="#C084FC" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>User Management</Text>
+              <Text style={styles.controlSub}>Monitor members, reset passwords & suspend accounts</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={handleClearAllData}>
+            <View style={[styles.controlIcon, { backgroundColor: '#4A1D24' }]}>
+              <Trash2 size={18} color="#F87171" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.controlTitle, { color: '#F87171' }]}>Clear All Data (Dev)</Text>
+              <Text style={styles.controlSub}>Developer reset — wipes local accounts</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+        </View>
+
         {/* Flutterwave credentials */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
@@ -641,4 +719,33 @@ const styles = StyleSheet.create({
   },
   bannerLinkTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   bannerLinkSub: { color: '#8EA89D', fontSize: 11, marginTop: 2 },
+  controlRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#132620',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#172F27',
+    marginBottom: 10,
+  },
+  controlIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  controlTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  controlSub: { color: '#8EA89D', fontSize: 11, marginTop: 2 },
+  controlPill: {
+    color: '#10B981',
+    fontSize: 11,
+    fontWeight: '700',
+    backgroundColor: '#0F4C38',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
 });

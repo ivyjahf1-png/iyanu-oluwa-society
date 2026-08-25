@@ -34,10 +34,8 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#07120E" />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      {/* FIXED TOP — Header + Available Balance Card stay static on screen */}
+      <View style={styles.fixedTop}>
         {/* TOP HEADER */}
         <View style={styles.header}>
           <View>
@@ -70,6 +68,14 @@ export default function HomeScreen({ navigation }) {
               onPress={() => navigateTo('Settings')}
             >
               <Ionicons name="ellipsis-horizontal" size={20} color="#E2E8F0" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.iconCircle, styles.adminButton]}
+              onPress={() => navigateTo('AdminSettings')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="shield-checkmark" size={22} color="#07120E" />
             </TouchableOpacity>
           </View>
         </View>
@@ -120,7 +126,12 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </LinearGradient>
+      </View>
 
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* DUAL STAT CARDS ROW */}
         <View style={styles.dualCardRow}>
           {/* SAVINGS CARD */}
@@ -333,9 +344,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#07120E',
   },
-  scrollContent: {
+  fixedTop: {
     paddingHorizontal: 16,
     paddingTop: 12,
+    backgroundColor: '#07120E',
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 0,
     paddingBottom: 24,
   },
   header: {
@@ -349,7 +365,7 @@ const styles = StyleSheet.create({
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 5 },
   societyName: { color: '#94A3B8', fontSize: 13 },
   headerActions: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-  iconCircle: {
+    iconCircle: {
     width: 42,
     height: 42,
     borderRadius: 21,
@@ -357,6 +373,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+  },
+  adminButton: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderWidth: 1,
+    borderColor: '#059669',
   },
   notificationBadge: {
     position: 'absolute',

@@ -14,15 +14,46 @@
  * persists its message list to AsyncStorage, so this layer is pure pub/sub
  * and never touches existing storage or UI logic.
  */
+/**
+ * Real-time meeting chat engine.
+ *
+ * Message payload contract (professional multi-user schema):
+ *   {
+ *     id,
+ *     senderId,
+ *     senderName,   // e.g. "~ EMMEE"
+ *     senderPhone,  // e.g. "+234 806 906 4406"
+ *     avatarUrl,    // https://...
+ *     text,         // message content
+ *     mediaUrl,     // https://... (image/file URL when present)
+ *     timestamp,    // display clock e.g. "07:40" (or epoch ms from remote)
+ *     type          // "text" | "image" | "system"
+ *   }
+ *
+ * Transport:
+ *   - Primary: Supabase Realtime broadcast on a shared channel — true
+ *     cross-device / cross-user sync once a real project is wired in.
+ *   - Fallback: an in-process listener bus so the host client still reacts
+ *     instantly when realtime is unavailable (no backend required).
+ *
+ * Persistence is intentionally NOT owned here: MeetingChatScreen persists
+ * its message list to AsyncStorage, so this layer is pure pub/sub and never
+ * touches existing storage or UI logic.
+ */
 import { supabase } from '../lib/supabase';
+
+export type MeetingMessageType = 'text' | 'image' | 'system';
 
 export interface MeetingMessage {
   id: string;
   senderId: string;
   senderName: string;
-  messageText: string;
-  timestamp: number;
-  avatar: string | null;
+  senderPhone?: string;
+  avatarUrl?: string | null;
+  text?: string;
+  mediaUrl?: string | null;
+  timestamp: string; // "HH:MM" clock label (or epoch string from remote)
+  type: MeetingMessageType;
 }
 
 const CHANNEL = 'meeting_chat';
