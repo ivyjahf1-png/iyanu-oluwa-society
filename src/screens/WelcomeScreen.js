@@ -49,23 +49,24 @@ export default function WelcomeScreen({ navigation }) {
             />
           </TouchableOpacity>
 
+          <Text style={styles.societyTitle}>Welcome to Iyanu Oluwa Society</Text>
           <Text style={styles.tagline}>
-            Your cooperative financial platform
+            Your financial hub for savings, loans, and cooperative growth.
           </Text>
 
           <View style={styles.btnGroup}>
             <TouchableOpacity
               style={styles.primaryBtn}
-              onPress={() => navigation.navigate('SignIn')}
+              onPress={() => navigation.navigate('SignUpScreen')}
             >
-              <Text style={styles.primaryBtnTxt}>Sign In</Text>
+              <Text style={styles.primaryBtnTxt}>Sign Up</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.secondaryBtn}
-              onPress={() => navigation.navigate('SignUp')}
+              onPress={() => navigation.navigate('SignInScreen')}
             >
-              <Text style={styles.secondaryBtnTxt}>Create Account</Text>
+              <Text style={styles.secondaryBtnTxt}>Sign In</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -85,18 +86,28 @@ const styles = StyleSheet.create({
   welcomeLogo: {
     width: 140,
     height: 140,
-    marginBottom: 24,
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#D4AF37',
+    borderRadius: 28,
+  },
+  societyTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 6,
   },
   tagline: {
-    color: '#A7F3D0',
+    color: '#9BB8AC',
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 40,
   },
   btnGroup: { width: '100%', gap: 14 },
   primaryBtn: {
-    backgroundColor: '#10B981',
-    borderRadius: 14,
+    backgroundColor: '#0D5C46',
+    borderRadius: 26,
     paddingVertical: 14,
     alignItems: 'center',
   },
@@ -106,15 +117,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   secondaryBtn: {
-    backgroundColor: 'rgba(167, 243, 208, 0.1)',
-    borderRadius: 14,
-    paddingVertical: 14,
+    backgroundColor: 'rgba(197, 165, 72, 0.08)',
+    borderRadius: 26,
+    paddingVertical: 13,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#10B981',
+    borderWidth: 1.5,
+    borderColor: '#C4A743',
   },
   secondaryBtnTxt: {
-    color: '#A7F3D0',
+    color: '#E5C15A',
     fontSize: 15,
     fontWeight: '600',
   },

@@ -5,7 +5,7 @@ import { Alert } from 'react-native';
  * Used to defensively validate navigation targets before dispatching.
  */
 export const KNOWN_ROUTES = new Set([
-  'MainTabs',
+  'MainDashboard',
   'Home',
   'Dashboard',
   'Savings',
@@ -14,9 +14,9 @@ export const KNOWN_ROUTES = new Set([
   'Co-op Hub',
   'Co-op Credit',
   'More',
-  'Welcome',
-  'SignIn',
-  'SignUp',
+  'WelcomeScreen',
+  'SignInScreen',
+  'SignUpScreen',
   'MeetingChat',
   'CallScreen',
   'Marketplace',

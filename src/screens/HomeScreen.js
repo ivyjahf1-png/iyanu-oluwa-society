@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,1033 +7,552 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Image,
-  Modal,
 } from 'react-native';
-import SafeImage from '../components/SafeImage';
-import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import {
-  Eye,
-  EyeOff,
-  Plus,
-  Bell,
-  User,
-  ShieldCheck,
-  PiggyBank,
-  Wallet,
-  Landmark,
-  CreditCard,
-  FileText,
-  Smartphone,
-  Database,
-  Bot,
-  Home,
-  Car,
-  MapPin,
-  ChevronRight,
-  MessageSquare,
-  Lock,
-} from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useUser } from '../context/UserContext';
-import { useAuth } from '../context/AuthContext';
-import { deriveDisplayName } from '../auth/authService';
-import { useAnnouncements } from '../context/AnnouncementsContext';
-import { useBanners } from '../context/BannerContext';
-import { ThemeContext } from '../context/ThemeContext';
-import { COLORS, GRADIENTS } from '../constants/theme';
-import { useTransactions } from '../context/TransactionsContext';
+import {
+  Ionicons,
+  FontAwesome5,
+  MaterialCommunityIcons,
+  Feather,
+} from '@expo/vector-icons';
 
-export default function HomeScreen({ navigation: rawNav }) {
-  const navigation = useSafeNavigation(rawNav);
-  const { user } = useUser();
+export default function HomeScreen({ navigation }) {
+  const [hideMainBalance, setHideMainBalance] = useState(true);
+  const [hideSavingsBalance, setHideSavingsBalance] = useState(false);
+  const [hideLoanBalance, setHideLoanBalance] = useState(true);
 
-  // Guarded theme access — the context carries a built-in default, and this
-  // fallback object guarantees `colors` is always defined for consumers.
-  const themeCtx = useContext(ThemeContext) || {};
-  const colors = themeCtx?.colors || {
-    background: '#091813',
-    card: '#132620',
-    primary: '#10B981',
-    text: '#FFFFFF',
-    subtext: '#8EA89D',
-    border: '#172F27',
-  };
-  const { userEmail } = useAuth();
-  // Display name comes from the authenticated user's email
-  // (temitope.adewale@gmail.com -> "Temitope Adewale"); falls back to the
-  // saved profile name when no auth email exists yet.
-  const displayName = userEmail
-    ? deriveDisplayName(userEmail)
-    : user?.fullName || 'Member';
-
-  // Announcements: badge on the bell + drop-down banner for the latest unread.
-  const { unreadAnnouncements, dismissAnnouncement } = useAnnouncements();
-  const latestAnnouncement = unreadAnnouncements[0] || null;
-  const hasUnread = unreadAnnouncements.length > 0;
-
-  // Promotional banner popup (admin-created, cooperative content only).
-  const { visibleBanners, activeBanners, dismissBanner } = useBanners();
-  const [bannerOpen, setBannerOpen] = useState(false);
-  const [bannerIndex, setBannerIndex] = useState(0);
-
-  // Show the first visible banner automatically; auto-rotate every 2 hours.
-  useEffect(() => {
-    if (visibleBanners.length > 0) {
-      setBannerIndex((i) => (bannerIndex >= visibleBanners.length ? 0 : bannerIndex));
-      const t = setTimeout(() => setBannerOpen(true), 600);
-      const rotate = setInterval(
-        () => setBannerIndex((i) => (i + 1) % Math.max(visibleBanners.length, 1)),
-        2 * 60 * 60 * 1000 // 2 hours
-      );
-      return () => { clearTimeout(t); clearInterval(rotate); };
+  // Safe navigation helper
+  const navigateTo = (screenName) => {
+    if (navigation && navigation.navigate) {
+      navigation.navigate(screenName);
+    } else {
+      console.log('Navigating to screen: ' + screenName);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visibleBanners.length]);
-
-  const currentBanner = visibleBanners[bannerIndex] || visibleBanners[0] || null;
-
-  // Existing state handlers preserved: visibility toggles for each balance area.
-  const [showBalance, setShowBalance] = useState(false);
-  const [showSavings, setShowSavings] = useState(true);
-  const [showLoan, setShowLoan] = useState(false);
-
-  // Dynamic (non-hardcoded) account amounts — derived from the real
-  // transaction ledger (start at ₦0.00 for new members).
-  const { totalSavings, loanOutstanding, totalPaid } = useTransactions();
-  const balance = Number(totalSavings).toFixed(2);
-  const savings = Number(totalSavings).toFixed(2);
-  const loan = Number(loanOutstanding).toFixed(2);
-  const paid = Number(totalPaid).toFixed(2);
-
-  // Expanded "View All" states for Financial Services & Co-op Hub.
-  const [showAllServices, setShowAllServices] = useState(false);
-  const [showAllHub, setShowAllHub] = useState(false);
-
-  // Data purchase — network provider selection modal.
-  const [showNetworkModal, setShowNetworkModal] = useState(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor='#091813' />
-
-      {/* ===== STICKY HEADER & BALANCE SECTION (pinned above the scroll) ===== */}
-      <View style={styles.headerSection}>
-          <View style={styles.greetingRow}>
-            <View style={styles.greetingLeft}>
-              <Text style={styles.greetingLine}>Good morning,</Text>
-              <Text style={styles.greetingName}>{displayName}</Text>
-              <View style={styles.societyRow}>
-                <ShieldCheck size={14} color="#4ADE80" />
-                <Text style={styles.societyText}>Iyanu Oluwa Society</Text>
-              </View>
-            </View>
-            <View style={styles.greetingIcons}>
-              <TouchableOpacity style={styles.notifBtn} onPress={() => navigation.navigate('Notifications')}>
-                <Bell size={18} color="#FFFFFF" />
-                {hasUnread ? <View style={styles.notifDot} /> : null}
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.avatarBtn} onPress={() => navigation.navigate('ProfileSettings')}>
-                {user.avatarUri ? (
-                  <SafeImage source={{ uri: user.avatarUri }} style={styles.avatarImage} />
-                ) : (
-                  <User size={18} color="#0B2217" />
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Available Balance Card — dual-zone metallic split */}
-          <LinearGradient
-            colors={['#0B1B15', '#162C24']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.metallicCard}
-          >
-            {/* Bright metallic silver zone — sharp diagonal edge */}
-            <LinearGradient
-              colors={['#99B0A6', '#E0E8E4']}
-              start={{ x: 0, y: 1 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.silverZone}
-              pointerEvents="none"
-            />
-            {/* Glossy sheen */}
-            <LinearGradient
-              colors={['rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0.6, y: 1 }}
-              style={styles.shineOverlay}
-              pointerEvents="none"
-            />
-
-            {/* ===== LEFT: Balance & primary action ===== */}
-            <View style={styles.cardLeft}>
-              <Text style={styles.balanceLabel}>Available Balance</Text>
-              <Text style={styles.balanceAmount}>
-                {showBalance ? `₦${balance ?? '0.00'}` : '₦ **'}
-              </Text>
-              <TouchableOpacity
-                style={styles.addFundBtn}
-                onPress={() => Alert.alert('Coming Soon', 'Online funding will be available soon. Please use the Coop Contribution option to deposit.')}
-              >
-                <Lock size={14} color="#FFFFFF" />
-                <Text style={styles.addFundText}>+ Add Fund</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* ===== RIGHT: Crest emblem & toggle action ===== */}
-            <View style={styles.cardRight}>
-              <View style={styles.crestWrap}>
-                <Image
-                  source={require("../../assets/logo.png")}
-                  style={styles.crestLogo}
-                />
-                <Text style={styles.watermarkTitle}>Iyanu Oluwa Society Community</Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.showBalanceBtn}
-                onPress={() => setShowBalance(!showBalance)}
-              >
-                {showBalance ? (
-                  <EyeOff size={14} color="#FFFFFF" />
-                ) : (
-                  <Eye size={14} color="#FFFFFF" />
-                )}
-                <Text style={styles.showBalanceText}>
-                  {showBalance ? 'Hide Balance' : 'Show Balance'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </LinearGradient>
-        </View>
+      <StatusBar barStyle="light-content" backgroundColor="#07120E" />
 
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, styles.grow]}
-        showsVerticalScrollIndicator={true}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Financial Services */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionHeader}>Financial Services</Text>
-          <TouchableOpacity onPress={() => setShowAllServices(!showAllServices)}>
-            <Text style={styles.viewAllText}>{showAllServices ? 'Show Less' : 'View All >'}</Text>
+        {/* TOP HEADER */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greetingText}>Good morning,</Text>
+            <Text style={styles.userName}>Ivyjahf</Text>
+            <View style={styles.badgeRow}>
+              <Ionicons name="shield-checkmark" size={14} color="#00D084" />
+              <Text style={styles.societyName}>Iyanu Oluwa Society</Text>
+            </View>
+          </View>
+
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.iconCircle}
+              onPress={() => navigateTo('Notifications')}
+            >
+              <Ionicons name="notifications-outline" size={20} color="#E2E8F0" />
+              <View style={styles.notificationBadge} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.profileCircle}
+              onPress={() => navigateTo('Profile')}
+            >
+              <Ionicons name="person-outline" size={20} color="#07120E" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.iconCircle}
+              onPress={() => navigateTo('Settings')}
+            >
+              <Ionicons name="ellipsis-horizontal" size={20} color="#E2E8F0" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* METALLIC MAIN BALANCE CARD */}
+        <LinearGradient
+          colors={['#182B26', '#354B45', '#95A7A1', '#213530']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.metallicCard}
+        >
+          <View style={styles.cardLeft}>
+            <Text style={styles.cardLabel}>Available Balance</Text>
+            <Text style={styles.balanceText}>
+              {hideMainBalance ? '₦ **' : '₦ 250,000.00'}
+            </Text>
+
+            <TouchableOpacity
+              style={styles.addFundBtn}
+              onPress={() => navigateTo('AddFunds')}
+            >
+              <Ionicons name="lock-closed" size={14} color="#FFF" />
+              <Text style={styles.addFundText}>+ Add Fund</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.cardRight}>
+            <View style={styles.watermarkContainer}>
+              <View style={styles.emblemOutline}>
+                <FontAwesome5 name="university" size={24} color="#D1D5DB" />
+              </View>
+              <Text style={styles.watermarkTitle}>Iyanu Oluwa Society</Text>
+              <Text style={styles.watermarkSub}>Community</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.showBalanceBtn}
+              onPress={() => setHideMainBalance(!hideMainBalance)}
+            >
+              <Ionicons
+                name={hideMainBalance ? 'eye-outline' : 'eye-off-outline'}
+                size={14}
+                color="#FFF"
+              />
+              <Text style={styles.showBalanceText}>
+                {hideMainBalance ? 'Show Balance' : 'Hide Balance'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+
+        {/* DUAL STAT CARDS ROW */}
+        <View style={styles.dualCardRow}>
+          {/* SAVINGS CARD */}
+          <TouchableOpacity
+            style={styles.subCard}
+            onPress={() => navigateTo('SavingsHub')}
+          >
+            <View style={styles.subCardHeader}>
+              <Text style={styles.subCardTitle}>Savings</Text>
+              <View style={styles.subCardHeaderIcons}>
+                <TouchableOpacity onPress={() => setHideSavingsBalance(!hideSavingsBalance)}>
+                  <Ionicons
+                    name={hideSavingsBalance ? 'eye-off-outline' : 'eye-outline'}
+                    size={15}
+                    color="#64748B"
+                  />
+                </TouchableOpacity>
+                <View style={styles.miniIconCircle}>
+                  <FontAwesome5 name="piggy-bank" size={12} color="#00D084" />
+                </View>
+              </View>
+            </View>
+            <Text style={styles.subCardAmount}>
+              {hideSavingsBalance ? '₦ **' : '₦0.00'}
+            </Text>
+            <View style={styles.divider} />
+            <Text style={styles.subCardFooterText}>Total Savings</Text>
+          </TouchableOpacity>
+
+          {/* ACTIVE LOAN CARD */}
+          <TouchableOpacity
+            style={styles.subCard}
+            onPress={() => navigateTo('CoopCredit')}
+          >
+            <View style={styles.subCardHeader}>
+              <Text style={styles.subCardTitle}>Active Loan</Text>
+              <View style={styles.subCardHeaderIcons}>
+                <TouchableOpacity onPress={() => setHideLoanBalance(!hideLoanBalance)}>
+                  <Ionicons
+                    name={hideLoanBalance ? 'eye-off-outline' : 'eye-outline'}
+                    size={15}
+                    color="#64748B"
+                  />
+                </TouchableOpacity>
+                <View style={styles.miniIconCircle}>
+                  <Ionicons name="wallet-outline" size={13} color="#00D084" />
+                </View>
+              </View>
+            </View>
+            <Text style={styles.subCardAmount}>
+              {hideLoanBalance ? '₦ **' : '₦ 50,000.00'}
+            </Text>
+            <View style={styles.divider} />
+            <Text style={styles.subCardFooterText}>
+              Paid: {hideLoanBalance ? '₦**' : '₦ 10,000.00'}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.serviceGrid}>
-          {[
-            { key: 'coop', title: 'Coop Contribution', desc: 'Deposit weekly or monthly savings', Icon: PiggyBank, badge: '#0D4035', iconTint: '#10B981', route: 'AddFunds', isNew: true },
-            { key: 'statement', title: 'Account Statement', desc: 'Download report', Icon: FileText, badge: '#1D303E', iconTint: '#38BDF8', route: 'AccountStatement' },
-            { key: 'request', title: 'Request Loan', desc: 'Apply for member credit', Icon: Landmark, badge: '#3E2718', iconTint: '#F97316', route: 'RequestLoan' },
-            { key: 'repay', title: 'Repay Loan', desc: 'Make loan payments', Icon: CreditCard, badge: '#2A1E3E', iconTint: '#A855F7', route: 'RepayLoan' },
-          ].map(({ key, title, desc, Icon, badge, iconTint, route, isNew }) => (
-            <TouchableOpacity
-              key={key}
-              style={styles.serviceCard}
-              onPress={() => route && navigation.navigate(route)}
-            >
-              <View style={styles.serviceIconBadge}>
-                <Icon size={22} color={iconTint} />
-              </View>
-              {isNew ? (
-                    <View style={styles.newBadge}>
-                      <Text style={styles.newBadgeText}>NEW</Text>
-                    </View>
-                  ) : null}
-                <Text style={styles.serviceTitle}>{title}</Text>
-                <Text style={styles.serviceDesc}>{desc}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+        {/* FINANCIAL SERVICES SECTION */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Financial Services</Text>
+          <TouchableOpacity onPress={() => navigateTo('FinancialServices')}>
+            <Text style={styles.viewAllText}>View All &gt;</Text>
+          </TouchableOpacity>
+        </View>
 
-          {/* Expanded services — includes the Data purchase option */}
-          {showAllServices && (
-            <View style={styles.expandedServices}>
-              <TouchableOpacity
-                style={styles.expandedRow}
-                onPress={() => setShowNetworkModal(true)}
-              >
-                <LinearGradient
-                  colors={['#14B8A6', '#0D9488']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.expandedBadge}
-                >
-                  <Database size={20} color="#FFFFFF" />
-                </LinearGradient>
-                <Text style={styles.expandedTitle}>Data</Text>
-                <Text style={styles.expandedHint}>Purchase data bundles</Text>
-                <ChevronRight size={18} color='#8EA89D' />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* ============ AI ASSISTANT BANNER ============ */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.servicesScroll}>
           <TouchableOpacity
-            style={styles.aiBanner}
-            onPress={() => navigation.navigate('AIAssistant')}
+            style={styles.serviceItem}
+            onPress={() => navigateTo('CoopContribution')}
           >
-            <View style={styles.aiIconWrap}>
-              <Bot size={26} color="#FFFFFF" />
+            <LinearGradient colors={['#008767', '#00382B']} style={styles.serviceIconContainer}>
+              <FontAwesome5 name="piggy-bank" size={18} color="#FFF" />
+            </LinearGradient>
+            <Text style={styles.serviceLabel}>Coop Contribution</Text>
+            <Text style={styles.serviceSubtext}>Deposit weekly or monthly savings</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.serviceItem}
+            onPress={() => navigateTo('AccountStatement')}
+          >
+            <LinearGradient colors={['#4F86F7', '#1D4ED8']} style={styles.serviceIconContainer}>
+              <Ionicons name="document-text-outline" size={20} color="#FFF" />
+            </LinearGradient>
+            <Text style={styles.serviceLabel}>Account Statement</Text>
+            <Text style={styles.serviceSubtext}>Download report</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.serviceItem}
+            onPress={() => navigateTo('RequestLoan')}
+          >
+            <LinearGradient colors={['#D97706', '#78350F']} style={styles.serviceIconContainer}>
+              <FontAwesome5 name="hand-holding-usd" size={18} color="#FFF" />
+            </LinearGradient>
+            <Text style={styles.serviceLabel}>Request Loan</Text>
+            <Text style={styles.serviceSubtext}>Apply for member credit</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.serviceItem}
+            onPress={() => navigateTo('RepayLoan')}
+          >
+            <LinearGradient colors={['#8B5CF6', '#4C1D95']} style={styles.serviceIconContainer}>
+              <Ionicons name="card-outline" size={20} color="#FFF" />
+            </LinearGradient>
+            <Text style={styles.serviceLabel}>Repay Loan</Text>
+            <Text style={styles.serviceSubtext}>Make loan repayments</Text>
+          </TouchableOpacity>
+        </ScrollView>
+
+        {/* COOP AI ASSISTANT BANNER */}
+        <View style={styles.aiBanner}>
+          <View style={styles.aiLeft}>
+            <View style={styles.botIconWrapper}>
+              <MaterialCommunityIcons name="robot-outline" size={24} color="#E2E8F0" />
             </View>
             <View style={styles.aiTextGroup}>
-              <View style={styles.aiTitleRow}>
-                <Text style={styles.aiTitle}>Coop AI Assistant</Text>
-                <View style={styles.betaPill}>
-                  <Text style={styles.betaText}>BETA</Text>
-                </View>
-              </View>
-              <Text style={styles.aiSub}>Ask questions about your savings or loan limits.</Text>
+              <Text style={styles.aiTitle}>Coop AI Assistant</Text>
+              <Text style={styles.aiSubtext}>
+                Ask questions about your savings or loan limits.
+              </Text>
             </View>
-            <View style={styles.askNowBtn}>
-              <Text style={styles.askNowText}>Ask Now &gt;</Text>
-            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.askNowBtn}
+            onPress={() => navigateTo('AIAssistant')}
+          >
+            <Text style={styles.askNowText}>ASK NOW</Text>
           </TouchableOpacity>
+        </View>
 
-          {/* ============ COOPERATIVE HUB ============ */}
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionHeader}>Cooperative Hub</Text>
-            <TouchableOpacity onPress={() => setShowAllHub(!showAllHub)}>
-              <Text style={styles.viewAllText}>View All &gt;</Text>
-            </TouchableOpacity>
+        {/* COOPERATIVE HUB SECTION */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Cooperative Hub</Text>
+          <TouchableOpacity onPress={() => navigateTo('CooperativeHub')}>
+            <Text style={styles.viewAllText}>View All &gt;</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={styles.hubListItem}
+          onPress={() => navigateTo('LandProperty')}
+        >
+          <View style={styles.hubLeft}>
+            <View style={[styles.hubIconCircle, { backgroundColor: '#059669' }]}>
+              <Ionicons name="home-outline" size={20} color="#FFFFFF" />
+            </View>
+            <View style={styles.hubTextContainer}>
+              <Text style={styles.hubItemTitle}>Land & Property</Text>
+              <Text style={styles.hubItemSub}>
+                Acquire plots with flexible payment plans
+              </Text>
+            </View>
           </View>
-
-          <View style={styles.hubList}>
-            {/* Land & Property */}
-            <TouchableOpacity
-              style={styles.hubRow}
-              onPress={() => navigation.navigate('Marketplace')}
-            >
-              <LinearGradient
-                colors={['#10B981', '#047857']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.hubIconWrap}
-              >
-                <Home size={22} color="#FFFFFF" />
-              </LinearGradient>
-              <View style={styles.hubTextGroup}>
-                <Text style={styles.hubTitle}>Land &amp; Property</Text>
-                <Text style={styles.hubDesc}>Acquire plots with flexible payment plans</Text>
-              </View>
-              <View style={styles.hubThumb}>
-                <MapPin size={16} color="#FFFFFF" />
-              </View>
-              <ChevronRight size={18} color='#8EA89D' />
-            </TouchableOpacity>
-
-            {/* Vehicles */}
-            <TouchableOpacity
-              style={styles.hubRow}
-              onPress={() => navigation.navigate('Marketplace')}
-            >
-              <LinearGradient
-                colors={['#2563EB', '#06B6D4']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.hubIconWrap}
-              >
-                <Car size={22} color="#FFFFFF" />
-              </LinearGradient>
-              <View style={styles.hubTextGroup}>
-                <Text style={styles.hubTitle}>Vehicles</Text>
-                <Text style={styles.hubDesc}>Member auto financing options</Text>
-              </View>
-              <View style={styles.hubThumbCar}>
-                <Car size={16} color="#FFFFFF" />
-              </View>
-              <ChevronRight size={18} color='#8EA89D' />
-            </TouchableOpacity>
-
-            {/* Preserved route: Meeting Chat */}
-            <TouchableOpacity
-              style={styles.hubRow}
-              onPress={() => navigation.navigate('MeetingChat')}
-            >
-              <LinearGradient
-                colors={['#8B5CF6', '#6D28D9']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.hubIconWrap}
-              >
-                <MessageSquare size={22} color="#FFFFFF" />
-              </LinearGradient>
-              <View style={styles.hubTextGroup}>
-                <Text style={styles.hubTitle}>Meeting Chat</Text>
-                <Text style={styles.hubDesc}>Discuss &amp; decide with members</Text>
-              </View>
-              <ChevronRight size={18} color='#8EA89D' />
-            </TouchableOpacity>
+          <View style={styles.hubRight}>
+            <View style={styles.hubTagIcon}>
+              <Ionicons name="location-outline" size={16} color="#00D084" />
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#64748B" />
           </View>
+        </TouchableOpacity>
 
+        <TouchableOpacity
+          style={styles.hubListItem}
+          onPress={() => navigateTo('Vehicles')}
+        >
+          <View style={styles.hubLeft}>
+            <View style={[styles.hubIconCircle, { backgroundColor: '#2563EB' }]}>
+              <Ionicons name="car-outline" size={20} color="#FFFFFF" />
+            </View>
+            <View style={styles.hubTextContainer}>
+              <Text style={styles.hubItemTitle}>Vehicles</Text>
+              <Text style={styles.hubItemSub}>Member auto financing options</Text>
+            </View>
+          </View>
+          <View style={styles.hubRight}>
+            <View style={styles.hubTagIcon}>
+              <Ionicons name="car-sport-outline" size={16} color="#00D084" />
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#64748B" />
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.hubListItem}
+          onPress={() => navigateTo('MeetingChat')}
+        >
+          <View style={styles.hubLeft}>
+            <View style={[styles.hubIconCircle, { backgroundColor: '#9333EA' }]}>
+              <Ionicons name="chatbox-ellipses-outline" size={20} color="#FFFFFF" />
+            </View>
+            <View style={styles.hubTextContainer}>
+              <Text style={styles.hubItemTitle}>Meeting Chat</Text>
+              <Text style={styles.hubItemSub}>Discuss & decide with members</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#64748B" />
+        </TouchableOpacity>
       </ScrollView>
-
-      {/* Data purchase — network provider selection modal */}
-      <Modal visible={showNetworkModal} transparent animationType="slide">
-        <View style={styles.networkOverlay}>
-          <View style={styles.networkSheet}>
-            <Text style={styles.networkTitle}>Select Network</Text>
-            <Text style={styles.networkSub}>Choose a provider for your data purchase</Text>
-
-            {[
-              { key: 'MTN', label: 'MTN', color: '#FFCC00', text: '#000000' },
-              { key: 'AIRTEL', label: 'Airtel', color: '#E40000', text: '#FFFFFF' },
-              { key: 'GLO', label: 'Glo', color: '#43B02A', text: '#FFFFFF' },
-              { key: 'NINEMOBILE', label: '9mobile', color: '#00694B', text: '#FFFFFF' },
-            ].map(n => (
-              <TouchableOpacity
-                key={n.key}
-                style={styles.networkRow}
-                onPress={() => {
-                  setShowNetworkModal(false);
-                  navigation.navigate('AirtimeData', { provider: n.key, txType: 'data' });
-                }}
-              >
-                <View style={[styles.networkLogo, { backgroundColor: n.color }]}>
-                  <Text style={[styles.networkLogoText, { color: n.text }]}>
-                    {n.label.charAt(0)}
-                  </Text>
-                </View>
-                <Text style={styles.networkName}>{n.label}</Text>
-                <ChevronRight size={18} color="#9CB8A6" />
-              </TouchableOpacity>
-            ))}
-
-            <TouchableOpacity
-              style={styles.networkCancel}
-              onPress={() => setShowNetworkModal(false)}
-            >
-              <Text style={styles.networkCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Promotional banner popup (admin-created, cooperative content only) */}
-      <Modal visible={bannerOpen && !!currentBanner} transparent animationType="fade">
-        <View style={styles.bannerPopupOverlay}>
-          <View style={styles.bannerPopupCard}>
-            {currentBanner?.imageUri ? (
-              <SafeImage
-                source={{ uri: currentBanner.imageUri }}
-                style={currentBanner.kind === 'photo' ? styles.bannerPopupPhoto : styles.bannerPopupImage}
-              />
-            ) : null}
-            {currentBanner?.kind !== 'photo' && (
-              <View style={styles.bannerPopupBody}>
-                {!!currentBanner?.title && (
-                  <Text style={styles.bannerPopupTitle}>{currentBanner.title}</Text>
-                )}
-                {!!currentBanner?.description && (
-                  <Text style={styles.bannerPopupDesc}>{currentBanner.description}</Text>
-                )}
-                {!!currentBanner?.category && (
-                  <Text style={styles.bannerPopupCategory}>{currentBanner.category}</Text>
-                )}
-              </View>
-            )}
-            <TouchableOpacity
-              style={styles.bannerDismissBtn}
-              onPress={() => {
-                if (currentBanner) dismissBanner(currentBanner.id);
-                setBannerOpen(false);
-              }}
-            >
-              <Text style={styles.bannerDismissText}>Maybe Later</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: { flex: 1 },
-  grow: { flexGrow: 1 },
-  // Page — deep-green matching the reference
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#07120E',
   },
   scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 24,
   },
-  // Announcement drop-down banner
-  announceBanner: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: COLORS.cardBg,
-      borderRadius: 14,
-      padding: 12,
-      marginHorizontal: 16,
-      marginTop: 10,
-      borderWidth: 1,
-      borderColor: COLORS.emeraldAccent,
-      elevation: 6,
-      shadowColor: '#000',
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 3 },
-    },
-    announceIconWrap: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
-      backgroundColor: '#E8F5E9',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 10,
-    },
-    announceTextGroup: { flex: 1 },
-    announceTitle: {
-      color: COLORS.background,
-      fontSize: 13,
-      fontWeight: 'bold',
-    },
-    announceMessage: {
-      color: '#E2E8F0',
-      fontSize: 11,
-      marginTop: 2,
-    },
-    announceDismiss: {
-      backgroundColor: COLORS.emeraldAccent,
-      borderRadius: 10,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      marginLeft: 8,
-    },
-    announceDismissText: { color: '#FFFFFF', fontSize: 11, fontWeight: '600' },
-  // Sticky header section (deep green) — pinned above the scrolling dashboard
-  headerSection: {
-    paddingHorizontal: 14,
-    paddingTop: 10,
-    paddingBottom: 12,
-    backgroundColor: COLORS.background,
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  greetingRow: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    alignItems: 'flex-start',
+    marginBottom: 20,
   },
-  greetingLeft: {
-    flex: 1,
-  },
-  greetingLine: {
-    color: '#8EA89D',
-    fontSize: 14,
-    fontWeight: '400',
-  },
-  greetingName: { color: '#FFFFFF', fontSize: 22, fontWeight: 'bold', marginTop: 2 },
-  societyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  societyText: {
-    color: COLORS.textSecondary,
-    fontSize: 12,
-    marginLeft: 4,
-  },
-  greetingIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  notifBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#1D2D27',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notifDot: {
-    position: 'absolute',
-    top: 9,
-    right: 9,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.emeraldAccent,
-  },
-  avatarBtn: {
+  greetingText: { color: '#94A3B8', fontSize: 14, fontWeight: '400' },
+  userName: { color: '#FFFFFF', fontSize: 24, fontWeight: '700', marginTop: 2 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 5 },
+  societyName: { color: '#94A3B8', fontSize: 13 },
+  headerActions: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  iconCircle: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: COLORS.cardBg,
-    justifyContent: 'center',
+    backgroundColor: '#12221D',
     alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
-  // Available Balance Card — distinct neon green outline so it stands apart
+  notificationBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#00D084',
+  },
+  profileCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   metallicCard: {
-    height: 170,
     borderRadius: 20,
-    overflow: 'hidden',
-    borderTopWidth: 1.5,
-    borderTopColor: 'rgba(255, 255, 255, 0.45)',
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 8,
-  },
-  shineOverlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  // Bright metallic silver right zone — sharp angled edge
-  silverZone: {
-    position: 'absolute',
-    top: -30,
-    bottom: -30,
-    right: -40,
-    width: '55%',
-    transform: [{ rotate: '12deg' }],
-  },
-  cardLeft: {
-    zIndex: 1,
-    flex: 1,
+    padding: 18,
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    marginBottom: 16,
   },
-  balanceLabel: {
-    color: '#BCCAC3',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  balanceAmount: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginTop: 10,
-  },
+  cardLeft: { justifyContent: 'space-between' },
+  cardLabel: { color: '#CBD5E1', fontSize: 13, fontWeight: '500' },
+  balanceText: { color: '#FFFFFF', fontSize: 26, fontWeight: '700', marginVertical: 10 },
   addFundBtn: {
-    backgroundColor: '#0D5C46',
+    backgroundColor: '#005F4B',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 18,
     alignSelf: 'flex-start',
-    marginTop: 14,
   },
-  addFundText: {
-    color: '#10B981',
-    fontSize: 13,
-    fontWeight: 'bold',
+  addFundText: { color: '#FFF', fontSize: 13, fontWeight: '600' },
+  cardRight: { alignItems: 'flex-end', justifyContent: 'space-between' },
+  watermarkContainer: { alignItems: 'center', opacity: 0.8 },
+  emblemOutline: {
+    padding: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  crestWrap: {
-    alignItems: 'center',
-  },
-  watermarkTitle: {
-    color: '#2F4038',
-    fontSize: 10,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  crestLogo: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
-  },
-  cardRight: {
-    zIndex: 1,
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    paddingVertical: 2,
-  },
+  watermarkTitle: { color: '#E2E8F0', fontSize: 10, fontWeight: '600', marginTop: 4 },
+  watermarkSub: { color: '#94A3B8', fontSize: 9 },
   showBalanceBtn: {
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingVertical: 7,
     paddingHorizontal: 12,
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  showBalanceText: { color: '#FFFFFF', fontSize: 12 },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-  },
-  // White rounded content container — inverted to deep forest green per design
-  whiteSection: {
-    backgroundColor: COLORS.background,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 20,
-  },
-  // Dual summary cards — deep green monochrome
-  dualCardRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 22,
-  },
-  summaryCard: {
-    backgroundColor: COLORS.background,
+  showBalanceText: { color: '#FFF', fontSize: 12 },
+  dualCardRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  subCard: {
+    flex: 1,
+    backgroundColor: '#0F1E1A',
     borderRadius: 16,
     padding: 14,
-    width: '48%',
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+    borderColor: '#172C27',
   },
-  summaryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  subCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  subCardTitle: { color: '#E2E8F0', fontSize: 14, fontWeight: '500' },
+  subCardHeaderIcons: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  miniIconCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#162924',
     alignItems: 'center',
-  },
-  summaryTitle: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  summaryBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#1D2D27',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  summaryAmount: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginTop: 8,
-  },
-  summaryDivider: {
-    height: 1,
-    backgroundColor: '#1C3028',
-    marginVertical: 8,
-  },
-  summarySub: {
-    color: COLORS.textSecondary,
-    fontSize: 10,
-  },
-  // Financial Services
-  sectionHeaderRow: {
+  subCardAmount: { color: '#FFF', fontSize: 20, fontWeight: '700', marginVertical: 10 },
+  divider: { height: 1, backgroundColor: '#172C27', marginBottom: 8 },
+  subCardFooterText: { color: '#64748B', fontSize: 11 },
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  sectionHeader: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  viewAllText: {
-    color: '#10B981',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  serviceGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  serviceCard: {
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    width: '24%',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-  },
-  serviceIconBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  newBadge: {
-    position: 'absolute',
-    top: -5,
-    right: -7,
-    backgroundColor: COLORS.emeraldAccent,
-    borderRadius: 6,
-    paddingHorizontal: 3,
-    paddingVertical: 1,
-  },
-  newBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 6,
-    fontWeight: 'bold',
-  },
-  serviceTitle: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  serviceDesc: {
-    color: COLORS.textSecondary,
-    fontSize: 8,
-    marginTop: 2,
-    textAlign: 'center',
-  },
-  expandedServices: {
-    backgroundColor: COLORS.background,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-  },
-  expandedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.cardBorder,
-  },
-  expandedBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  expandedTitle: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  expandedHint: {
-    color: COLORS.textSecondary,
-    fontSize: 10,
-    marginLeft: 8,
-  },
-  // AI Assistant Banner — deep green monochrome with light green accents
-  aiBanner: {
-    backgroundColor: COLORS.background,
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 18,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: COLORS.emeraldAccent,
-  },
-  aiIconWrap: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: COLORS.emeraldAccent,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  aiTextGroup: {
-    flex: 1,
-  },
-  aiTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  aiTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  betaPill: {
-    backgroundColor: COLORS.emeraldAccent,
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  betaText: {
-    color: '#FFFFFF',
-    fontSize: 8,
-    fontWeight: 'bold',
-  },
-  aiSub: {
-    color: COLORS.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  askNowBtn: {
-    backgroundColor: '#10B981',
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginLeft: 8,
-  },
-  askNowText: { color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  // Cooperative Hub — deep green monochrome
-  hubList: {
-    marginBottom: 10,
-  },
-  hubRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
+  sectionTitle: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  viewAllText: { color: '#00D084', fontSize: 13, fontWeight: '500' },
+  servicesScroll: { marginBottom: 20 },
+  serviceItem: {
+    width: 120,
+    backgroundColor: '#0F1E1A',
     borderRadius: 14,
     padding: 12,
-    borderWidth: 1,
-    borderColor: COLORS.cardBorder,
-    marginBottom: 10,
-  },
-  hubIconWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: COLORS.emeraldAccent,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#172C27',
+    alignItems: 'center',
   },
-  hubTextGroup: {
-    flex: 1,
+  serviceIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
-  hubTitle: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  hubDesc: {
-    color: COLORS.textSecondary,
-    fontSize: 10,
-    marginTop: 2,
-  },
-  // Network provider selection modal
-  networkOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    justifyContent: 'flex-end',
-  },
-  networkSheet: {
-    backgroundColor: COLORS.cardBg,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-  },
-  networkTitle: {
-    color: COLORS.background,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  networkSub: {
-    color: '#4B6358',
+  serviceLabel: {
+    color: '#FFF',
     fontSize: 11,
-    marginTop: 4,
-    marginBottom: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 4,
   },
-  networkRow: {
+  serviceSubtext: { color: '#64748B', fontSize: 9, textAlign: 'center', lineHeight: 11 },
+  aiBanner: {
+    backgroundColor: '#0F1E1A',
+    borderRadius: 16,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.cardBorder,
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#172C27',
+    marginBottom: 20,
   },
-  networkLogo: {
+  aiLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  botIconWrapper: {
     width: 42,
     height: 42,
     borderRadius: 21,
+    backgroundColor: '#162924',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  networkLogoText: {
-    fontSize: 17,
-    fontWeight: 'bold',
-  },
-  networkName: {
-    flex: 1,
-    color: COLORS.background,
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 12,
-  },
-  networkCancel: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    marginTop: 6,
-  },
-  networkCancelText: {
-    color: '#4B6358',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  hubThumb: {
-    width: 46,
-    height: 34,
-    borderRadius: 6,
-    backgroundColor: '#132620',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  hubThumbCar: {
-    width: 46,
-    height: 34,
-    borderRadius: 6,
-    backgroundColor: COLORS.cardBg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  // Promotional banner popup
-  bannerPopupOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  bannerPopupCard: {
-    width: '100%',
-    maxWidth: 380,
-    backgroundColor: COLORS.cardBg,
+  aiTextGroup: { flex: 1 },
+  aiTitle: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  aiSubtext: { color: '#64748B', fontSize: 10, marginTop: 2 },
+  askNowBtn: {
+    backgroundColor: '#00D084',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: COLORS.emeraldAccent,
   },
-  bannerPopupImage: { width: '100%', height: 160 },
-  bannerPopupPhoto: { width: '100%', height: 260 },
-  bannerPopupBody: { padding: 16 },
-  bannerPopupTitle: { color: COLORS.background, fontSize: 18, fontWeight: 'bold' },
-  bannerPopupDesc: { color: '#E2E8F0', fontSize: 13, marginTop: 6, lineHeight: 19 },
-  bannerPopupCategory: {
-    color: COLORS.emeraldAccent, fontSize: 11, fontWeight: '600', marginTop: 8,
-    backgroundColor: '#E8F5E9', alignSelf: 'flex-start',
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, overflow: 'hidden',
+  askNowText: { color: '#07120E', fontSize: 11, fontWeight: '700' },
+  hubListItem: {
+    backgroundColor: '#0F1E1A',
+    borderRadius: 14,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#172C27',
   },
-  bannerDismissBtn: {
-    margin: 14, marginTop: 6,
-    backgroundColor: COLORS.emeraldAccent, borderRadius: 12, paddingVertical: 12,
+  hubLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  hubIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  bannerDismissText: { color: '#FFFFFF', fontSize: 14, fontWeight: 'bold' },
+  hubTextContainer: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  hubItemTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  hubItemSub: {
+    color: '#64748B',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  hubRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  hubTagIcon: {
+    backgroundColor: '#12221D',
+    padding: 6,
+    borderRadius: 8,
+    marginRight: 8,
+  },
 });

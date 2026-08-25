@@ -105,17 +105,21 @@ function BottomTabs() {
 export default function AppNavigator() {
   const { userEmail, restoring } = useAuth();
   // Authenticated users land directly on the app; guests see the Welcome flow.
-  const initialRoute = !restoring && userEmail ? 'MainTabs' : 'Welcome';
+  const initialRoute = !restoring && userEmail ? 'MainDashboard' : 'WelcomeScreen';
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.webWrapper}>
         <Stack.Navigator key={initialRoute} initialRouteName={initialRoute} screenOptions={fullScreenOptions}>
           {/* Auth flow */}
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          <Stack.Screen name="SignIn" component={SignInScreen} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} />
+          <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} />
+          <Stack.Screen
+            name="SignInScreen"
+            component={SignInScreen}
+            initialParams={{ autoTriggerBiometrics: false }}
+          />
+          <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
 
-          <Stack.Screen name="MainTabs" component={BottomTabs} />
+          <Stack.Screen name="MainDashboard" component={BottomTabs} />
           <Stack.Screen name="MeetingChat" component={MeetingChatScreen} />
           <Stack.Screen name="CallScreen" component={CallScreen} />
           <Stack.Screen name="Marketplace" component={MarketplaceScreen} />

@@ -5,10 +5,12 @@ import {
   View,
   TouchableOpacity,
   TextInput,
+  ScrollView,
   SafeAreaView,
   StatusBar,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
@@ -16,7 +18,9 @@ import { useAuth } from '../context/AuthContext';
 
 export default function SignUpScreen({ navigation }) {
   const { registerAccount } = useAuth();
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -27,6 +31,10 @@ export default function SignUpScreen({ navigation }) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return false;
+    }
+    if (!phone || phone.replace(/\D/g, '').length < 10) {
+      Alert.alert('Invalid Phone', 'Please enter a valid phone number.');
       return false;
     }
     if (!password || password.length < 6) {
@@ -50,13 +58,14 @@ export default function SignUpScreen({ navigation }) {
       Alert.alert('Sign Up Failed', res.error || 'Could not create your account.');
       return;
     }
-    navigation.replace('MainTabs');
+    navigation.replace('MainDashboard');
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor='#091813' barStyle="light-content" />
       <LinearGradient colors={['#091813', '#1A3A24']} style={styles.gradient}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <ChevronLeft color="#FFFFFF" size={24} />
@@ -64,9 +73,35 @@ export default function SignUpScreen({ navigation }) {
           <Text style={styles.title}>Create Account</Text>
         </View>
 
+        <View style={styles.steps}>
+          <Text style={styles.stepsLabel}>Step 1 of 2 · Account Details</Text>
+          <View style={styles.stepsTrack}>
+            <View style={[styles.stepsFill, { width: '50%' }]} />
+          </View>
+        </View>
+
         <View style={styles.form}>
+          <Image
+            resizeMode="contain"
+            source={require('../../assets/logo.png')}
+            style={styles.brandLogo}
+          />
+          <Text style={styles.brandTitle}>Create your account</Text>
+
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. Temitope Adewale"
+              placeholderTextColor="#526E63"
+              value={fullName}
+              onChangeText={setFullName}
+              autoCapitalize="words"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email Address</Text>
             <TextInput
               style={styles.input}
               placeholder="you@example.com"
@@ -75,6 +110,18 @@ export default function SignUpScreen({ navigation }) {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. +234 801 234 5678"
+              placeholderTextColor="#526E63"
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
             />
           </View>
 
@@ -136,17 +183,18 @@ export default function SignUpScreen({ navigation }) {
             {submitting ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.primaryBtnTxt}>Create Account</Text>
+              <Text style={styles.primaryBtnTxt}>Continue</Text>
             )}
           </TouchableOpacity>
 
           <View style={styles.footer}>
             <Text style={styles.footerTxt}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
+            <TouchableOpacity onPress={() => navigation.navigate('SignInScreen')}>
               <Text style={styles.link}>Sign In</Text>
             </TouchableOpacity>
           </View>
         </View>
+        </ScrollView>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -165,12 +213,43 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   backBtn: { padding: 6, marginRight: 8 },
+  steps: { paddingHorizontal: 24, marginBottom: 14 },
+  stepsLabel: {
+    color: '#A7F3D0',
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  stepsTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#172F27',
+    overflow: 'hidden',
+  },
+  stepsFill: { height: 6, borderRadius: 3, backgroundColor: '#D4AF37' },
+  scrollContent: { paddingBottom: 40 },
   title: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
   },
   form: { paddingHorizontal: 24, gap: 20 },
+  brandLogo: {
+    width: 96,
+    height: 96,
+    alignSelf: 'center',
+    borderRadius: 48,
+    borderWidth: 1.5,
+    borderColor: '#10B981',
+    marginBottom: 4,
+  },
+  brandTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
   inputGroup: { gap: 6 },
   label: {
     color: '#A7F3D0',
@@ -185,7 +264,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#1E3A30',
   },
   inputRow: {
     flexDirection: 'row',
@@ -193,7 +272,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#172F27',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#1E3A30',
   },
   eyeBtn: { paddingHorizontal: 12 },
   primaryBtn: {

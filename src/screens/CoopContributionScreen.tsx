@@ -18,7 +18,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
 import BankDetailsCard from '../components/BankDetailsCard';
 
-export default function CoopContributionScreen({ navigation: rawNav }) {
+export default function CoopContributionScreen({ navigation: rawNav }: { navigation?: any }) {
   const navigation = useSafeNavigation(rawNav);
   const { addTransaction } = useTransactions();
   const [schedule, setSchedule] = useState('monthly');
@@ -78,12 +78,12 @@ export default function CoopContributionScreen({ navigation: rawNav }) {
 
     // Record the contribution in the member's audit trail so every balance,
     // history and statement updates automatically.
-    addTransaction({
-      type: 'contribution',
-      label: `${schedule.charAt(0).toUpperCase()}${schedule.slice(1)} Co-op Contribution`,
-      amount: parsedAmount,
-      reference: reference.trim(),
-    });
+(addTransaction as any)({
+  type: 'contribution',
+  label: `${schedule.charAt(0).toUpperCase()}${schedule.slice(1)} Co-op Cont`,
+  amount: parsedAmount,
+  reference: reference.trim(),
+});
 
     Alert.alert(
       'Contribution submitted',
