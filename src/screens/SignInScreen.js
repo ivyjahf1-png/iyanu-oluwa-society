@@ -26,7 +26,7 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Fingerprint, Delete, ChevronLeft } from 'lucide-react-native';
+import { Fingerprint, Delete, ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { AUTH_COLORS, AUTH_GRADIENTS } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
@@ -250,7 +250,11 @@ export default function SignInScreen({ navigation, route }) {
                     onPress={() => setShowPassword(!showPassword)}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
-                    {showPassword ? null : null}
+                    {showPassword ? (
+                      <EyeOff size={20} color={AUTH_COLORS.textSecondary} />
+                    ) : (
+                      <Eye size={20} color={AUTH_COLORS.textSecondary} />
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>

@@ -11,7 +11,7 @@
  * coop-ai/index.ts) so it cannot be tampered with from the client; it is
  * re-declared here purely as documentation/reference for local tooling.
  */
-import { SUPABASE_UNCONFIGURED } from './supabase';
+import { SUPABASE_UNCONFIGURED, supabase } from './supabase';
 
 export const SYSTEM_PROMPT = `
 You are an intelligent, versatile, and supportive AI assistant embedded in the application.
@@ -111,6 +111,24 @@ async function askGeminiDirect(
 }
 
 /**
+ * Send a prompt to the Supabase Edge Function `coop-ai` (Gemini-powered).
+ *
+ * Uses the Supabase JS client's `functions.invoke` so the request is
+ * automatically authenticated with the anon key and routed correctly.
+ *
+ * @param {string} userPrompt - The user's latest message.
+ * @param {Array<{ role: string, content: string }>} [chatHistory] - Prior turns for context.
+ * @returns {Promise<string>} The assistant's reply text.
+ */
+export async function askAI(userPrompt, chatHistory = []) {
+  const { data, error } = await supabase.functions.invoke('coop-ai', {
+    body: { prompt: userPrompt, history: chatHistory },
+  });
+  if (error) throw error;
+  return data.reply;
+}
+
+/**
  * Send a prompt (with optional conversation history) to the chat endpoint.
  *
  * @param {string} userMessage - The user's latest message.
@@ -194,4 +212,4 @@ export async function sendChatMessage(userMessage, chatHistory = []) {
   throw new Error('No response received.');
 }
 
-export default { SYSTEM_PROMPT, sendChatMessage };
+export default { SYSTEM_PROMPT, sendChatMessage, askAI };

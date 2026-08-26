@@ -18,6 +18,10 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { isAdminAccount } from '../lib/adminSecurity';
 import { useAdminLock } from '../components/AdminLock';
+import { useUser } from '../context/UserContext';
+import { deriveDisplayName } from '../auth/authService';
+import Greeting from '../components/Greeting';
+import useLiveEnvironment from '../hooks/useLiveEnvironment';
 
 export default function HomeScreen({ navigation }) {
   // Centralized currency formatter — explicit Unicode escape so the ₦ symbol
@@ -33,7 +37,19 @@ export default function HomeScreen({ navigation }) {
   // Admin visibility: the header shield is shown only to allowed admin accounts.
   // When no admin allowlist is configured (env empty), this defaults to true so
   // the existing admin passcode/biometric lock remains the sole gate.
-  const { userEmail } = useAuth();
+    const { userEmail, displayName: authDisplayName } = useAuth();
+  const { user } = useUser();
+  // Live environment (time-synced greeting + optional weather chip).
+  // Fully additive: degrades gracefully when permission/network unavailable.
+  const env = useLiveEnvironment();
+  // Name resolution order: saved custom full name -> auth-derived email
+  // prefix (skiszyofficial@gmail.com -> "Skiszyofficial") -> generic member.
+  // The factory placeholder never masks the real email-derived identity.
+  const PLACEHOLDER_NAME = 'Temitope Adewale';
+  const savedName =
+    user?.fullName && user.fullName !== PLACEHOLDER_NAME ? user.fullName : null;
+  const displayName =
+    savedName || authDisplayName || (userEmail ? deriveDisplayName(userEmail) : 'Member');
   const isAdminVisible = isAdminAccount(userEmail);
 
   // Global admin verification: biometric prompt → PIN keypad fallback.
@@ -83,8 +99,8 @@ export default function HomeScreen({ navigation }) {
         {/* TOP HEADER */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greetingText}>Good morning,</Text>
-            <Text style={styles.userName}>Ivyjahf</Text>
+            <Greeting textStyle={styles.greetingText} weather={env.weather} />
+            <Text style={styles.userName}>{displayName}</Text>
             <View style={styles.badgeRow}>
               <Ionicons name="shield-checkmark" size={14} color="#00D084" />
               <Text style={styles.societyName}>Standard Mutual Savings</Text>

@@ -26,6 +26,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AUTH_COLORS, AUTH_GRADIENTS } from '../constants/theme';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
 export default function SignUpScreen({ navigation }) {
@@ -166,7 +167,11 @@ export default function SignUpScreen({ navigation }) {
                 onPress={() => setShowPassword(!showPassword)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                {showPassword}
+                {showPassword ? (
+                  <EyeOff size={20} color={AUTH_COLORS.textSecondary} />
+                ) : (
+                  <Eye size={20} color={AUTH_COLORS.textSecondary} />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -186,7 +191,11 @@ export default function SignUpScreen({ navigation }) {
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                {showConfirmPassword}
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color={AUTH_COLORS.textSecondary} />
+                ) : (
+                  <Eye size={20} color={AUTH_COLORS.textSecondary} />
+                )}
               </TouchableOpacity>
             </View>
           </View>

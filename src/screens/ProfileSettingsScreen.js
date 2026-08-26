@@ -42,12 +42,25 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
     setPasscode,
     setPasscodeEnabled,
     logout,
+    userEmail,
+    displayName: authDisplayName,
   } = useAuth();
   const isInitialRender = useRef(true);
 
-  // Initialize state directly with user data
-  const [fullName, setFullName] = useState(user?.fullName || '');
-  const [email, setEmail] = useState(user?.email || '');
+  // Factory placeholder that must never mask the real email-derived identity
+  // (same rule as the dashboard header, so both screens always agree).
+  const PLACEHOLDER_NAME = 'Temitope Adewale';
+  // Name shown here is derived from the signed-in email prefix exactly like
+  // AuthContext.displayName / dashboard (temitope.adewale@x.org -> "Temitope Adewale").
+  const effectiveFullName =
+    user?.fullName && user.fullName !== PLACEHOLDER_NAME
+      ? user.fullName
+      : authDisplayName || '';
+
+  // Initialize state directly with user data, auto-filled from the
+  // authenticated account when the profile has no saved values yet.
+  const [fullName, setFullName] = useState(effectiveFullName);
+  const [email, setEmail] = useState(userEmail || user?.email || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [biometric, setBiometric] = useState(Boolean(user?.biometricEnabled));
   const [currentPassword, setCurrentPassword] = useState('');
@@ -66,16 +79,24 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
   const [newPasscode, setNewPasscode] = useState('');
   const [confirmPasscode, setConfirmPasscode] = useState('');
 
-  const handleBiometricToggle = async (enabled) => {
+    const handleBiometricToggle = async (enabled) => {
     if (enabled) {
+      // enableBiometric() verifies hardware, runs LocalAuthentication.
+      // authenticateAsync(), and only persists the preference on success.
       const res = await enableBiometric();
       if (!res.ok) {
         Alert.alert('Biometric Unavailable', res.error || 'Could not enable biometrics.');
-        return; // switch stays off
+        // AuthContext left `methods.biometric` false; mirror that in the local
+        // profile state so Save Changes persists the correct flag.
+        setBiometric(false);
+        return; // switch snaps back to off
       }
+      // Keep local state in sync with the AuthContext flag so a Save persists it.
+      setBiometric(true);
       Alert.alert('Biometric Enabled', 'You can now unlock the app with Face ID / Fingerprint.');
     } else {
       await disableBiometric();
+      setBiometric(false);
     }
   };
 
@@ -132,8 +153,14 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
   // Sync state ONLY if user context was loading when screen mounted
   useEffect(() => {
     if (user && isInitialRender.current) {
-      setFullName(user.fullName || '');
-      setEmail(user.email || '');
+      // Same auth-backed fallbacks as the initial state above: autofill the
+      // sign-in email and the email-derived name when nothing is saved yet.
+      setFullName(
+        user.fullName && user.fullName !== PLACEHOLDER_NAME
+          ? user.fullName
+          : effectiveFullName,
+      );
+      setEmail(userEmail || user.email || '');
       setPhone(user.phone || '');
       setBiometric(Boolean(user.biometricEnabled));
       setTransferPin(user.transferPin || '');
@@ -146,6 +173,22 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
       isInitialRender.current = false;
     }
   }, [user]);
+
+  // Dynamically keep the name and email input fields in sync with the
+  // currently signed-in auth user. The auth context (`userEmail` +
+  // `displayName`) is the source of truth for the live session, so these
+  // inputs always reflect the real signed-in user instead of the hardcoded
+  // UserContext default values.
+  useEffect(() => {
+    // Name: only auto-populate from the auth-derived display name when the
+    // saved profile still carries the factory placeholder (or no name at
+    // all). A deliberately saved custom name is never overwritten.
+    if (!user?.fullName || user.fullName === PLACEHOLDER_NAME) {
+      setFullName(authDisplayName || '');
+    }
+    // Email: always reflect the signed-in user's email from the auth context.
+    if (userEmail) setEmail(userEmail);
+  }, [userEmail, authDisplayName, user?.fullName]);
 
   const pickAvatar = async () => {
     try {

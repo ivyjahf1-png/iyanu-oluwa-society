@@ -16,7 +16,7 @@ import {
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { Send, Bot, Sparkles, MoreVertical, Trash2, Pencil, Check, X } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
-import { sendChatMessage } from '../lib/aiChat';
+import { askAI } from '../lib/aiChat';
 
 const SUGGESTIONS = [
   'How is my loan interest calculated?',
@@ -49,7 +49,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
     }
   }, [messages, loading]);
 
-  const askAI = async question => {
+  const handleAskAI = async question => {
     const userMessage = (question ?? inputText).trim();
     if (!userMessage || loading) return;
 
@@ -69,7 +69,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
     setLoading(true);
 
     try {
-      const reply = await sendChatMessage(userMessage, chatHistory);
+      const reply = await askAI(userMessage, chatHistory);
       setMessages(prev => [
         ...prev,
         { id: `a-${Date.now()}`, sender: 'ai', text: reply },
@@ -130,10 +130,10 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
         role: m.sender === 'me' ? 'user' : 'assistant',
         content: m.text ?? '',
       }))
-      .slice(0, -1); // exclude the edited turn itself — sendChatMessage adds it
+      .slice(0, -1); // exclude the edited turn itself — askAI adds it
 
     try {
-      const reply = await sendChatMessage(newText, history);
+      const reply = await askAI(newText, history);
       setMessages(prev => [
         ...prev,
         { id: `a-${Date.now()}`, sender: 'ai', text: reply },
@@ -207,7 +207,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
           </View>
           <View style={styles.chipRow}>
             {SUGGESTIONS.map(s => (
-              <TouchableOpacity key={s} style={styles.chip} onPress={() => askAI(s)}>
+              <TouchableOpacity key={s} style={styles.chip} onPress={() => handleAskAI(s)}>
                 <Text style={styles.chipText}>{s}</Text>
               </TouchableOpacity>
             ))}
@@ -292,7 +292,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
           />
           <TouchableOpacity
             style={[styles.sendBtn, !inputText.trim() && styles.sendBtnDisabled]}
-            onPress={() => askAI()}
+            onPress={() => handleAskAI()}
             disabled={!inputText.trim() || loading}
           >
             <Send size={18} color="#FFFFFF" />

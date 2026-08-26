@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
+import * as authService from '../auth/authService';
 
 /**
  * Global user profile & settings context.
@@ -43,6 +44,29 @@ export function UserProvider({ children }) {
         if (raw) setUser({ ...DEFAULTS, ...JSON.parse(raw) });
       } catch (e) {
         // Corrupt storage — fall back to defaults.
+      }
+      // ---- ADDITIVE: email-based name sync ----
+      // If the profile still carries the factory-placeholder name (or none),
+      // replace it with the signed-in user's email-derived display name
+      // (skiszyofficial@gmail.com -> "Skiszyofficial"). A deliberately saved
+      // custom name is never overwritten.
+      try {
+        const session = await authService.getSession();
+        const email = session?.email;
+        if (email) {
+          const derived = authService.deriveDisplayName(email);
+          setUser(prev => {
+            const isPlaceholder =
+              !prev.fullName || prev.fullName.trim() === DEFAULTS.fullName;
+            if (!isPlaceholder || !derived || derived === 'Member') return prev;
+            const next = { ...prev, fullName: derived };
+            storage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+            return next;
+          });
+        }
+      } catch (e) {
+        // Auth not ready / unavailable — dashboard falls back to live
+        // derivation from userEmail, so nothing breaks.
       }
       setHydrated(true);
     })();

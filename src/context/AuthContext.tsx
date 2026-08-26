@@ -3,12 +3,18 @@
  * app lock/unlock, and background-return locking.
  */
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as authService from '../auth/authService';
 
 export interface AuthState {
   userEmail: string | null;
+  /**
+   * Human-friendly name derived from the signed-in email prefix
+   * (skiszyofficial@gmail.com -> "Skiszyofficial"). Additive field —
+   * existing consumers are unaffected.
+   */
+  displayName: string | null;
   restoring: boolean;
   /** True once the persisted onboarding flag has been read from storage. */
   welcomeLoaded: boolean;
@@ -66,9 +72,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         await refreshMethods();
         try {
-          const hasHardware = await LocalAuthentication.hasHardwareAsync();
-          const enrolled = await LocalAuthentication.isEnrolledAsync();
-          setBiometricAvailable(hasHardware && enrolled);
+          // Native biometric probes are unavailable in browsers — skip on web.
+          if (Platform.OS !== 'web') {
+            const hasHardware = await LocalAuthentication.hasHardwareAsync();
+            const enrolled = await LocalAuthentication.isEnrolledAsync();
+            setBiometricAvailable(hasHardware && enrolled);
+          } else {
+            setBiometricAvailable(false);
+          }
         } catch (e) {
           setBiometricAvailable(false);
         }
@@ -190,6 +201,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const enableBiometric = async () => {
     try {
+      // ---- ADDITIVE: web platform guard ----
+      // expo-local-authentication's native hardware APIs have no browser
+      // implementation without WebAuthn. On web, probe for a WebAuthn
+      // capable browser and fail gracefully (never throw / hang the toggle).
+      if (Platform.OS === 'web') {
+        // WebAuthn probe kept for future browser-credential support; today we
+        // degrade gracefully instead of throwing or leaving the toggle stuck.
+        const hasWebAuthn =
+          typeof window !== 'undefined' &&
+          typeof window.PublicKeyCredential !== 'undefined';
+        void hasWebAuthn;
+        return {
+          ok: false,
+          error: 'Biometric authentication is only available on supported mobile devices',
+        };
+      }
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const enrolled = await LocalAuthentication.isEnrolledAsync();
       if (!hasHardware || !enrolled) {
@@ -230,6 +257,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value: AuthState = {
     userEmail,
+    // Live email-prefix display name (additive — see AuthState docs).
+    displayName: userEmail ? authService.deriveDisplayName(userEmail) : null,
     restoring,
     welcomeLoaded,
     hasCompletedWelcome,
