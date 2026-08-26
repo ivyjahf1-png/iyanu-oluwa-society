@@ -649,9 +649,8 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         onRemoveSavedSticker={removeSticker}
         onAddStickerHint={() => Alert.alert('Add Sticker', 'Long-press a received image to save it here.')}
       />
-    </Text>
-  );
-}
+
+      {/* Bottom input bar — professional layout */}
       <View style={styles.inputBar}>
         <View style={styles.inputBarLeading}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setShowEmojiPicker(v => !v)}>
