@@ -12,8 +12,6 @@ import {
   Image,
   Alert,
   GestureResponderEvent,
-  SectionList,
-  FlatList,
 } from 'react-native';
 import {
   ChevronLeft,
@@ -36,17 +34,12 @@ import {
   Pencil,
   Trash2,
   Plus,
-  Sticker,
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import { storage } from '../lib/storage';
 import { onMeetingMessage, broadcastMeetingMessage, MeetingMessage } from '../lib/meetingChat';
-import {
-  STICKER_CATEGORIES,
-  DEFAULT_STICKERS,
-  stickersForCategory,
-} from '../data/defaultStickers';
+import EmojiPicker from '../components/EmojiPicker';
 
 /** Local message model used for rendering. */
 interface ChatMessage {
@@ -73,57 +66,6 @@ interface UserProfile {
   email: string;
   [key: string]: any;
 }
-
-type EmojiCategory = { label: string; data: string[] };
-
-const EMOJI_CATEGORIES: EmojiCategory[] = [
-  {
-    label: 'Smileys',
-    data: [
-      '😀','😁','😂','😃','😄','😅','😆','😇','😈','😉','😊','😋','😎','😍','😘','😗','😙','😚','😛','😜',
-      '😝','😠','😡','😢','😣','😥','😌','😔','😖','😫','😶','😷','😹','😺','😻','😼','🐅','🐆','🦓','🐘',
-      '🦏','🐒','🐵','🐶','🐕','🐩','🦊','🐸','🐷','🐹','😺','😻','😼','🐅','🐆','🦏','🐘','🐒',
-    ],
-  },
-  {
-    label: 'Gestures',
-    data: [
-      '👋','👌','👍','👎','✊','👊','🤝','🙏','👏','🌟','🤟','🖐','✋','👐','🤲','🧎','🧑','👀','👂','👃',
-      '👄','🙌','👉','👈','👆','👇','👋','💪','🤝','🙏','👏','🙌','👐','👍','👎','✊','👊','🤲','🧎','🙏',
-    ],
-  },
-  {
-    label: 'Animals',
-    data: [
-      '🐵','🐒','🦍','🦧','🐶','🐕','🦮','🐕','🐩','🐺','🦊','🐱','🐈','🦁','🐯','🐅','🐆','🦓','🐘','🦏',
-      '🦛','🐪','🐫','🦒','🦘','🦬','🐄','🐮','🐂','🐃','🐷','🐖','🐗','🐽','🐏','🐑','🐝','🦋','🐛',
-    ],
-  },
-  {
-    label: 'Food',
-    data: [
-      '🍎','🍊','🍋','🍌','🍉','🍇','🍓','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🌽','🌶','🌰','🫘',
-      '🍞','🥐','🥖','🫓','🥨','🧀','🥚','🍳','🥞','🧇','🥓','🥩','🍗','🍖','🌭','🍔','🍟','🍕','🥪','🌮',
-    ],
-  },
-  {
-    label: 'Objects',
-    data: [
-      '🏠','🏡','🏢','🏣','🏥','🏦','🏧','🌉','🗽','🗼','⛪','⛩','🏛','🏠','🏬','🏭','💒','🗝️','🗯','💻',
-      '🚗','🚕','🚓','🚜','🦺','🚒','🚑','🚐','🚊','🚋','🚆','🚄','✈️','🛩','🛸','🛺','🚲','🛴','🛵','⚓',
-    ],
-  },
-  {
-    label: 'Symbols',
-    data: [
-      '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','💥','✨','⚡','🔥','💫','⭐','🌟','🌠','✅','❌',
-      '⭕','❗','❓','❔','✳️','✴️','⚇','⚡','⚛️','⃣','〰','🆕','🆔','🅰️','🆎','🅿️','♻️','✖️','✖','〽️',
-    ],
-  },
-];
-
-// Backwards-compatible flat list alias
-const EMOJIS: string[] = EMOJI_CATEGORIES.flatMap(c => c.data);
 
 /** Storage keys for the sticker system. */
 const STICKER_STORAGE_KEY = 'meeting_chat_saved_stickers';
@@ -211,7 +153,6 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
   const [inputText, setInputText] = useState<string>('');
   const [isOnlineVisible, setIsOnlineVisible] = useState<boolean>(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
-  const [pickerTab, setPickerTab] = useState<'emojis' | 'stickers'>('emojis');
   const [savedStickers, setSavedStickers] = useState<SavedSticker[]>([]);
   // Quick-filter category for the sticker grid ('All' | 'Hi' | 'Haha' | ...).
   const [activeStickerCategory, setActiveStickerCategory] = useState<string>('All');
@@ -695,136 +636,22 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         </View>
       ) : null}
 
-            {/* Picker panel (emoji + stickers) */}
-      {showEmojiPicker ? (
-        <View style={styles.pickerPanel}>
-          {/* Tab bar */}
-          <View style={styles.pickerTabBar}>
-            <TouchableOpacity
-              style={[styles.pickerTab, pickerTab === 'emojis' && styles.pickerTabActive]}
-              onPress={() => setPickerTab('emojis')}
-            >
-              <Text style={[styles.pickerTabText, pickerTab === 'emojis' && styles.pickerTabTextActive]}>Emojis</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.pickerTab, pickerTab === 'stickers' && styles.pickerTabActive]}
-              onPress={() => setPickerTab('stickers')}
-            >
-              <Sticker size={18} color={pickerTab === 'stickers' ? '#10B981' : '#9CB8A6'} />
-              <Text style={[styles.pickerTabText, pickerTab === 'stickers' && styles.pickerTabTextActive]}>Stickers</Text>
-            </TouchableOpacity>
-          </View>
-
-          {pickerTab === 'emojis' ? (
-            /* Categorized emoji grid rendered via SectionList for 60fps scrolling */
-            <SectionList
-              sections={EMOJI_CATEGORIES.map(c => ({ title: c.label, data: c.data }))}
-              keyExtractor={(item, idx) => `${item}-${idx}`}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.emojiCellContainer} onPress={() => appendEmoji(item)}>
-                  <Text style={styles.emojiCell}>{item}</Text>
-                </TouchableOpacity>
-              )}
-              renderSectionHeader={({ section }) => (
-                <Text style={styles.emojiSectionHeader}>{section.title}</Text>
-              )}
-              stickySectionHeadersEnabled={false}
-              numColumns={6}
-              columnWrapperStyle={{ justifyContent: 'center' }}
-              showsVerticalScrollIndicator={false}
-              ListFooterComponent={<View style={{ height: 16 }} />}
-            />
-          ) : (
-            /* Stickers tab */
-            <ScrollView
-              style={styles.stickerScroll}
-              showsVerticalScrollIndicator={false}
-            >
-              {/* User's saved stickers */}
-              {savedStickers.length > 0 && (
-                <>
-                  <Text style={styles.stickerSectionTitle}>My Stickers</Text>
-                  <View style={styles.stickerGrid}>
-                    {savedStickers.map((s) => (
-                      <TouchableOpacity
-                        key={s.id}
-                        style={styles.stickerCell}
-                        onPress={() => { setInputText(prev => prev + s.url); setShowEmojiPicker(false); }}
-                        onLongPress={() => removeSticker(s.id)}
-                      >
-                        <Image source={{ uri: s.url }} style={styles.stickerImg} />
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </>
-              )}
-
-              {/* Category quick-filter bar */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.stickerFilterBar}
-                contentContainerStyle={{ paddingHorizontal: 4, gap: 8 }}
-              >
-                {STICKER_CATEGORIES.map((cat) => (
-                  <TouchableOpacity
-                    key={cat}
-                    style={[
-                      styles.stickerFilterPill,
-                      activeStickerCategory === cat && styles.stickerFilterPillActive,
-                    ]}
-                    onPress={() => setActiveStickerCategory(cat)}
-                  >
-                    <Text
-                      style={[
-                        styles.stickerFilterText,
-                        activeStickerCategory === cat && styles.stickerFilterTextActive,
-                      ]}
-                    >
-                      {cat}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-
-              {/* WhatsApp-style sticker grid (virtualized, 6 columns) */}
-              <FlatList
-                data={stickersForCategory(activeStickerCategory)}
-                keyExtractor={(item) => item.id}
-                numColumns={6}
-                columnWrapperStyle={{ justifyContent: 'center' }}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={
-                  <Text style={styles.noResults}>No stickers in this category.</Text>
-                }
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.stickerCell}
-                    onPress={() => sendSticker(item.url)}
-                    onLongPress={() => saveSticker(item.url, item.category)}
-                  >
-                    <Image
-                      source={{ uri: item.url }}
-                      style={{ width: 48, height: 48, resizeMode: 'contain' }}
-                    />
-                  </TouchableOpacity>
-                )}
-              />
-
-              {/* + Save / Add Sticker option */}
-              <TouchableOpacity
-                style={styles.addStickersRow}
-                onPress={() => Alert.alert('Add Sticker', 'Long-press any received image to save it here.')}
-              >
-                <Plus size={22} color="#A7F3D0" />
-                <Text style={styles.addStickersText}>Save / Add Sticker</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          )}
-        </View>
-      ) : null}
-
-      {/* Bottom input bar — professional layout */}
+            {/* Emoji & sticker picker (bottom-sheet modal) */}
+      <EmojiPicker
+        visible={showEmojiPicker}
+        onClose={() => setShowEmojiPicker(false)}
+        onSelectEmoji={appendEmoji}
+        savedStickers={savedStickers}
+        activeStickerCategory={activeStickerCategory}
+        onStickerCategoryChange={setActiveStickerCategory}
+        onSelectSticker={sendSticker}
+        onLongPressSticker={saveSticker}
+        onRemoveSavedSticker={removeSticker}
+        onAddStickerHint={() => Alert.alert('Add Sticker', 'Long-press a received image to save it here.')}
+      />
+    </Text>
+  );
+}
       <View style={styles.inputBar}>
         <View style={styles.inputBarLeading}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setShowEmojiPicker(v => !v)}>

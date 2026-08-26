@@ -7,26 +7,29 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const SYSTEM_PROMPT = `You are an intelligent, versatile, and supportive AI assistant embedded in the application.
+const SYSTEM_PROMPT = `You are an intelligent, versatile, and supportive AI assistant embedded in the cooperative application.
 
 Core Behavior:
-1. Versatile Knowledge: Answer both general knowledge questions and app-specific inquiries accurately and directly.
+1. Versatile Knowledge: Answer general knowledge/coding questions AND app-specific cooperative inquiries accurately and directly.
 2. Direct Openings: Jump straight into the answer without introductory fluff.
 3. Clear Structure: Prioritize scannability using bullet points and bolding.
 4. Tone & Style: Maintain an authentic, grounded, and helpful tone.`;
 
 interface ChatTurn {
-  role: 'user' | 'model' | 'assistant' | 'system';
+  role?: string;
+  sender?: string;
   text?: string;
   content?: string;
+  message?: string;
 }
 
-// Current Gemini models - tried in order until one accepts the request.
-// (gemini-1.5-* have been retired by Google and return 404 NOT_FOUND.)
+// Current-generation Gemini models - tried in order until one accepts the request.
+// Older models (gemini-1.5-*, gemini-2.5-flash) have been retired by Google and
+// return 404 NOT_FOUND. Prioritized current stable model, then short aliases.
 const GEMINI_MODELS = [
+  'gemini-3.6-flash',
   'gemini-flash-latest',
   'gemini-2.0-flash',
-  'gemini-2.5-flash',
 ];
 
 Deno.serve(async (req: Request) => {
@@ -45,7 +48,11 @@ Deno.serve(async (req: Request) => {
 
     const body = await req.json();
     const userMessage: string = body?.userMessage ?? body?.prompt;
-    const chatHistory: ChatTurn[] = Array.isArray(body?.chatHistory) ? body.chatHistory : Array.isArray(body?.history) ? body.history : [];
+    const rawHistory: ChatTurn[] = Array.isArray(body?.chatHistory)
+      ? body.chatHistory
+      : Array.isArray(body?.history)
+      ? body.history
+      : [];
 
     if (!userMessage || !userMessage.trim()) {
       return new Response(JSON.stringify({ error: 'Missing userMessage' }), {
@@ -54,48 +61,70 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const toText = (t: ChatTurn) => String(t?.text ?? t?.content ?? '');
-    const toRole = (r: string) => (r === 'assistant' || r === 'system' ? 'model' : 'user');
+    const extractText = (turn: ChatTurn): string => {
+      return (turn?.text || turn?.content || turn?.message || '').trim();
+    };
+
+    const mapRole = (roleStr?: string, senderStr?: string): 'user' | 'model' => {
+      const r = (roleStr || senderStr || '').toLowerCase();
+      if (r === 'assistant' || r === 'model' || r === 'bot' || r === 'coop ai') {
+        return 'model';
+      }
+      return 'user';
+    };
+
+    const formattedHistory = rawHistory
+      .map(turn => ({
+        role: mapRole(turn.role, turn.sender),
+        parts: [{ text: extractText(turn) }]
+      }))
+      .filter(turn => turn.parts[0].text.length > 0);
 
     const contents = [
-      ...chatHistory
-        .filter(t => t && ['user', 'model', 'assistant', 'system'].includes(t.role) && toText(t))
-        .map(t => ({ role: toRole(t.role), parts: [{ text: toText(t) }] })),
-      { role: 'user', parts: [{ text: userMessage }] }
+      ...formattedHistory,
+      { role: 'user', parts: [{ text: userMessage.trim() }] }
     ];
 
+    const retryStatuses = [404, 429, 503];
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
     let okResponse: Response | null = null;
     let lastDetail: any = null;
     let lastModel = '';
 
     for (const model of GEMINI_MODELS) {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+      // Retry transient failures (503 high demand / 429 rate limit) up to 2x
+      // per model with a short backoff before falling to the next model.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: SYSTEM_PROMPT }]
-          },
-          contents: contents,
-          generationConfig: {
-            maxOutputTokens: 1000
-          }
-        })
-      });
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: {
+              parts: [{ text: SYSTEM_PROMPT }]
+            },
+            contents: contents
+          })
+        });
 
-      if (response.ok) {
-        okResponse = response;
-        break;
+        if (response.ok) {
+          okResponse = response;
+          break;
+        }
+
+        lastDetail = await response.json().catch(() => null);
+        lastModel = model;
+        if (retryStatuses.includes(response.status) && attempt < 2) {
+          console.error(`Gemini ${model} ${response.status}, retrying (${attempt + 1}/2)`);
+          await delay(600 * (attempt + 1));
+          continue;
+        }
+        break; // non-retryable error for this model
       }
 
-      // 404 means the model is retired/unavailable -> try the next one.
-      // Any other failure (401 bad key, 429 quota, 400 bad request) stops the chain.
-      lastDetail = await response.json().catch(() => null);
-      lastModel = model;
-      console.error(`Gemini attempt with ${model} failed:`, JSON.stringify(lastDetail));
-      if (response.status !== 404 && response.status !== 400) break;
+      if (okResponse) break;
+      console.error(`Gemini attempts for ${model} failed:`, JSON.stringify(lastDetail));
     }
 
     if (!okResponse) {
