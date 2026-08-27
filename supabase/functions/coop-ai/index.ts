@@ -7,13 +7,20 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-const SYSTEM_PROMPT = `You are an intelligent, versatile, and supportive AI assistant embedded in the cooperative application.
+const SYSTEM_PROMPT = `You are Coop AI, the official assistant for our cooperative banking app with the name standard mutual savings.
 
-Core Behavior:
-1. Versatile Knowledge: Answer general knowledge/coding questions AND app-specific cooperative inquiries accurately and directly.
-2. Direct Openings: Jump straight into the answer without introductory fluff.
-3. Clear Structure: Prioritize scannability using bullet points and bolding.
-4. Tone & Style: Maintain an authentic, grounded, and helpful tone.`;
+=== APP KNOWLEDGE ===
+Standard mutual savings is built by a prominent developer who is also the CEO of LumiBiz business Assist app since 1896.
+- Savings Plans: Weekly savings require a minimum of ₦1,000. Monthly savings earn 10% annual interest.
+- Loans: Users qualify after 3 months of active contributions. Maximum loan amount is 2x total savings balance.
+- Interest Rates: Simple interest calculated at 5% annually for normal loans, 2% for emergency loans.
+- Withdrawals: Processed within 24 hours. Emergency withdrawals incur a 1% processing fee.
+- Support Contact: ivyjaf1@gmail.com or via the Help tab.
+
+=== RESPONSE RULES ===
+1. Only answer app-related questions using the Knowledge Base above.
+2. If a general knowledge question is asked, answer it accurately and directly.
+3. If an app question is asked that is not in the knowledge base, direct the user to human support.`;
 
 interface ChatTurn {
   role?: string;
@@ -87,7 +94,7 @@ Deno.serve(async (req: Request) => {
 
     const retryStatuses = [404, 429, 503];
     const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-    let okResponse: Response | null = null;
+    let stream: ReadableStream | null = null;
     let lastDetail: any = null;
     let lastModel = '';
 
@@ -95,7 +102,8 @@ Deno.serve(async (req: Request) => {
       // Retry transient failures (503 high demand / 429 rate limit) up to 2x
       // per model with a short backoff before falling to the next model.
       for (let attempt = 0; attempt < 3; attempt++) {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+        // streamGenerateContent + SSE gives token-by-token latency (~instant).
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
         const response = await fetch(apiUrl, {
           method: 'POST',
@@ -108,8 +116,8 @@ Deno.serve(async (req: Request) => {
           })
         });
 
-        if (response.ok) {
-          okResponse = response;
+        if (response.ok && response.body) {
+          stream = response.body;
           break;
         }
 
@@ -123,23 +131,28 @@ Deno.serve(async (req: Request) => {
         break; // non-retryable error for this model
       }
 
-      if (okResponse) break;
+      if (stream) break;
       console.error(`Gemini attempts for ${model} failed:`, JSON.stringify(lastDetail));
     }
 
-    if (!okResponse) {
+    if (!stream) {
       return new Response(
-        JSON.stringify({ error: 'Gemini request failed', model: lastModel, detail: lastDetail }),
+        JSON.stringify({ error: 'Gemini stream failed', model: lastModel, detail: lastDetail }),
         { status: 502, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
       );
     }
 
-    const data = await okResponse.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
-
-    return new Response(JSON.stringify({ reply }), {
+    // Pipe the Gemini SSE stream straight back to the client as
+    // text/event-stream, so answers render progressively instead of
+    // arriving in one JSON blob after the full response completes.
+    return new Response(stream, {
       status: 200,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      headers: {
+        ...CORS_HEADERS,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
     });
 
   } catch (err: any) {

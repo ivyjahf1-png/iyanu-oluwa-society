@@ -44,7 +44,7 @@ const Stack = createStackNavigator();
 const tabBarOptions = {
   headerShown: false,
   tabBarActiveTintColor: COLORS.emeraldAccent,
-  tabBarInactiveTintColor: '#4B6358',
+  tabBarInactiveTintColor: '#4E6C5C',
   tabBarLabelStyle: {
     fontSize: 10,
     fontWeight: '600',

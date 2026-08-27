@@ -9,7 +9,7 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
+  FlatList,
   ActivityIndicator,
   Modal,
 } from 'react-native';
@@ -195,42 +195,46 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
-        <ScrollView style={styles.scrollView}
+        <FlatList
+          style={styles.scrollView}
           ref={scrollRef}
-          contentContainerStyle={[styles.messageList, styles.grow]}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          extraData={{ editingId, editingText, loading, messages }}
           showsVerticalScrollIndicator={false}
-        >
-          {/* Suggestion chips */}
-          <View style={styles.suggestionWrap}>
-            <Sparkles size={14} color="#10B981" />
-            <Text style={styles.suggestionLabel}>Try asking</Text>
-          </View>
-          <View style={styles.chipRow}>
-            {SUGGESTIONS.map(s => (
-              <TouchableOpacity key={s} style={styles.chip} onPress={() => handleAskAI(s)}>
-                <Text style={styles.chipText}>{s}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Messages */}
-          {messages.map(msg => (
+          contentContainerStyle={[styles.messageList, styles.grow]}
+          ListHeaderComponent={
+            <>
+              {/* Suggestion chips */}
+              <View style={styles.suggestionWrap}>
+                <Sparkles size={14} color="#10B981" />
+                <Text style={styles.suggestionLabel}>Try asking</Text>
+              </View>
+              <View style={styles.chipRow}>
+                {SUGGESTIONS.map(s => (
+                  <TouchableOpacity key={s} style={styles.chip} onPress={() => handleAskAI(s)}>
+                    <Text style={styles.chipText}>{s}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          }
+          renderItem={({ item }) => (
             <TouchableOpacity
-              key={msg.id}
               activeOpacity={0.85}
-              style={[styles.bubble, msg.sender === 'me' ? styles.bubbleMine : styles.bubbleAi]}
-              onLongPress={() => startEdit(msg)}
+              style={[styles.bubble, item.sender === 'me' ? styles.bubbleMine : styles.bubbleAi]}
+              onLongPress={() => startEdit(item)}
               delayLongPress={300}
               disabled={loading}
             >
-              {msg.sender === 'ai' ? (
+              {item.sender === 'ai' ? (
                 <View style={styles.aiRow}>
                   <Bot size={14} color="#A7F3D0" />
                   <Text style={styles.aiTag}>COOP AI</Text>
                 </View>
               ) : null}
 
-              {editingId === msg.id ? (
+              {editingId === item.id ? (
                 <View style={styles.editBox}>
                   <TextInput
                     style={styles.editInput}
@@ -261,8 +265,8 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
                 </View>
               ) : (
                 <>
-                  <Text style={styles.bubbleText}>{msg.text}</Text>
-                  {msg.sender === 'me' && !loading ? (
+                  <Text style={styles.bubbleText}>{item.text}</Text>
+                  {item.sender === 'me' && !loading ? (
                     <View style={styles.editHintRow}>
                       <Pencil size={10} color="#64748B" />
                       <Text style={styles.editHint}>hold to edit</Text>
@@ -271,14 +275,15 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
                 </>
               )}
             </TouchableOpacity>
-          ))}
-
-          {loading ? (
-            <View style={[styles.bubble, styles.bubbleAi]}>
-              <ActivityIndicator size="small" color="#10B981" />
-            </View>
-          ) : null}
-        </ScrollView>
+          )}
+          ListFooterComponent={
+            loading ? (
+              <View style={[styles.bubble, styles.bubbleAi]}>
+                <ActivityIndicator size="small" color="#10B981" />
+              </View>
+            ) : null
+          }
+        />
 
         {/* Input bar */}
         <View style={styles.inputBar}>

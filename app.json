@@ -21,7 +21,11 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.ivyjahf1.iyanuoluwasociety"
+      "package": "com.ivyjahf1.iyanuoluwasociety",
+      "permissions": [
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "favicon": "./assets/logo.png"
@@ -33,7 +37,13 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow this app to access your microphone for recording voice notes."
+        }
+      ]
     ]
   }
 }

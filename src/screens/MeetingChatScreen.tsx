@@ -166,10 +166,17 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
   const [editDraft, setEditDraft] = useState<string>('');
 
   const [voiceState, setVoiceState] = useState({
-    pressing: false, recording: false, seconds: 0, startY: 0,
+    pressing: false, recording: false, locked: false, seconds: 0,
   });
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const scrollRef = useRef<ScrollView | null>(null);
+  // Voice-note capture session (browser MediaRecorder API).
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartRef = useRef({ x: 0, y: 0 });
+  const gestureRef = useRef({ recording: false, locked: false, seconds: 0 });
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   const senderId = 'me';
   const senderName = 'Me';
@@ -374,36 +381,130 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     setEditDraft('');
   };
 
-  // ---------- Voice note ----------
+  // ---------- Voice note (WhatsApp-style press-and-hold recording) ----------
   const fmtDuration = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+  /** Tear down any active capture session WITHOUT sending anything. */
+  const teardownRecording = (): void => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    if (holdTimerRef.current) { clearTimeout(holdTimerRef.current); holdTimerRef.current = null; }
+    try { streamRef.current?.getTracks().forEach((t) => t.stop()); } catch { /* noop */ }
+    streamRef.current = null;
+    recorderRef.current = null;
+    chunksRef.current = [];
+    gestureRef.current = { recording: false, locked: false, seconds: 0 };
+    setVoiceState({ pressing: false, recording: false, locked: false, seconds: 0 });
+  };
+
+  /** Route a finished take through the chat's EXISTING message pipeline. */
+  const commitVoiceMessage = (blob: Blob | null, secs: number): void => {
+    if (secs <= 0) return;
+    const msgId = `v-${Date.now()}`;
+    const uri = blob ? URL.createObjectURL(blob) : null;
+    pushMessage({
+      id: msgId, type: 'voice', senderId, senderName, senderPhone, avatarUrl: null,
+      mediaUrl: uri, duration: fmtDuration(secs), time: clock, isMe: true,
+    });
+    if (uri) broadcast({ id: msgId, text: '', mediaUrl: uri, type: 'text' });
+  };
+
+  /**
+   * Stop the MediaRecorder and deliver its blob to `send` or discard it.
+   * The finalisation happens inside `onstop`, once the last chunk lands.
+   */
+  const stopRecording = (action: 'send' | 'discard'): void => {
+    const secs = gestureRef.current.seconds;
+    const recorder = recorderRef.current;
+    if (!recorder || recorder.state === 'inactive') {
+      teardownRecording();
+      return;
+    }
+    recorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+      try { streamRef.current?.getTracks().forEach((t) => t.stop()); } catch { /* noop */ }
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+      chunksRef.current = [];
+      recorderRef.current = null;
+      streamRef.current = null;
+      gestureRef.current = { recording: false, locked: false, seconds: 0 };
+      setVoiceState({ pressing: false, recording: false, locked: false, seconds: 0 });
+      if (action === 'send') commitVoiceMessage(blob, secs);
+    };
+    try { recorder.stop(); } catch { teardownRecording(); }
+  };
+
+  /** Open the microphone and start capturing through the MediaRecorder API. */
+  const beginHoldRecording = async (): Promise<void> => {
+    const canRecord =
+      typeof navigator !== 'undefined' &&
+      !!navigator.mediaDevices?.getUserMedia &&
+      typeof MediaRecorder !== 'undefined';
+    if (!canRecord) {
+      Alert.alert('Voice notes unavailable', 'Audio recording is not supported on this device.');
+      teardownRecording();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const recorder = new MediaRecorder(stream);
+      recorderRef.current = recorder;
+      chunksRef.current = [];
+      recorder.ondataavailable = (e: any) => {
+        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      recorder.onerror = () => stopRecording('discard');
+      recorder.start();
+      gestureRef.current.recording = true;
+      setVoiceState((v) => ({ ...v, recording: true }));
+    } catch (e) {
+      Alert.alert('Microphone unavailable', 'Allow microphone access to record voice notes.');
+      teardownRecording();
+    }
+  };
+
+  // Unmount safety: never leave the mic open or timers running.
+  useEffect(() => () => stopRecording('discard'), []);
+
   const onMicTouchStart = (e: GestureResponderEvent) => {
-    setVoiceState({ pressing: true, recording: false, seconds: 0, startY: e.nativeEvent.pageY });
+    touchStartRef.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
+    gestureRef.current = { recording: false, locked: false, seconds: 0 };
+    setVoiceState({ pressing: true, recording: false, locked: false, seconds: 0 });
+    // Long-press begins the capture; a quick tap never opens the microphone.
+    holdTimerRef.current = setTimeout(beginHoldRecording, 300);
   };
   const onMicTouchMove = (e: GestureResponderEvent) => {
-    const dy = e.nativeEvent.pageY - voiceState.startY;
-    if (voiceState.pressing && !voiceState.recording && dy < -40) {
-      setVoiceState(prev => ({ ...prev, recording: true }));
+    if (!gestureRef.current.recording || gestureRef.current.locked) return;
+    const dy = e.nativeEvent.pageY - touchStartRef.current.y;
+    const dx = e.nativeEvent.pageX - touchStartRef.current.x;
+    if (dy < -70) {
+      // Drag up → lock: the finger can now be lifted while recording continues.
+      gestureRef.current.locked = true;
+      setVoiceState((v) => ({ ...v, locked: true }));
+    } else if (dx < -70) {
+      // Drag left → slide-to-cancel.
+      stopRecording('discard');
     }
+  };
+  const onMicTouchEnd = (): void => {
+    if (!gestureRef.current.recording) {
+      // Released before the long-press fired (or capture failed) — clean reset.
+      teardownRecording();
+      return;
+    }
+    if (gestureRef.current.locked) return; // locked: wait for Send / Cancel taps
+    stopRecording('send');                 // plain hold-release sends the note
   };
   useEffect(() => {
     if (voiceState.recording) {
-      timerRef.current = setInterval(() => setVoiceState(v => ({ ...v, seconds: v.seconds + 1 })), 1000);
+      timerRef.current = setInterval(() => setVoiceState((v) => {
+        const seconds = v.seconds + 1;
+        gestureRef.current.seconds = seconds; // ref copy for touch-end readers
+        return { ...v, seconds };
+      }), 1000);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [voiceState.recording]);
-  const onMicTouchEnd = (): void => {
-    const secs = voiceState.seconds;
-    const wasRecording = voiceState.recording;
-    if (timerRef.current) clearInterval(timerRef.current);
-    setVoiceState({ pressing: false, recording: false, seconds: 0, startY: 0 });
-    if (wasRecording && secs > 0) {
-      const msgId = `v-${Date.now()}`;
-      pushMessage({
-        id: msgId, type: 'voice', senderId, senderName, senderPhone, avatarUrl: null,
-        duration: fmtDuration(secs), time: clock, isMe: true,
-      });
-    }
-  };
 
   // ---------- Render helpers ----------
   const renderSystemPill = (label: string, kind: 'system' | 'date') => (
@@ -632,7 +733,26 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         <View style={styles.recordingBar}>
           <Mic size={20} color="#FF3B30" />
           <Text style={styles.recordingText}>Recording… {fmtDuration(voiceState.seconds)}</Text>
-          <Text style={styles.recordingHint}>Drag down to send</Text>
+          {voiceState.locked ? (
+            <>
+              <TouchableOpacity
+                style={styles.cancelRecBtn}
+                onPress={() => stopRecording('discard')}
+              >
+                <Trash2 size={15} color="#F87171" />
+                <Text style={styles.cancelRecText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.sendRecBtn}
+                onPress={() => stopRecording('send')}
+              >
+                <Send size={13} color="#07120E" />
+                <Text style={styles.sendRecText}>Send</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <Text style={styles.recordingHint}>Release to send · drag up to lock · left to cancel</Text>
+          )}
         </View>
       ) : null}
 
@@ -685,6 +805,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
             onTouchStart={onMicTouchStart}
             onTouchMove={onMicTouchMove}
             onTouchEnd={onMicTouchEnd}
+            onTouchCancel={onMicTouchEnd}
           >
             <Mic size={18} color="#FFFFFF" />
           </View>
@@ -863,6 +984,16 @@ const styles = StyleSheet.create({
   },
   recordingText: { color: '#F87171', fontSize: 13, fontWeight: '600' },
   recordingHint: { color: '#9CB8A6', fontSize: 11, marginLeft: 'auto' },
+  cancelRecBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    marginLeft: 'auto', paddingVertical: 4, paddingHorizontal: 8,
+  },
+  cancelRecText: { color: '#F87171', fontSize: 12, fontWeight: '600' },
+  sendRecBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: '#10B981', borderRadius: 14, paddingVertical: 5, paddingHorizontal: 12,
+  },
+  sendRecText: { color: '#07120E', fontSize: 12, fontWeight: '700' },
 
   // Picker panel (emoji + stickers)
   pickerPanel: { backgroundColor: '#0D1D18', padding: 10, maxHeight: 240 },
@@ -922,6 +1053,12 @@ const styles = StyleSheet.create({
   menuSheet: { backgroundColor: '#132620', borderRadius: 14, paddingVertical: 6, width: 230, marginTop: 80 },
   menuRow: { paddingVertical: 13, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#1C4A2E' },
   menuRowText: { color: '#FFFFFF', fontSize: 13, fontWeight: '500' },
+  menuRowDanger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
   viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
   viewerClose: { position: 'absolute', top: 46, right: 20, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 16, padding: 8, zIndex: 10 },
   viewerImage: { width: '100%', height: '80%' },

@@ -22,6 +22,7 @@ import { useUser } from '../context/UserContext';
 import { deriveDisplayName } from '../auth/authService';
 import Greeting from '../components/Greeting';
 import useLiveEnvironment from '../hooks/useLiveEnvironment';
+import { COLORS, GRADIENTS } from '../constants/theme';
 
 export default function HomeScreen({ navigation }) {
   // Centralized currency formatter — explicit Unicode escape so the ₦ symbol
@@ -82,9 +83,9 @@ export default function HomeScreen({ navigation }) {
   };
 
   // Safe navigation helper
-  const navigateTo = (screenName) => {
+  const navigateTo = (screenName, params) => {
     if (navigation && navigation.navigate) {
-      navigation.navigate(screenName);
+      navigation.navigate(screenName, params);
     } else {
       console.log('Navigating to screen: ' + screenName);
     }
@@ -92,7 +93,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#07120E" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.pageBg} />
 
       {/* FIXED TOP â€” Header + Available Balance Card stay static on screen */}
       <View style={styles.fixedTop}>
@@ -102,7 +103,7 @@ export default function HomeScreen({ navigation }) {
             <Greeting textStyle={styles.greetingText} weather={env.weather} />
             <Text style={styles.userName}>{displayName}</Text>
             <View style={styles.badgeRow}>
-              <Ionicons name="shield-checkmark" size={14} color="#00D084" />
+              <Ionicons name="shield-checkmark" size={14} color={COLORS.mintAccent} />
               <Text style={styles.societyName}>Standard Mutual Savings</Text>
             </View>
           </View>
@@ -112,7 +113,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.iconCircle}
               onPress={() => navigateTo('Notifications')}
             >
-              <Ionicons name="notifications-outline" size={20} color="#E2E8F0" />
+              <Ionicons name="notifications-outline" size={20} color={COLORS.textSoft} />
               <View style={styles.notificationBadge} />
             </TouchableOpacity>
 
@@ -120,21 +121,21 @@ export default function HomeScreen({ navigation }) {
               style={styles.profileCircle}
               onPress={() => navigateTo('Profile')}
             >
-              <Ionicons name="person-outline" size={20} color="#07120E" />
+              <Ionicons name="person-outline" size={20} color={COLORS.pageBg} />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.iconCircle}
               onPress={() => navigateTo('Settings')}
             >
-              <Ionicons name="ellipsis-horizontal" size={20} color="#E2E8F0" />
+              <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.textSoft} />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* METALLIC MAIN BALANCE CARD */}
         <LinearGradient
-          colors={['#182B26', '#354B45', '#95A7A1', '#213530']}
+          colors={GRADIENTS.metallicDashboard}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.metallicCard}
@@ -149,7 +150,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.addFundBtn}
               onPress={() => navigateTo('AddFunds')}
             >
-              <Ionicons name="lock-closed" size={14} color="#FFF" />
+              <Ionicons name="lock-closed" size={14} color={COLORS.textPrimary} />
               <Text style={styles.addFundText}>+ Add Fund</Text>
             </TouchableOpacity>
           </View>
@@ -161,7 +162,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.watermarkContainer}
             >
               <View style={styles.emblemOutline}>
-                <FontAwesome5 name="university" size={24} color="#D1D5DB" />
+                <FontAwesome5 name="university" size={24} color={COLORS.textSilver} />
               </View>
               <Text style={styles.watermarkTitle}>Standard Mutual Savings</Text>
               <Text style={styles.watermarkSub}>Community</Text>
@@ -174,7 +175,7 @@ export default function HomeScreen({ navigation }) {
               <Ionicons
                 name={hideMainBalance ? 'eye-outline' : 'eye-off-outline'}
                 size={14}
-                color="#FFF"
+                color={COLORS.textPrimary}
               />
               <Text style={styles.showBalanceText}>
                 {hideMainBalance ? 'Show Balance' : 'Hide Balance'}
@@ -202,11 +203,11 @@ export default function HomeScreen({ navigation }) {
                   <Ionicons
                     name={hideSavingsBalance ? 'eye-off-outline' : 'eye-outline'}
                     size={15}
-                    color="#64748B"
+                    color={COLORS.textDim}
                   />
                 </TouchableOpacity>
                 <View style={styles.miniIconCircle}>
-                  <FontAwesome5 name="piggy-bank" size={12} color="#00D084" />
+                  <FontAwesome5 name="piggy-bank" size={12} color={COLORS.mintAccent} />
                 </View>
               </View>
             </View>
@@ -229,11 +230,11 @@ export default function HomeScreen({ navigation }) {
                   <Ionicons
                     name={hideLoanBalance ? 'eye-off-outline' : 'eye-outline'}
                     size={15}
-                    color="#64748B"
+                    color={COLORS.textDim}
                   />
                 </TouchableOpacity>
                 <View style={styles.miniIconCircle}>
-                  <Ionicons name="wallet-outline" size={13} color="#00D084" />
+                  <Ionicons name="wallet-outline" size={13} color={COLORS.mintAccent} />
                 </View>
               </View>
             </View>
@@ -260,8 +261,8 @@ export default function HomeScreen({ navigation }) {
             style={styles.serviceItem}
             onPress={() => navigateTo('CoopContribution')}
           >
-            <LinearGradient colors={['#008767', '#00382B']} style={styles.serviceIconContainer}>
-              <FontAwesome5 name="piggy-bank" size={18} color="#FFF" />
+            <LinearGradient colors={GRADIENTS.greenService} style={styles.serviceIconContainer}>
+              <FontAwesome5 name="piggy-bank" size={18} color={COLORS.textPrimary} />
             </LinearGradient>
             <Text style={styles.serviceLabel}>Coop Contribution</Text>
             <Text style={styles.serviceSubtext}>Deposit weekly or monthly savings</Text>
@@ -271,8 +272,8 @@ export default function HomeScreen({ navigation }) {
             style={styles.serviceItem}
             onPress={() => navigateTo('AccountStatement')}
           >
-            <LinearGradient colors={['#4F86F7', '#1D4ED8']} style={styles.serviceIconContainer}>
-              <Ionicons name="document-text-outline" size={20} color="#FFF" />
+            <LinearGradient colors={GRADIENTS.blueService} style={styles.serviceIconContainer}>
+              <Ionicons name="document-text-outline" size={20} color={COLORS.textPrimary} />
             </LinearGradient>
             <Text style={styles.serviceLabel}>Account Statement</Text>
             <Text style={styles.serviceSubtext}>Download report</Text>
@@ -282,8 +283,8 @@ export default function HomeScreen({ navigation }) {
             style={styles.serviceItem}
             onPress={() => navigateTo('RequestLoan')}
           >
-            <LinearGradient colors={['#D97706', '#78350F']} style={styles.serviceIconContainer}>
-              <FontAwesome5 name="hand-holding-usd" size={18} color="#FFF" />
+            <LinearGradient colors={GRADIENTS.orangeService} style={styles.serviceIconContainer}>
+              <FontAwesome5 name="hand-holding-usd" size={18} color={COLORS.textPrimary} />
             </LinearGradient>
             <Text style={styles.serviceLabel}>Request Loan</Text>
             <Text style={styles.serviceSubtext}>Apply for member credit</Text>
@@ -293,8 +294,8 @@ export default function HomeScreen({ navigation }) {
             style={styles.serviceItem}
             onPress={() => navigateTo('RepayLoan')}
           >
-            <LinearGradient colors={['#8B5CF6', '#4C1D95']} style={styles.serviceIconContainer}>
-              <Ionicons name="card-outline" size={20} color="#FFF" />
+            <LinearGradient colors={GRADIENTS.purpleService} style={styles.serviceIconContainer}>
+              <Ionicons name="card-outline" size={20} color={COLORS.textPrimary} />
             </LinearGradient>
             <Text style={styles.serviceLabel}>Repay Loan</Text>
             <Text style={styles.serviceSubtext}>Make loan repayments</Text>
@@ -305,7 +306,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.aiBanner}>
           <View style={styles.aiLeft}>
             <View style={styles.botIconWrapper}>
-              <MaterialCommunityIcons name="robot-outline" size={24} color="#E2E8F0" />
+              <MaterialCommunityIcons name="robot-outline" size={24} color={COLORS.textSoft} />
             </View>
             <View style={styles.aiTextGroup}>
               <Text style={styles.aiTitle}>Coop AI Assistant</Text>
@@ -333,11 +334,11 @@ export default function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.hubListItem}
-          onPress={() => navigateTo('LandProperty')}
+          onPress={() => navigateTo('Marketplace', { category: 'land_and_property' })}
         >
           <View style={styles.hubLeft}>
-            <View style={[styles.hubIconCircle, { backgroundColor: '#059669' }]}>
-              <Ionicons name="home-outline" size={20} color="#FFFFFF" />
+            <View style={[styles.hubIconCircle, { backgroundColor: COLORS.accentGreen }]}>
+              <Ionicons name="home-outline" size={20} color={COLORS.textPrimary} />
             </View>
             <View style={styles.hubTextContainer}>
               <Text style={styles.hubItemTitle}>Land & Property</Text>
@@ -348,9 +349,9 @@ export default function HomeScreen({ navigation }) {
           </View>
           <View style={styles.hubRight}>
             <View style={styles.hubTagIcon}>
-              <Ionicons name="location-outline" size={16} color="#00D084" />
+              <Ionicons name="location-outline" size={16} color={COLORS.mintAccent} />
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#64748B" />
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textDim} />
           </View>
         </TouchableOpacity>
 
@@ -359,8 +360,8 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigateTo('Vehicles')}
         >
           <View style={styles.hubLeft}>
-            <View style={[styles.hubIconCircle, { backgroundColor: '#2563EB' }]}>
-              <Ionicons name="car-outline" size={20} color="#FFFFFF" />
+            <View style={[styles.hubIconCircle, { backgroundColor: COLORS.accentBlue }]}>
+              <Ionicons name="car-outline" size={20} color={COLORS.textPrimary} />
             </View>
             <View style={styles.hubTextContainer}>
               <Text style={styles.hubItemTitle}>Vehicles</Text>
@@ -369,9 +370,9 @@ export default function HomeScreen({ navigation }) {
           </View>
           <View style={styles.hubRight}>
             <View style={styles.hubTagIcon}>
-              <Ionicons name="car-sport-outline" size={16} color="#00D084" />
+              <Ionicons name="car-sport-outline" size={16} color={COLORS.mintAccent} />
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#64748B" />
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textDim} />
           </View>
         </TouchableOpacity>
 
@@ -380,15 +381,15 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigateTo('MeetingChat')}
         >
           <View style={styles.hubLeft}>
-            <View style={[styles.hubIconCircle, { backgroundColor: '#9333EA' }]}>
-              <Ionicons name="chatbox-ellipses-outline" size={20} color="#FFFFFF" />
+            <View style={[styles.hubIconCircle, { backgroundColor: COLORS.accentPurple }]}>
+              <Ionicons name="chatbox-ellipses-outline" size={20} color={COLORS.textPrimary} />
             </View>
             <View style={styles.hubTextContainer}>
               <Text style={styles.hubItemTitle}>Meeting Chat</Text>
               <Text style={styles.hubItemSub}>Discuss & decide with members</Text>
             </View>
           </View>
-          <Ionicons name="chevron-forward" size={18} color="#64748B" />
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textDim} />
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -398,12 +399,12 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#07120E',
+    backgroundColor: COLORS.pageBg,
   },
   fixedTop: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    backgroundColor: '#07120E',
+    backgroundColor: COLORS.pageBg,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -416,16 +417,16 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 20,
   },
-  greetingText: { color: '#94A3B8', fontSize: 14, fontWeight: '400' },
-  userName: { color: '#FFFFFF', fontSize: 24, fontWeight: '700', marginTop: 2 },
+  greetingText: { color: COLORS.textFaint, fontSize: 14, fontWeight: '400' },
+  userName: { color: COLORS.textPrimary, fontSize: 24, fontWeight: '700', marginTop: 2 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 5 },
-  societyName: { color: '#94A3B8', fontSize: 13 },
+  societyName: { color: COLORS.textFaint, fontSize: 13 },
   headerActions: { flexDirection: 'row', gap: 10, alignItems: 'center' },
-    iconCircle: {
+  iconCircle: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#12221D',
+    backgroundColor: COLORS.iconSurface,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
   adminButton: {
     backgroundColor: 'rgba(16, 185, 129, 0.15)',
     borderWidth: 1,
-    borderColor: '#059669',
+    borderColor: COLORS.accentGreen,
   },
   notificationBadge: {
     position: 'absolute',
@@ -442,13 +443,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#00D084',
+    backgroundColor: COLORS.mintAccent,
   },
   profileCircle: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.textPrimary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -462,10 +463,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   cardLeft: { justifyContent: 'space-between' },
-  cardLabel: { color: '#CBD5E1', fontSize: 13, fontWeight: '500' },
-  balanceText: { color: '#FFFFFF', fontSize: 26, fontWeight: '700', marginVertical: 10 },
+  cardLabel: { color: COLORS.textLight, fontSize: 13, fontWeight: '500' },
+  balanceText: { color: COLORS.textPrimary, fontSize: 26, fontWeight: '700', marginVertical: 10 },
   addFundBtn: {
-    backgroundColor: '#005F4B',
+    backgroundColor: COLORS.addFundDeep,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -474,7 +475,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignSelf: 'flex-start',
   },
-  addFundText: { color: '#FFF', fontSize: 13, fontWeight: '600' },
+  addFundText: { color: COLORS.textPrimary, fontSize: 13, fontWeight: '600' },
   cardRight: { alignItems: 'flex-end', justifyContent: 'space-between' },
   watermarkContainer: { alignItems: 'center', opacity: 0.8 },
   emblemOutline: {
@@ -483,8 +484,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  watermarkTitle: { color: '#E2E8F0', fontSize: 10, fontWeight: '600', marginTop: 4 },
-  watermarkSub: { color: '#94A3B8', fontSize: 9 },
+  watermarkTitle: { color: COLORS.textSoft, fontSize: 10, fontWeight: '600', marginTop: 4 },
+  watermarkSub: { color: COLORS.textFaint, fontSize: 9 },
   showBalanceBtn: {
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
     flexDirection: 'row',
@@ -496,47 +497,47 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  showBalanceText: { color: '#FFF', fontSize: 12 },
+  showBalanceText: { color: COLORS.textPrimary, fontSize: 12 },
   dualCardRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   subCard: {
     flex: 1,
-    backgroundColor: '#0F1E1A',
+    backgroundColor: COLORS.cardSurface,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#172C27',
+    borderColor: COLORS.cardBorderSoft,
   },
   subCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  subCardTitle: { color: '#E2E8F0', fontSize: 14, fontWeight: '500' },
+  subCardTitle: { color: COLORS.textSoft, fontSize: 14, fontWeight: '500' },
   subCardHeaderIcons: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   miniIconCircle: {
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#162924',
+    backgroundColor: COLORS.cardSurfaceSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  subCardAmount: { color: '#FFF', fontSize: 20, fontWeight: '700', marginVertical: 10 },
-  divider: { height: 1, backgroundColor: '#172C27', marginBottom: 8 },
-  subCardFooterText: { color: '#64748B', fontSize: 11 },
+  subCardAmount: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '700', marginVertical: 10 },
+  divider: { height: 1, backgroundColor: COLORS.cardBorderSoft, marginBottom: 8 },
+  subCardFooterText: { color: COLORS.textDim, fontSize: 11 },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  sectionTitle: { color: '#FFF', fontSize: 16, fontWeight: '600' },
-  viewAllText: { color: '#00D084', fontSize: 13, fontWeight: '500' },
+  sectionTitle: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '600' },
+  viewAllText: { color: COLORS.mintAccent, fontSize: 13, fontWeight: '500' },
   servicesScroll: { marginBottom: 20 },
   serviceItem: {
     width: 120,
-    backgroundColor: '#0F1E1A',
+    backgroundColor: COLORS.cardSurface,
     borderRadius: 14,
     padding: 12,
     marginRight: 10,
     borderWidth: 1,
-    borderColor: '#172C27',
+    borderColor: COLORS.cardBorderSoft,
     alignItems: 'center',
   },
   serviceIconContainer: {
@@ -548,22 +549,22 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   serviceLabel: {
-    color: '#FFF',
+    color: COLORS.textPrimary,
     fontSize: 11,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 4,
   },
-  serviceSubtext: { color: '#64748B', fontSize: 9, textAlign: 'center', lineHeight: 11 },
+  serviceSubtext: { color: COLORS.textDim, fontSize: 9, textAlign: 'center', lineHeight: 11 },
   aiBanner: {
-    backgroundColor: '#0F1E1A',
+    backgroundColor: COLORS.cardSurface,
     borderRadius: 16,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#172C27',
+    borderColor: COLORS.cardBorderSoft,
     marginBottom: 20,
   },
   aiLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
@@ -571,22 +572,22 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#162924',
+    backgroundColor: COLORS.cardSurfaceSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
   aiTextGroup: { flex: 1 },
-  aiTitle: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-  aiSubtext: { color: '#64748B', fontSize: 10, marginTop: 2 },
+  aiTitle: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '700' },
+  aiSubtext: { color: COLORS.textDim, fontSize: 10, marginTop: 2 },
   askNowBtn: {
-    backgroundColor: '#00D084',
+    backgroundColor: COLORS.mintAccent,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 20,
   },
-  askNowText: { color: '#07120E', fontSize: 11, fontWeight: '700' },
+  askNowText: { color: COLORS.pageBg, fontSize: 11, fontWeight: '700' },
   hubListItem: {
-    backgroundColor: '#0F1E1A',
+    backgroundColor: COLORS.cardSurface,
     borderRadius: 14,
     padding: 14,
     flexDirection: 'row',
@@ -594,7 +595,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#172C27',
+    borderColor: COLORS.cardBorderSoft,
   },
   hubLeft: {
     flexDirection: 'row',
@@ -613,12 +614,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hubItemTitle: {
-    color: '#FFFFFF',
+    color: COLORS.textPrimary,
     fontSize: 14,
     fontWeight: '700',
   },
   hubItemSub: {
-    color: '#64748B',
+    color: COLORS.textDim,
     fontSize: 11,
     marginTop: 2,
   },
@@ -627,7 +628,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   hubTagIcon: {
-    backgroundColor: '#12221D',
+    backgroundColor: COLORS.iconSurface,
     padding: 6,
     borderRadius: 8,
     marginRight: 8,

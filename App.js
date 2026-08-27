@@ -24,11 +24,11 @@ function ThemedContainer({ children }) {
     ...(isDark ? DarkTheme : DefaultTheme),
     colors: {
       ...(isDark ? DarkTheme : DefaultTheme).colors,
-      primary: '#4CAF50',
-      background: isDark ? '#0B2211' : '#F4F7F5',
-      card: isDark ? '#0F2A19' : '#FFFFFF',
-      text: isDark ? '#FFFFFF' : '#0B2211',
-      border: isDark ? '#1C4A2E' : '#E5E7EB',
+      primary: '#00C875',
+      background: isDark ? '#0B1612' : '#F4F7F5',
+      card: isDark ? '#12241D' : '#FFFFFF',
+      text: isDark ? '#FFFFFF' : '#0B1612',
+      border: isDark ? '#2A3B31' : '#E5E7EB',
     },
   };
   return (
@@ -73,7 +73,7 @@ function AuthGate({ children }) {
           source={require('./assets/logo.png')}
           style={splashStyles.logo}
         />
-        <ActivityIndicator size="small" color="#4CAF50" style={{ marginTop: 24 }} />
+        <ActivityIndicator size="small" color="#00C875" style={{ marginTop: 24 }} />
       </RNView>
     );
   }

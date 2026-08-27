@@ -23,12 +23,12 @@ const LIGHT = {
 };
 
 const DARK = {
-  background: '#0B2211',
-  card: '#0F2A19',
-  border: '#1C4A2E',
+  background: '#0B1612',
+  card: '#12241D',
+  border: '#1A382B',
   text: '#FFFFFF',
-  muted: '#9CB8A6',
-  primary: '#4CAF50',
+  muted: '#A0B0A8',
+  primary: '#00C875',
   accentText: '#A7F3D0',
 };
 
@@ -38,7 +38,7 @@ const DARK = {
  * colors, so Light/Dark and Automatic modes keep working as before.
  */
 export const COLOR_SCHEMES = {
-  emerald: { name: 'Emerald', primary: '#10B981', accentText: '#A7F3D0' },
+  emerald: { name: 'Emerald', primary: '#00C875', accentText: '#A7F3D0' },
   midnight: { name: 'Midnight', primary: '#60A5FA', accentText: '#93C5FD' },
   silver: { name: 'Silver', primary: '#CBD5E1', accentText: '#E2E8F0' },
   bronze: { name: 'Bronze', primary: '#CD7B2E', accentText: '#F5E0C3' },
@@ -99,8 +99,8 @@ export function ThemeProvider({ children }) {
     if (isDark) {
       // darkContrast (0-100) deepens the dark surfaces as it rises.
       const c = user?.darkContrast ?? 60;
-      const deep = Math.round(0x08 + ((0x0b - 0x08) * c) / 100);
-      const bg = `#${deep.toString(16).padStart(2, '0')}2211`;
+      const deep = Math.round(0x06 + ((0x0c - 0x06) * c) / 100);
+      const bg = `#${deep.toString(16).padStart(2, '0')}1612`;
       return { ...DARK, background: bg, primary: scheme.primary, accentText: scheme.accentText };
     }
     // lightBrightness (0-100) dims the light background as it falls.
