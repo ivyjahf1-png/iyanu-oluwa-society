@@ -49,8 +49,14 @@ export default function HomeScreen({ navigation }) {
   const PLACEHOLDER_NAME = 'Temitope Adewale';
   const savedName =
     user?.fullName && user.fullName !== PLACEHOLDER_NAME ? user.fullName : null;
+  // Supabase auth metadata full name (user_metadata.full_name) participates in
+  // the resolution chain between the saved profile name and email derivation.
+  const metadataName = user?.user_metadata?.full_name || null;
   const displayName =
-    savedName || authDisplayName || (userEmail ? deriveDisplayName(userEmail) : 'Member');
+    savedName ||
+    metadataName ||
+    authDisplayName ||
+    (userEmail ? deriveDisplayName(userEmail) : 'Member');
   const isAdminVisible = isAdminAccount(userEmail);
 
   // Global admin verification: biometric prompt → PIN keypad fallback.
@@ -357,7 +363,7 @@ export default function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.hubListItem}
-          onPress={() => navigateTo('Vehicles')}
+          onPress={() => navigateTo('Marketplace', { category: 'vehicles_and_appliances' })}
         >
           <View style={styles.hubLeft}>
             <View style={[styles.hubIconCircle, { backgroundColor: COLORS.accentBlue }]}>

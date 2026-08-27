@@ -31,10 +31,12 @@ import ScreenHeader from '../components/ScreenHeader';
 import BrightnessControl from '../components/BrightnessControl';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
+import { useAppTheme, APP_PALETTES } from '../context/ThemeContext';
 
 export default function ProfileSettingsScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { user, updateUser } = useUser();
+  const { appPalette, setAppPalette } = useAppTheme();
   const {
     methods,
     enableBiometric,
@@ -72,8 +74,8 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
   const [userAccountNumber, setUserAccountNumber] = useState(user?.userAccountNumber || '');
   const [userAccountName, setUserAccountName] = useState(user?.userAccountName || '');
 
-  // Appearance settings
-  const [themeMode, setThemeMode] = useState(user?.themeMode || 'light');
+  // Appearance settings ('dark' default aligns with ThemeContext's Dark Emerald)
+  const [themeMode, setThemeMode] = useState(user?.themeMode || 'dark');
 
   // Passcode (app lock) state
   const [newPasscode, setNewPasscode] = useState('');
@@ -167,7 +169,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
       setUserBankName(user.userBankName || '');
       setUserAccountNumber(user.userAccountNumber || '');
       setUserAccountName(user.userAccountName || '');
-      setThemeMode(user.themeMode || 'light');
+      setThemeMode(user.themeMode || 'dark');
       if (typeof user.lightBrightness === 'number') setLightBrightness(user.lightBrightness);
       if (typeof user.darkContrast === 'number') setDarkContrast(user.darkContrast);
       isInitialRender.current = false;
@@ -416,6 +418,44 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
         {/* Appearance — theme & brightness controls */}
         <Text style={styles.sectionTitle}>Appearance & Theme</Text>
 
+        {/* THEME SELECTION — app-wide palette switcher (Dark Emerald / Pitch
+            Black / Designer White). Tapping a card calls setAppPalette which
+            updates ThemeContext instantly, re-rendering every screen in the
+            app, and persists the choice via AsyncStorage. */}
+        <Text style={styles.sectionTitle}>Theme Selection</Text>
+        {Object.entries(APP_PALETTES).map(([paletteKey, palette]) => {
+          const isActive = appPalette === paletteKey;
+          return (
+            <TouchableOpacity
+              key={paletteKey}
+              style={[styles.themeCard, isActive && styles.themeCardActive]}
+              onPress={() => setAppPalette(paletteKey)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.themeCardHeader}>
+                <Text style={styles.themeCardTitle}>{`${palette.icon} ${palette.name}`}</Text>
+                {isActive && (
+                  <View style={styles.activePill}>
+                    <Text style={styles.activePillText}>ACTIVE</Text>
+                  </View>
+                )}
+              </View>
+              {/* Live color preview swatches: bg / card / accent / text */}
+              <View style={styles.swatchRow}>
+                <View style={[styles.swatch, { backgroundColor: palette.background, borderColor: '#333333' }]} />
+                <View style={[styles.swatch, { backgroundColor: palette.card, borderColor: '#333333' }]} />
+                <View style={[styles.swatch, { backgroundColor: palette.primary }]} />
+                <View style={[styles.swatch, { backgroundColor: palette.text, borderColor: '#333333' }]} />
+                <View style={[styles.swatch, { backgroundColor: palette.muted }]} />
+              </View>
+              <Text style={styles.themeCardDesc}>
+                Applies instantly across the entire app.
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+
+
         {/* Automatic Theme */}
         <TouchableOpacity
           style={[styles.themeCard, themeMode === 'automatic' && styles.themeCardActive]}
@@ -625,6 +665,19 @@ const styles = StyleSheet.create({
     borderColor: '#172F27',
     padding: 14,
     marginBottom: 10,
+  },
+  swatchRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+    marginBottom: 6,
+  },
+  swatch: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   themeCardActive: {
     borderColor: '#10B981',

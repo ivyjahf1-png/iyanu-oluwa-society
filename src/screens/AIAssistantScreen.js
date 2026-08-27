@@ -7,14 +7,16 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
   FlatList,
   ActivityIndicator,
   Modal,
+  Alert,
 } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Send, Bot, Sparkles, MoreVertical, Trash2, Pencil, Check, X } from 'lucide-react-native';
+import { Send, Bot, Sparkles, MoreVertical, Trash2, Pencil, Check, X, Mic } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { askAI } from '../lib/aiChat';
 
@@ -158,43 +160,66 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor='#091813' />
-      <ScreenHeader
-        title="Coop AI Assistant"
-        subtitle="Cooperative tasks & general knowledge"
-        onBack={() => navigation.goBack()}
-      />
-
-      {/* Top-right options menu */}
-      <View style={styles.menuBar}>
-        <TouchableOpacity
-          style={styles.menuBtn}
-          onPress={() => setShowMenu(v => !v)}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <MoreVertical size={20} color="#A7F3D0" />
-        </TouchableOpacity>
-      </View>
-
-      {showMenu ? (
-        <View style={styles.menuSheet}>
-          <TouchableOpacity
-            style={styles.menuRow}
-            onPress={() => {
-              setShowMenu(false);
-              setConfirmClear(true);
-            }}
-          >
-            <Trash2 size={16} color="#F87171" />
-            <Text style={[styles.menuRowText, { color: '#F87171' }]}>Clear Chat</Text>
-          </TouchableOpacity>
-        </View>
-      ) : null}
-
+      {/* ROOT FLEX LAYOUT — KeyboardAvoidingView keeps the pinned header and
+          bottom input column locked in place while only messages scroll. */}
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
+        <ScreenHeader
+          title="Coop AI Assistant"
+          subtitle="Cooperative tasks & general knowledge"
+          onBack={() => navigation.goBack()}
+        />
+
+        {/* Top-right options menu */}
+        <View style={styles.menuBar}>
+          <TouchableOpacity
+            style={styles.menuBtn}
+            onPress={() => setShowMenu(v => !v)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <MoreVertical size={20} color="#A7F3D0" />
+          </TouchableOpacity>
+        </View>
+
+        {showMenu ? (
+          <View style={styles.menuSheet}>
+            <TouchableOpacity
+              style={styles.menuRow}
+              onPress={() => {
+                setShowMenu(false);
+                setConfirmClear(true);
+              }}
+            >
+              <Trash2 size={16} color="#F87171" />
+              <Text style={[styles.menuRowText, { color: '#F87171' }]}>Clear Chat</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {/* FIXED HEADER SECTION — "Try asking..." prompt chips live OUTSIDE
+            the message list so they never scroll away with chat history. */}
+        <View style={styles.suggestHeader}>
+          <View style={styles.suggestionWrap}>
+            <Sparkles size={14} color="#10B981" />
+            <Text style={styles.suggestionLabel}>Try asking</Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipRow}
+          >
+            {SUGGESTIONS.map(s => (
+              <TouchableOpacity key={s} style={styles.chip} onPress={() => handleAskAI(s)}>
+                <Text style={styles.chipText}>{s}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* MESSAGE AREA — the ONLY vertically scrolling region */}
         <FlatList
           style={styles.scrollView}
           ref={scrollRef}
@@ -203,22 +228,6 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
           extraData={{ editingId, editingText, loading, messages }}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.messageList, styles.grow]}
-          ListHeaderComponent={
-            <>
-              {/* Suggestion chips */}
-              <View style={styles.suggestionWrap}>
-                <Sparkles size={14} color="#10B981" />
-                <Text style={styles.suggestionLabel}>Try asking</Text>
-              </View>
-              <View style={styles.chipRow}>
-                {SUGGESTIONS.map(s => (
-                  <TouchableOpacity key={s} style={styles.chip} onPress={() => handleAskAI(s)}>
-                    <Text style={styles.chipText}>{s}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </>
-          }
           renderItem={({ item }) => (
             <TouchableOpacity
               activeOpacity={0.85}
@@ -285,7 +294,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
           }
         />
 
-        {/* Input bar */}
+        {/* FIXED BOTTOM INPUT COLUMN */}
         <View style={styles.inputBar}>
           <TextInput
             style={styles.textInput}
@@ -295,6 +304,13 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
             placeholderTextColor="#526E63"
             multiline
           />
+          <TouchableOpacity
+            style={styles.micBtn}
+            onPress={() => Alert.alert('Voice Input', 'Voice dictation is coming soon.')}
+            disabled={loading}
+          >
+            <Mic size={18} color="#A7F3D0" />
+          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.sendBtn, !inputText.trim() && styles.sendBtnDisabled]}
             onPress={() => handleAskAI()}
@@ -339,10 +355,18 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#091813' },
   flex: { flex: 1 },
   messageList: { padding: 16, paddingBottom: 12 },
+  // FIXED header section holding the "Try asking" chips (never scrolls away)
+  suggestHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#12241D',
+  },
   suggestionWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginTop: 6,
     marginBottom: 8,
   },
   suggestionLabel: {
@@ -352,9 +376,9 @@ const styles = StyleSheet.create({
   },
   chipRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 14,
+    paddingBottom: 12,
+    paddingRight: 16,
   },
   chip: {
     backgroundColor: '#0D1D18',
@@ -420,9 +444,19 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#FFFFFF',
     fontSize: 14,
-    maxHeight: 90,
+    maxHeight: 120,
     paddingVertical: 8,
     paddingHorizontal: 6,
+  },
+  micBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    borderColor: '#172F27',
+    backgroundColor: '#0F241C',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sendBtn: {
     width: 38,

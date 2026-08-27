@@ -11,6 +11,7 @@ import {
   CloudFog,
   CloudLightning,
 } from 'lucide-react-native';
+import { useAppTheme } from '../context/ThemeContext';
 
 /**
  * Returns the current local time-of-day classification.
@@ -60,6 +61,11 @@ const WEATHER_ICONS = {
 
 export default function Greeting({ textStyle, iconColor, showIcon = true, weather }) {
   const { greeting, isDay } = useTimeOfDay();
+  const { isDark: themeIsDark } = useAppTheme();
+  // Theme-aware fallbacks so the component stays fully legible in every palette
+  // (Dark Emerald / Pitch Black / Designer White). Callers that pass their own
+  // `textStyle` (e.g. the dashboard header) keep their original typography.
+  const fallbackText = textStyle ? undefined : themeIsDark ? '#FFFFFF' : '#111827';
   const iconTint = isDay ? '#FBBF24' : '#93C5FD'; // amber sun / soft-blue moon
 
   // Live weather override — only when real conditions are available.
@@ -74,10 +80,27 @@ export default function Greeting({ textStyle, iconColor, showIcon = true, weathe
           <WxIcon size={18} color={iconColor || wxTint} />
         </View>
       )}
-      <Text style={[styles.text, textStyle]}>{greeting},</Text>
+      <Text style={[styles.text, !!fallbackText && { color: fallbackText }, textStyle]}>
+        {greeting},
+      </Text>
       {wx && typeof wx.temperature === 'number' ? (
-        <View style={styles.weatherChip}>
-          <Text style={styles.weatherChipText}>{wx.temperature}°</Text>
+        <View
+          style={[
+            styles.weatherChip,
+            !themeIsDark && {
+              backgroundColor: 'rgba(17, 24, 39, 0.08)',
+              borderColor: 'rgba(17, 24, 39, 0.15)',
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.weatherChipText,
+              !themeIsDark && { color: '#374151' },
+            ]}
+          >
+            {wx.temperature}°
+          </Text>
         </View>
       ) : null}
     </View>

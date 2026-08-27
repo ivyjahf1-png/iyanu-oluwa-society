@@ -7,10 +7,13 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  FlatList,
   StatusBar,
   Modal,
   Image,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   GestureResponderEvent,
 } from 'react-native';
 import {
@@ -39,6 +42,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import { storage } from '../lib/storage';
 import { onMeetingMessage, broadcastMeetingMessage, MeetingMessage } from '../lib/meetingChat';
+import { supabase } from '../lib/supabase';
 import EmojiPicker from '../components/EmojiPicker';
 
 /** Local message model used for rendering. */
@@ -124,6 +128,24 @@ function nowClock(): string {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+/** Room key this screen syncs to in the `meeting_messages` table. */
+const MEETING_ROOM_ID = 'general-meeting';
+
+/** Map a `meeting_messages` row into the renderable in-room ChatMessage. */
+function mapMeetingRowToChat(row: any, selfName: string): ChatMessage {
+  return {
+    id: String(row.id),
+    type: 'text',
+    senderId: String(row.sender_name || 'member'),
+    senderName: row.sender_name || 'Member',
+    text: row.content || '',
+    time: row.created_at
+      ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : nowClock(),
+    isMe: String(row.sender_name || '') === selfName,
+  };
+}
+
 const AVATAR_COLORS = ['#10B981', '#38BDF8', '#F59E0B', '#A78BFA', '#F87171', '#2DD4BF'];
 
 const SEED_MESSAGES: ChatMessage[] = [
@@ -169,7 +191,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     pressing: false, recording: false, locked: false, seconds: 0,
   });
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const scrollRef = useRef<ScrollView | null>(null);
+  const scrollRef = useRef<FlatList<ChatMessage> | null>(null);
   // Voice-note capture session (browser MediaRecorder API).
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartRef = useRef({ x: 0, y: 0 });
@@ -224,7 +246,54 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const pushMessage = (msg: ChatMessage) => setMessages(prev => [...prev, msg]);
+  /** Append a message, deduping so realtime echoes and optimistic inserts don't double. */
+  const pushMessage = (msg: ChatMessage) =>
+    setMessages(prev => (prev.some(m => m.id === String(msg.id)) ? prev : [...prev, msg]));
+
+  // ---------- Persistent + realtime room chat (meeting_messages table) ----------
+  // 1) Load existing history on screen open, 2) subscribe to live INSERTs.
+  useEffect(() => {
+    if (!supabase) return;
+    let cancelled = false;
+
+    // A. Fetch the current room's messages once.
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('meeting_messages')
+          .select('*')
+          .eq('room_id', MEETING_ROOM_ID)
+          .order('created_at', { ascending: true });
+        if (error) { console.warn('[chat] meeting_messages fetch failed:', error.message); return; }
+        if (data && !cancelled) {
+          const remote = data.map((r: any) => mapMeetingRowToChat(r, senderName));
+          setMessages(prev => {
+            const seen = new Set(prev.map(m => m.id));
+            return [...prev, ...remote.filter(m => !seen.has(m.id))];
+          });
+        }
+      } catch (e) { console.warn('[chat] load failed:', (e as Error).message); }
+    })();
+
+    // B. Live INSERT events — new & other users' messages render instantly.
+    const channel = supabase
+      .channel(`room:${MEETING_ROOM_ID}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'meeting_messages', filter: `room_id=eq.${MEETING_ROOM_ID}` },
+        (payload) => {
+          if (cancelled || !payload?.new) return;
+          pushMessage(mapMeetingRowToChat(payload.new as any, senderName));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      try { supabase.removeChannel(channel); } catch { /* noop */ }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const clock = nowClock();
 
@@ -243,14 +312,28 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     }).catch(() => {});
   };
 
-  const sendMessage = (): void => {
-    if (!inputText.trim()) return;
-    const msgId = `t-${Date.now()}`;
-    pushMessage({
-      id: msgId, type: 'text', senderId, senderName, senderPhone, avatarUrl: null,
-      text: inputText.trim(), time: clock, isMe: true,
-    });
-    broadcast({ id: msgId, text: inputText.trim(), type: 'text' });
+  /** Send text by inserting into meeting_messages — realtime fans it out to every device. */
+  const sendMessage = async (): Promise<void> => {
+    const content = inputText.trim();
+    if (!content) return;
+    try {
+      if (!supabase) throw new Error('Supabase client unavailable');
+      const { data, error } = await supabase
+        .from('meeting_messages')
+        .insert({ room_id: MEETING_ROOM_ID, sender_name: senderName, content })
+        .select()
+        .single();
+      if (error) throw error;
+      // Optimistic echo for the sender; the realtime INSERT event is deduped.
+      if (data) pushMessage(mapMeetingRowToChat(data, senderName));
+    } catch (e) {
+      // Resilient fallback: keep the bubble local if the table is unreachable.
+      console.warn('[chat] insert failed, showing locally:', (e as Error).message);
+      pushMessage({
+        id: `t-${Date.now()}`, type: 'text', senderId, senderName, senderPhone, avatarUrl: null,
+        text: content, time: nowClock(), isMe: true,
+      });
+    }
     setInputText('');
   };
 
@@ -670,6 +753,13 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0B1412" />
 
+      {/* ROOT FLEX LAYOUT — KeyboardAvoidingView keeps the header and bottom
+          input column pinned while ONLY the message list scrolls vertically. */}
+      <KeyboardAvoidingView
+        style={styles.keyboardWrap}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -714,19 +804,21 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         </View>
       ) : null}
 
-      {/* Message threads */}
-      <ScrollView
+      {/* MESSAGE AREA — FlatList flex:1, the ONLY scrolling region */}
+      <FlatList
         style={styles.scrollView}
         ref={scrollRef}
-        contentContainerStyle={styles.messageList}
+        data={visibleMessages}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => renderMessage(item)}
+        ListHeaderComponent={renderSystemPill('Today', 'date')}
+        ListFooterComponent={
+          visibleMessages.length === 0 ? (
+            <Text style={styles.noResults}>No messages match your search.</Text>
+          ) : null
+        }
         showsVerticalScrollIndicator={false}
-      >
-        {renderSystemPill('Today', 'date')}
-        {visibleMessages.map(renderMessage)}
-        {visibleMessages.length === 0 ? (
-          <Text style={styles.noResults}>No messages match your search.</Text>
-        ) : null}
-      </ScrollView>
+      />
 
       {/* Voice note recording bar */}
       {voiceState.recording ? (
@@ -791,6 +883,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
             onChangeText={setInputText}
             placeholder="Message"
             placeholderTextColor="#6B7F76"
+            multiline
             onSubmitEditing={sendMessage}
           />
         </View>
@@ -900,6 +993,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
           </View>
         </View>
       </Modal>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -907,6 +1001,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0B1412', overflow: 'hidden', width: '100%', maxWidth: '100%', touchAction: 'pan-y' },
+  keyboardWrap: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#0D1D18', paddingHorizontal: 12, paddingVertical: 10,
@@ -1038,8 +1133,9 @@ const styles = StyleSheet.create({
   iconBtn: { padding: 4 },
   textInputWrapper: { flex: 1, marginHorizontal: 6, justifyContent: 'center' },
   textInput: {
-    flex: 1, height: 42, borderRadius: 21, backgroundColor: '#132620',
-    paddingHorizontal: 16, color: '#FFFFFF', fontSize: 14,
+    flex: 1, minHeight: 42, maxHeight: 120, borderRadius: 21, backgroundColor: '#132620',
+    paddingHorizontal: 16, paddingVertical: 10, color: '#FFFFFF', fontSize: 14,
+    textAlignVertical: 'center',
   },
   voiceNoteBtn: {
     width: 42, height: 42, borderRadius: 21, backgroundColor: '#10B981',
