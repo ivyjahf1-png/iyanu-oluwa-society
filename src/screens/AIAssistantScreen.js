@@ -19,6 +19,7 @@ import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { Send, Bot, Sparkles, MoreVertical, Trash2, Pencil, Check, X, Mic } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { askAI } from '../lib/aiChat';
+import { useTheme } from '../theme/ThemeContext';
 
 const SUGGESTIONS = [
   'How is my loan interest calculated?',
@@ -29,6 +30,8 @@ const SUGGESTIONS = [
 
 export default function AIAssistantScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
   const [messages, setMessages] = useState([
     {
       id: 'welcome',
@@ -158,8 +161,8 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       {/* ROOT FLEX LAYOUT — KeyboardAvoidingView keeps the pinned header and
           bottom input column locked in place while only messages scroll. */}
       <KeyboardAvoidingView
@@ -180,7 +183,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
             onPress={() => setShowMenu(v => !v)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <MoreVertical size={20} color="#A7F3D0" />
+            <MoreVertical size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -193,8 +196,8 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
                 setConfirmClear(true);
               }}
             >
-              <Trash2 size={16} color="#F87171" />
-              <Text style={[styles.menuRowText, { color: '#F87171' }]}>Clear Chat</Text>
+              <Trash2 size={16} color={colors.danger} />
+              <Text style={[styles.menuRowText, { color: colors.danger }]}>Clear Chat</Text>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -203,7 +206,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
             the message list so they never scroll away with chat history. */}
         <View style={styles.suggestHeader}>
           <View style={styles.suggestionWrap}>
-            <Sparkles size={14} color="#10B981" />
+            <Sparkles size={14} color={colors.primary} />
             <Text style={styles.suggestionLabel}>Try asking</Text>
           </View>
           <ScrollView
@@ -238,7 +241,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
             >
               {item.sender === 'ai' ? (
                 <View style={styles.aiRow}>
-                  <Bot size={14} color="#A7F3D0" />
+                  <Bot size={14} color={colors.textSecondary} />
                   <Text style={styles.aiTag}>COOP AI</Text>
                 </View>
               ) : null}
@@ -251,7 +254,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
                     onChangeText={setEditingText}
                     multiline
                     autoFocus
-                    placeholderTextColor="#526E63"
+                    placeholderTextColor={colors.textSecondary}
                   />
                   <View style={styles.editActions}>
                     <TouchableOpacity
@@ -261,23 +264,23 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
                         setEditingText('');
                       }}
                     >
-                      <X size={14} color="#9CB8A6" />
+                      <X size={14} color={colors.textSecondary} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.editSave, !editingText.trim() && { opacity: 0.5 }]}
                       onPress={applyEdit}
                       disabled={!editingText.trim() || loading}
                     >
-                      <Check size={14} color="#FFFFFF" />
+                      <Check size={14} color={colors.background} />
                     </TouchableOpacity>
                   </View>
                 </View>
               ) : (
                 <>
-                  <Text style={styles.bubbleText}>{item.text}</Text>
+                  <Text style={item.sender === 'me' ? styles.bubbleTextMine : styles.bubbleText}>{item.text}</Text>
                   {item.sender === 'me' && !loading ? (
                     <View style={styles.editHintRow}>
-                      <Pencil size={10} color="#64748B" />
+                      <Pencil size={10} color={colors.textSecondary} />
                       <Text style={styles.editHint}>hold to edit</Text>
                     </View>
                   ) : null}
@@ -288,7 +291,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
           ListFooterComponent={
             loading ? (
               <View style={[styles.bubble, styles.bubbleAi]}>
-                <ActivityIndicator size="small" color="#10B981" />
+                <ActivityIndicator size="small" color={colors.primary} />
               </View>
             ) : null
           }
@@ -301,7 +304,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
             value={inputText}
             onChangeText={setInputText}
             placeholder="Ask me anything..."
-            placeholderTextColor="#526E63"
+            placeholderTextColor={colors.textSecondary}
             multiline
           />
           <TouchableOpacity
@@ -309,14 +312,14 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
             onPress={() => Alert.alert('Voice Input', 'Voice dictation is coming soon.')}
             disabled={loading}
           >
-            <Mic size={18} color="#A7F3D0" />
+            <Mic size={18} color={colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.sendBtn, !inputText.trim() && styles.sendBtnDisabled]}
             onPress={() => handleAskAI()}
             disabled={!inputText.trim() || loading}
           >
-            <Send size={18} color="#FFFFFF" />
+            <Send size={18} color={colors.background} />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -330,7 +333,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
       >
         <View style={styles.confirmOverlay}>
           <View style={styles.confirmCard}>
-            <Trash2 size={22} color="#F87171" />
+            <Trash2 size={22} color={colors.danger} />
             <Text style={styles.confirmTitle}>Clear Chat?</Text>
             <Text style={styles.confirmText}>
               This will erase the entire conversation. This cannot be undone.
@@ -349,18 +352,18 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
+const makeStyles = (colors) =>
+  StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   messageList: { padding: 16, paddingBottom: 12 },
-  // FIXED header section holding the "Try asking" chips (never scrolls away)
   suggestHeader: {
     paddingHorizontal: 16,
     paddingTop: 4,
     borderBottomWidth: 1,
-    borderBottomColor: '#12241D',
+    borderBottomColor: colors.border,
   },
   suggestionWrap: {
     flexDirection: 'row',
@@ -370,7 +373,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   suggestionLabel: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -381,15 +384,15 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   chip: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#10B981',
+    borderColor: colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
   chipText: {
-    color: '#127A41',
+    color: colors.primaryDark,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -401,14 +404,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   bubbleMine: {
-    backgroundColor: '#091813',
+    backgroundColor: colors.surface,
     alignSelf: 'flex-end',
   },
   bubbleAi: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.card,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
   },
   aiRow: {
     flexDirection: 'row',
@@ -417,89 +420,73 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   aiTag: {
-    color: '#10B981',
+    color: colors.textSecondary,
     fontSize: 9,
     fontWeight: 'bold',
     letterSpacing: 0.5,
   },
   bubbleText: {
-    color: '#FFFFFF',
+    color: colors.text,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  bubbleTextMine: {
+    color: colors.text,
     fontSize: 13,
     lineHeight: 19,
   },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     paddingHorizontal: 10,
     paddingVertical: 8,
     marginHorizontal: 12,
     marginBottom: 10,
     gap: 8,
   },
-  textInput: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 14,
-    maxHeight: 120,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-  },
+  textInput: { flex: 1, color: colors.text, fontSize: 14, maxHeight: 120, paddingVertical: 8, paddingHorizontal: 6 },
   micBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
     borderWidth: 1,
-    borderColor: '#172F27',
-    backgroundColor: '#0F241C',
+    borderColor: colors.border,
+    backgroundColor: colors.inputBackground,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sendBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#10B981',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendBtnDisabled: {
-    backgroundColor: '#B9D6BC',
-  },
+  sendBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary, justifyContent: 'center', alignItems: 'center' },
+  sendBtnDisabled: { backgroundColor: colors.border },
   // Options menu
-  menuBar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 16,
-    paddingTop: 2,
-  },
+  menuBar: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingTop: 2 },
   menuBtn: { padding: 4 },
   menuSheet: {
     position: 'absolute',
     top: 96,
     right: 16,
-    backgroundColor: '#132620',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: colors.border,
     paddingVertical: 4,
     width: 170,
     zIndex: 20,
     elevation: 8,
   },
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 11, paddingHorizontal: 14 },
-  menuRowText: { fontSize: 13, fontWeight: '600' },
+  menuRowText: { color: colors.danger, fontSize: 13, fontWeight: '600' },
 
   // Inline message editing
   editBox: { minWidth: 180 },
   editInput: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 13,
     lineHeight: 18,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: colors.inputBackground,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 6,
@@ -507,18 +494,14 @@ const styles = StyleSheet.create({
   },
   editActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
   editCancel: { padding: 5 },
-  editSave: {
-    backgroundColor: '#10B981',
-    borderRadius: 8,
-    padding: 5,
-  },
+  editSave: { backgroundColor: colors.primary, borderRadius: 8, padding: 5 },
   editHintRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4, alignSelf: 'flex-end' },
-  editHint: { color: '#64748B', fontSize: 9 },
+  editHint: { color: colors.textSecondary, fontSize: 9 },
 
   // Clear-chat confirmation
   confirmOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -526,16 +509,16 @@ const styles = StyleSheet.create({
   confirmCard: {
     width: '100%',
     maxWidth: 330,
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.surface,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: colors.border,
     padding: 22,
     alignItems: 'center',
   },
-  confirmTitle: { color: '#FFFFFF', fontSize: 17, fontWeight: 'bold', marginTop: 10 },
+  confirmTitle: { color: colors.text, fontSize: 17, fontWeight: 'bold', marginTop: 10 },
   confirmText: {
-    color: '#9CB8A6',
+    color: colors.textSecondary,
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
@@ -543,15 +526,8 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   confirmActions: { flexDirection: 'row', gap: 12, alignSelf: 'stretch' },
-  confirmCancel: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#1C4A2E',
-    alignItems: 'center',
-  },
-  confirmCancelText: { color: '#9CB8A6', fontWeight: '600', fontSize: 13 },
-  confirmOk: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: '#DC2626', alignItems: 'center' },
-  confirmOkText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
+  confirmCancel: { flex: 1, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
+  confirmCancelText: { color: colors.textSecondary, fontWeight: '600', fontSize: 13 },
+  confirmOk: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.danger, alignItems: 'center' },
+  confirmOkText: { color: colors.background, fontWeight: 'bold', fontSize: 13 },
 });

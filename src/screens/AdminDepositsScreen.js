@@ -15,6 +15,7 @@ import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { CheckCircle2, XCircle, RefreshCw, FileText } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { supabase } from '../lib/supabase';
+import { reconcileWallets, fetchPendingPayments, approvePayment } from '../lib/ledger';
 
 export default function AdminDepositsScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
@@ -31,8 +32,23 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
       .order('created_at', { ascending: true });
     if (error) {
       Alert.alert('Load failed', error.message);
+      setDeposits([]);
     } else {
-      setDeposits(data || []);
+      // Merge in member-submitted PENDING payments (contribution / savings
+      // deposit / loan repayment / withdrawal) tagged with kind='payment'.
+      const memberPayments = await fetchPendingPayments();
+      const depositRows = (data || []).map(d => ({ ...d, kind: 'deposit' }));
+      const paymentRows = memberPayments.map(p => ({
+        id: p.id,
+        kind: 'payment',
+        amount: p.amount,
+        method: p.tx_type,
+        status: p.status,
+        reference_id: p.reference,
+        created_at: p.created_at,
+        profiles: p.profiles,
+      }));
+      setDeposits([...depositRows, ...paymentRows]);
     }
     setLoading(false);
   }, []);
@@ -43,7 +59,7 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
 
   const approve = deposit =>
     Alert.alert(
-      'Approve deposit',
+      'Approve payment',
       `Credit ₦${Number(deposit.amount).toLocaleString()} to ${deposit.profiles?.full_name || 'member'}?`,
       [
         { text: 'Cancel', style: 'cancel' },
@@ -51,14 +67,31 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
           text: 'Approve',
           onPress: async () => {
             setProcessing(deposit.id);
-            const { error } = await supabase.rpc('approve_deposit', {
-              p_deposit_id: deposit.id,
-            });
-            setProcessing(null);
-            if (error) {
-              Alert.alert('Approve failed', error.message);
-            } else {
-              Alert.alert('Approved', 'Deposit credited to the member balance.');
+            try {
+              if (deposit.kind === 'payment') {
+                // Secure backend workflow: authorization, pending check,
+                // ledger, loan update, receipt and audit happen atomically
+                // server-side. The result carries authoritative figures.
+                const result = await approvePayment(deposit.id);
+                Alert.alert(
+                  'Approved',
+                  result?.receipt_number
+                    ? `Processed. Receipt ${result.receipt_number}.`
+                    : 'Processed. Receipt generation will retry automatically.',
+                );
+              } else {
+                const { error } = await supabase.rpc('approve_deposit', {
+                  p_deposit_id: deposit.id,
+                });
+                if (error) throw new Error(error.message);
+                Alert.alert('Approved', 'Deposit credited to the member balance.');
+              }
+            } catch (e) {
+              // Duplicate approvals land here as "already processed" — pending
+              // list refresh shows the authoritative state either way.
+              Alert.alert('Approve failed', e.message);
+            } finally {
+              setProcessing(null);
               loadPending();
             }
           },
@@ -67,13 +100,29 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
     );
 
   const reject = deposit =>
-    Alert.alert('Reject deposit', 'Mark this deposit as failed?', [
+    Alert.alert('Reject payment', 'Mark this payment as failed?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Reject',
         style: 'destructive',
         onPress: async () => {
           setProcessing(deposit.id);
+          if (deposit.kind === 'payment') {
+            // Rejection of member-submitted payments is done by the admin via
+            // a status change; the record stays for the audit trail.
+            const { error } = await supabase
+              .from('pending_payments')
+              .update({ status: 'failed' })
+              .eq('id', deposit.id)
+              .eq('status', 'pending');
+            setProcessing(null);
+            if (error) {
+              Alert.alert('Reject failed', error.message);
+            } else {
+              loadPending();
+            }
+            return;
+          }
           const { error } = await supabase.rpc('reject_deposit', {
             p_deposit_id: deposit.id,
           });
@@ -91,6 +140,29 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
     if (url) Linking.openURL(url);
   };
 
+  // Phase 9/13: verify every wallet balance against the ledger replay and
+  // repair any drift (audit-logged server-side).
+  const reconcile = () =>
+    Alert.alert('Reconcile wallets', 'Verify all wallet balances against the ledger and repair any drift?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Run',
+        onPress: async () => {
+          try {
+            const repaired = await reconcileWallets();
+            Alert.alert(
+              'Reconciliation complete',
+              repaired === 0
+                ? 'All wallet balances match the ledger.'
+                : `${repaired} wallet balance(s) were repaired. This action was recorded in the audit log.`,
+            );
+          } catch (e) {
+            Alert.alert('Reconciliation failed', e.message);
+          }
+        },
+      },
+    ]);
+
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -99,8 +171,12 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
       </View>
 
       <Text style={styles.meta}>
-        {item.method === 'manual' ? 'Manual bank transfer' : 'Flutterwave'} •{' '}
-        {new Date(item.created_at).toLocaleString()}
+        {item.kind === 'payment'
+          ? item.method.replace(/_/g, ' ')
+          : item.method === 'manual'
+          ? 'Manual bank transfer'
+          : 'Flutterwave'}{' '}
+        • {new Date(item.created_at).toLocaleString()}
       </Text>
       {item.reference_id ? <Text style={styles.meta}>Ref: {item.reference_id}</Text> : null}
 
@@ -119,7 +195,7 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
           onPress={() => approve(item)}
           disabled={processing === item.id}
         >
-          <CheckCircle2 size={16} color="#FFFFFF" />
+          <CheckCircle2 size={16} color='#0F172A' />
           <Text style={styles.approveText}>
             {processing === item.id ? 'Working…' : 'Approve'}
           </Text>
@@ -129,7 +205,7 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
           onPress={() => reject(item)}
           disabled={processing === item.id}
         >
-          <XCircle size={16} color="#FFFFFF" />
+          <XCircle size={16} color='#0F172A' />
           <Text style={styles.rejectText}>Reject</Text>
         </TouchableOpacity>
       </View>
@@ -138,12 +214,18 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#2D1E1B" />
+      <StatusBar barStyle="dark-content" backgroundColor='#06130D' />
       <ScreenHeader
         title="Pending Deposits"
         subtitle="Manual transfers awaiting verification"
         onBack={() => navigation.goBack()}
       />
+
+      {/* Phase 13: admin dashboard enhancement — ledger reconciliation */}
+      <TouchableOpacity style={styles.reconcileBtn} onPress={reconcile}>
+        <RefreshCw size={16} color="#A7F3D0" />
+        <Text style={styles.reconcileText}>Reconcile wallets vs ledger</Text>
+      </TouchableOpacity>
 
       <FlatList
         data={deposits}
@@ -162,14 +244,29 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
   );
 }
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
+  reconcileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 4,
+    marginBottom: 8,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#1E3A30',
+    backgroundColor: '#0A1C14',
+  },
+  reconcileText: { color: '#A7F3D0', fontSize: 13, fontWeight: '600' },
   list: { padding: 16, paddingBottom: 32 },
   card: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     marginBottom: 12,
   },
   cardHeader: {
@@ -178,7 +275,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   memberName: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -227,7 +324,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
   },
   approveText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: 'bold',
     fontSize: 13,
   },
@@ -235,7 +332,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#C0392B',
   },
   rejectText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: 'bold',
     fontSize: 13,
   },

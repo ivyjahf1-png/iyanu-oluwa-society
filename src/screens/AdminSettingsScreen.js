@@ -11,6 +11,7 @@ import {
   Alert,
   Switch,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
@@ -29,14 +30,18 @@ import {
   UserCog,
   Trash2,
   Bot,
-  Palette,
+  ScrollText,
+  HandCoins,
+  AlertTriangle,
+  Wallet,
 } from 'lucide-react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import ScreenHeader from '../components/ScreenHeader';
-import { getAllSettings, saveSettings } from '../lib/supabase';
+import { getAllSettings, saveSettings, supabase, isServerConfigured } from '../lib/supabase';
+import { fetchPendingPayments } from '../lib/ledger';
 import { useBankDetails } from '../context/BankContext';
-import { useAppTheme, COLOR_SCHEMES } from '../context/ThemeContext';
+import { useAppTheme } from '../context/ThemeContext';
 import { resetAllAccounts } from '../auth/authService';
 import {
   readAdminSecurity,
@@ -51,10 +56,14 @@ import {
 
 const ADMIN_SETTINGS_CACHE_KEY = '@admin_app_settings';
 
+/** Currency formatter for the admin overview metrics. */
+const naira = n =>
+  '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export default function AdminSettingsScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { setBankDetails } = useBankDetails();
-  const { colors, isDark, colorScheme, setColorScheme } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -78,8 +87,82 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
   const [secBiometric, setSecBiometric] = useState(false);
   const [secRequireStartup, setSecRequireStartup] = useState(false);
 
+  // ---- Admin Overview metrics — every figure is read from the backend ----
+  // (profiles / ledger_entries / loans / pending_payments). No hardcoded or
+  // client-invented totals: sums are reductions over rows returned by RLS.
+  const [metrics, setMetrics] = useState(null);
+  const [metricsLoading, setMetricsLoading] = useState(true);
+
+  const loadAdminMetrics = async () => {
+    if (!isServerConfigured()) {
+      setMetrics(null);
+      setMetricsLoading(false);
+      return;
+    }
+    setMetricsLoading(true);
+    try {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const [membersRes, balancesRes, ledgerRes, loansRes, pendingRes] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('balance'),
+        supabase
+          .from('ledger_entries')
+          .select('entry_type, direction, amount, created_at')
+          .order('created_at', { ascending: false })
+          .limit(2000),
+        supabase.from('loans').select('status, principal, total_repayable, amount_repaid, due_date'),
+        fetchPendingPayments(),
+      ]);
+
+      const balances = balancesRes.data || [];
+      const ledger = ledgerRes.data || [];
+      const loans = loansRes.data || [];
+      const pending = pendingRes || [];
+
+      const sum = rows => rows.reduce((s, r) => s + Number(r.amount || 0), 0);
+      const credits = types => sum(ledger.filter(l => types.includes(l.entry_type) && l.direction === 'credit'));
+
+      const totalSavings =
+        credits(['contribution', 'deposit']) -
+        sum(ledger.filter(l => l.entry_type === 'withdrawal' && l.direction === 'debit'));
+
+      const outstandingLoans = loans
+        .filter(l => l.status === 'disbursed')
+        .reduce((s, l) => s + Math.max(0, Number(l.total_repayable || 0) - Number(l.amount_repaid || 0)), 0);
+
+      const overdueLoans = loans.filter(
+        l => l.status === 'disbursed' && l.due_date && new Date(l.due_date) < new Date(),
+      ).length;
+
+      setMetrics({
+        totalMembers: membersRes.count ?? 0,
+        availableFunds: balances.reduce((s, r) => s + Number(r.balance || 0), 0),
+        totalSavings,
+        outstandingLoans,
+        todayContributions: sum(
+          ledger.filter(
+            l => l.entry_type === 'contribution' && new Date(l.created_at) >= startOfToday,
+          ),
+        ),
+        pendingPayments: pending.length,
+        pendingLoans: loans.filter(l => l.status === 'pending').length,
+        pendingWithdrawals: pending.filter(p => p.tx_type === 'withdrawal').length,
+        overdueLoans,
+      });
+    } catch (e) {
+      console.warn('[admin-metrics] load failed:', e?.message);
+      setMetrics(null);
+    } finally {
+      setMetricsLoading(false);
+    }
+  };
+
+
   useEffect(() => {
     loadSettings();
+    loadAdminMetrics();
   }, []);
 
   // Mount-time security binding: read the contract keys via the safe
@@ -472,6 +555,215 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           </TouchableOpacity>
         </View>
 
+        {/* ADMIN OVERVIEW — figures read live from the backend tables */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <Landmark size={18} color="#10B981" />
+            <Text style={styles.sectionTitle}>Admin Overview</Text>
+            <TouchableOpacity
+              style={{ marginLeft: 'auto' }}
+              onPress={loadAdminMetrics}
+              disabled={metricsLoading}
+            >
+              <Text style={styles.refreshText}>{metricsLoading ? '…' : 'Refresh'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          {metricsLoading && !metrics ? (
+            <View style={styles.metricsLoading}>
+              <ActivityIndicator size="small" color="#10B981" />
+              <Text style={styles.sectionHint}>Loading cooperative figures…</Text>
+            </View>
+          ) : !metrics ? (
+            <Text style={styles.sectionHint}>
+              Backend not configured on this device — figures unavailable.
+            </Text>
+          ) : (
+            <>
+              <View style={styles.metricsGrid}>
+                <View style={styles.metricCell}>
+                  <Text style={styles.metricLabel}>Total Members</Text>
+                  <Text style={styles.metricValue}>{metrics.totalMembers}</Text>
+                </View>
+                <View style={styles.metricCell}>
+                  <Text style={styles.metricLabel}>Cooperative Funds</Text>
+                  <Text style={styles.metricValue}>{naira(metrics.availableFunds)}</Text>
+                </View>
+                <View style={styles.metricCell}>
+                  <Text style={styles.metricLabel}>Total Savings</Text>
+                  <Text style={styles.metricValue}>{naira(metrics.totalSavings)}</Text>
+                </View>
+                <View style={styles.metricCell}>
+                  <Text style={styles.metricLabel}>Outstanding Loans</Text>
+                  <Text style={styles.metricValue}>{naira(metrics.outstandingLoans)}</Text>
+                </View>
+                <View style={styles.metricCell}>
+                  <Text style={styles.metricLabel}>Today's Contributions</Text>
+                  <Text style={styles.metricValue}>{naira(metrics.todayContributions)}</Text>
+                </View>
+              </View>
+              <Text style={styles.metricFootnote}>
+                Derived live from profiles, ledger_entries and loans (authoritative backend records).
+              </Text>
+            </>
+          )}
+        </View>
+
+        {/* NEEDS ATTENTION — actionable counters that open the right screen */}
+        {metrics ? (
+          <View style={styles.sectionCard}>
+            <View style={styles.sectionHeaderRow}>
+              <AlertTriangle size={18} color="#F59E0B" />
+              <Text style={styles.sectionTitle}>Needs Attention</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.attentionRow}
+              onPress={() => navigation.navigate('AdminDeposits')}
+            >
+              <BadgeCheck size={16} color="#38BDF8" />
+              <Text style={styles.attentionText}>Pending payments</Text>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>{metrics.pendingPayments}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.attentionRow}
+              onPress={() => navigation.navigate('AdminLoans')}
+            >
+              <HandCoins size={16} color="#10B981" />
+              <Text style={styles.attentionText}>Pending loan applications</Text>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>{metrics.pendingLoans}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.attentionRow}
+              onPress={() => navigation.navigate('AdminDeposits')}
+            >
+              <Wallet size={16} color="#A78BFA" />
+              <Text style={styles.attentionText}>Pending withdrawals</Text>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>{metrics.pendingWithdrawals}</Text>
+              </View>
+            </TouchableOpacity>
+
+            {metrics.overdueLoans > 0 ? (
+              <TouchableOpacity
+                style={styles.attentionRow}
+                onPress={() => navigation.navigate('AdminLoans')}
+              >
+                <AlertTriangle size={16} color="#F87171" />
+                <Text style={styles.attentionText}>Overdue loans</Text>
+                <View style={[styles.countBadge, { backgroundColor: '#F87171' }]}>
+                  <Text style={styles.countText}>{metrics.overdueLoans}</Text>
+                </View>
+              </TouchableOpacity>
+            ) : null}
+
+            <TouchableOpacity
+              style={styles.attentionRow}
+              onPress={() => navigation.navigate('AdminDeposits')}
+            >
+              <ShieldCheck size={16} color="#10B981" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.attentionText}>Reconciliation</Text>
+                <Text style={styles.attentionSub}>Verify wallets against the ledger</Text>
+              </View>
+              <ChevronRight size={16} color="#9CB8A6" />
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {/* QUICK ACTIONS — all point at existing screens */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <ShieldCheck size={18} color="#10B981" />
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
+          </View>
+
+          <View style={styles.qaGrid}>
+            <TouchableOpacity style={styles.qaCell} onPress={() => navigation.navigate('AdminUserManagement')}>
+              <Users size={18} color="#C084FC" />
+              <Text style={styles.qaText}>Add Member</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.qaCell} onPress={() => navigation.navigate('AdminDeposits')}>
+              <BadgeCheck size={18} color="#38BDF8" />
+              <Text style={styles.qaText}>Verify Payment</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.qaCell} onPress={() => navigation.navigate('AdminLoans')}>
+              <HandCoins size={18} color="#10B981" />
+              <Text style={styles.qaText}>Approve Loan</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.qaCell} onPress={() => navigation.navigate('AdminLedger')}>
+              <ScrollText size={18} color="#F59E0B" />
+              <Text style={styles.qaText}>Ledger</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.qaCell} onPress={() => navigation.navigate('AccountStatement')}>
+              <ScrollText size={18} color="#2DD4BF" />
+              <Text style={styles.qaText}>Reports</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.qaCell} onPress={() => navigation.navigate('AdminDeposits')}>
+              <ShieldCheck size={18} color="#38BDF8" />
+              <Text style={styles.qaText}>Reconcile</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* FINANCIAL MANAGEMENT — routes into the existing screens/RPCs */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <Wallet size={18} color="#10B981" />
+            <Text style={styles.sectionTitle}>Financial Management</Text>
+          </View>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminDeposits')}>
+            <View style={[styles.controlIcon, { backgroundColor: '#123B63' }]}>
+              <BadgeCheck size={18} color="#38BDF8" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Payments & Withdrawals</Text>
+              <Text style={styles.controlSub}>Verify, approve or reject pending submissions</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminLoans')}>
+            <View style={[styles.controlIcon, { backgroundColor: '#0F4C38' }]}>
+              <HandCoins size={18} color="#10B981" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Loans</Text>
+              <Text style={styles.controlSub}>Review, approve, reject, disburse & track repayments</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminLedger')}>
+            <View style={[styles.controlIcon, { backgroundColor: '#40301A' }]}>
+              <ScrollText size={18} color="#F59E0B" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Transaction Ledger</Text>
+              <Text style={styles.controlSub}>Immutable record — every credit & debit</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AccountStatement')}>
+            <View style={[styles.controlIcon, { backgroundColor: '#0E4A45' }]}>
+              <ScrollText size={18} color="#2DD4BF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Statements & Reports</Text>
+              <Text style={styles.controlSub}>Statement periods with PDF / share export</Text>
+            </View>
+            <ChevronRight size={18} color="#9CB8A6" />
+          </TouchableOpacity>
+        </View>
+
                 {/* AI Config — edge-function auth with direct Gemini fallback */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
@@ -497,44 +789,9 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           </TouchableOpacity>
         </View>
 
-        {/* Appearance — five color schemes */}
-        <View style={styles.sectionCard}>
-          <View style={styles.sectionHeaderRow}>
-            <Palette size={18} color={colors.primary} />
-            <Text style={styles.sectionTitle}>Appearance</Text>
-          </View>
-          <Text style={styles.sectionHint}>
-            Color scheme (applies over your current Light/Dark mode). Tap a pill —
-            the whole app restyles instantly.
-          </Text>
-          {/* Live preview of the active scheme */}
-          <View style={[styles.themePreview, { borderColor: colors.primary }]}>
-            <View style={[styles.themePreviewDot, { backgroundColor: colors.primary }]} />
-            <Text style={[styles.themePreviewLabel, { color: colors.accentText }]}>
-              {COLOR_SCHEMES[colorScheme]?.name || 'Emerald'} active
-            </Text>
-          </View>
-          <View style={styles.themeGrid}>
-            {Object.keys(COLOR_SCHEMES).map((key) => {
-              const s = COLOR_SCHEMES[key];
-              const active = colorScheme === key;
-              return (
-                <TouchableOpacity
-                  key={key}
-                  style={[
-                    styles.themeSwatch,
-                    { backgroundColor: s.primary },
-                    active && styles.themeSwatchActive,
-                    active && { borderColor: s.accentText },
-                  ]}
-                  onPress={() => setColorScheme(key)}
-                >
-                  <Text style={styles.themeSwatchLabel}>{s.name}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
+        {/* Appearance — themes are managed in Profile Settings (single
+            canonical 4-option ThemeSelector). The duplicated scheme grid was
+            removed; setColorScheme remains aliased to the canonical setTheme. */}
 
         {/* Flutterwave credentials */}
         <View style={styles.sectionCard}>
@@ -583,8 +840,8 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             <Switch
               value={passFeesToUser}
               onValueChange={setPassFeesToUser}
-              trackColor={{ false: '#172F27', true: '#10B981' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: '#D1FAE5', true: '#10B981' }}
+              thumbColor='#FFFFFF'
             />
           </View>
         </View>
@@ -732,8 +989,8 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             <Switch
               value={secBiometric}
               onValueChange={toggleBiometric}
-              trackColor={{ false: '#172F27', true: '#10B981' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: '#D1FAE5', true: '#10B981' }}
+              thumbColor='#FFFFFF'
             />
           </View>
 
@@ -745,13 +1002,13 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             <Switch
               value={secRequireStartup}
               onValueChange={toggleRequireStartup}
-              trackColor={{ false: '#172F27', true: '#10B981' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: '#D1FAE5', true: '#10B981' }}
+              thumbColor='#FFFFFF'
             />
           </View>
 
           <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.primary }]} onPress={handleSavePasscode}>
-            <CheckCircle2 size={16} color="#FFFFFF" />
+            <CheckCircle2 size={16} color='#0F172A' />
             <Text style={styles.saveBtnText}>Save Passcode</Text>
           </TouchableOpacity>
         </View>
@@ -761,7 +1018,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           onPress={saveSettingsHandler}
           disabled={loading || saving}
         >
-          <CheckCircle2 size={18} color="#FFFFFF" />
+          <CheckCircle2 size={18} color='#0F172A' />
           <Text style={styles.saveBtnText}>{saving ? 'Saving\u2026' : 'Save Settings'}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -772,7 +1029,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#091813' 
+    backgroundColor: '#06130D' 
   },
   scrollView: { 
     flex: 1 
@@ -783,11 +1040,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   sectionCard: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     marginBottom: 16,
   },
   sectionHeaderRow: {
@@ -797,7 +1054,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -806,20 +1063,110 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginBottom: 10,
   },
+  // ---- Admin Overview / Quick Actions / Needs Attention ----
+  refreshText: { color: '#10B981', fontSize: 12, fontWeight: '700' },
+  metricsLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  metricCell: {
+    flexGrow: 1,
+    minWidth: '47%',
+    backgroundColor: '#F4F7F5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+    padding: 12,
+  },
+  metricLabel: {
+    color: '#4B6358',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  metricValue: {
+    color: '#0F172A',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  metricFootnote: {
+    color: '#8EA89D',
+    fontSize: 10,
+    marginTop: 10,
+    lineHeight: 14,
+  },
+  attentionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDF3F0',
+  },
+  attentionText: {
+    color: '#0F172A',
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
+  },
+  attentionSub: {
+    color: '#8EA89D',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  countBadge: {
+    minWidth: 26,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 13,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+  },
+  countText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' },
+  qaGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  qaCell: {
+    flexGrow: 1,
+    minWidth: '30%',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F4F7F5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+    paddingVertical: 14,
+    paddingHorizontal: 6,
+  },
+  qaText: {
+    color: '#0F172A',
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   label: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     marginBottom: 14,
   },
@@ -833,7 +1180,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   switchTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -845,10 +1192,10 @@ const styles = StyleSheet.create({
   passcodeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     marginBottom: 14,
   },
   passcodeInput: {
@@ -856,7 +1203,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 0,
     marginBottom: 0,
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   eyeToggleBtn: { paddingHorizontal: 12 },
   saveBtn: {
@@ -874,18 +1221,18 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveBtnText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: 'bold',
     fontSize: 14,
   },
   loanSection: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 14,
     marginTop: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
   },
   loanHeader: {
     flexDirection: 'row',
@@ -895,7 +1242,7 @@ const styles = StyleSheet.create({
   },
   modeRow: {
     flexDirection: 'row',
-    backgroundColor: '#172F27',
+    backgroundColor: '#D1FAE5',
     borderRadius: 10,
     padding: 4,
     marginVertical: 10,
@@ -903,11 +1250,11 @@ const styles = StyleSheet.create({
   modeBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
   modeBtnActive: { backgroundColor: '#10B981' },
   modeBtnText: { color: '#8EA89D', fontSize: 12, fontWeight: '600' },
-  modeBtnTextActive: { color: '#FFFFFF' },
+  modeBtnTextActive: { color: '#0F172A' },
   bannerLink: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: '#132620', borderRadius: 12, padding: 14,
-    borderWidth: 1, borderColor: '#172F27', marginBottom: 16,
+    borderWidth: 1, borderColor: '#D1FAE5', marginBottom: 16,
   },
   themePreview: {
     flexDirection: 'row',
@@ -922,7 +1269,7 @@ const styles = StyleSheet.create({
   },
   themePreviewDot: { width: 12, height: 12, borderRadius: 6 },
   themePreviewLabel: { fontSize: 12, fontWeight: '700' },
-  bannerLinkTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  bannerLinkTitle: { color: '#0F172A', fontSize: 14, fontWeight: '600' },
     bannerLinkSub: { color: '#8EA89D', fontSize: 11, marginTop: 2 },
   themeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   themeSwatch: {
@@ -936,13 +1283,13 @@ const styles = StyleSheet.create({
   },
   themeSwatchActive: {
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: '#E5E7EB',
     shadowColor: '#000',
     shadowOpacity: 0.4,
     shadowRadius: 6,
     elevation: 4,
   },
-  themeSwatchLabel: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
+  themeSwatchLabel: { color: '#0F172A', fontSize: 12, fontWeight: '700' },
   controlRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -951,7 +1298,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     marginBottom: 10,
   },
   controlIcon: {
@@ -961,7 +1308,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  controlTitle: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
+  controlTitle: { color: '#0F172A', fontSize: 14, fontWeight: '600' },
   controlSub: { color: '#8EA89D', fontSize: 11, marginTop: 2 },
   controlPill: {
     color: '#10B981',

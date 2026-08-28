@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -16,10 +16,14 @@ import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
 import BankDetailsCard from '../components/BankDetailsCard';
 import { useTransactions } from '../context/TransactionsContext';
+import { fetchMyLoans, repayLoanFromWallet, isServerConfigured, submitPayment } from '../lib/ledger';
+import { useTheme } from '../theme/ThemeContext';
 
 export default function RepayLoanScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { loanOutstanding, totalPaid, addTransaction } = useTransactions();
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
   // Current loan metrics derived from the real transaction ledger only.
   const totalOutstanding = loanOutstanding + totalPaid; // gross disbursed
   const remainingBalance = loanOutstanding;
@@ -28,6 +32,50 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
   const [customAmount, setCustomAmount] = useState('');
   const [reference, setReference] = useState('');
   const [receipt, setReceipt] = useState(null);
+
+  // Phase 7/8: the member's active server loan (null when none/not configured).
+  const [activeLoan, setActiveLoan] = useState(null);
+  const [payingFromWallet, setPayingFromWallet] = useState(false);
+  useEffect(() => {
+    if (!isServerConfigured()) return;
+    (async () => {
+      const loans = await fetchMyLoans();
+      setActiveLoan(loans.find(l => l.status === 'disbursed') || null);
+    })();
+  }, []);
+
+  // Pay the outstanding balance (or custom amount) from the wallet balance.
+  const payFromWallet = () => {
+    if (!activeLoan) return;
+    const remainingServer = Number(activeLoan.total_repayable) - Number(activeLoan.amount_repaid);
+    const walletAmount = mode === 'full' ? remainingServer : parseFloat(customAmount) || 0;
+    if (walletAmount <= 0) {
+      Alert.alert('Enter amount', 'Choose "Pay Full Balance" or enter a custom repayment amount.');
+      return;
+    }
+    Alert.alert(
+      'Pay from wallet',
+      `Debit ₦${walletAmount.toLocaleString()} from your available balance to repay this loan?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Pay',
+          onPress: async () => {
+            setPayingFromWallet(true);
+            try {
+              await repayLoanFromWallet(activeLoan.id, walletAmount);
+              Alert.alert('Repayment successful', 'Your wallet has been debited and the loan updated.');
+              navigation.goBack();
+            } catch (e) {
+              Alert.alert('Payment failed', e.message);
+            } finally {
+              setPayingFromWallet(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const repaymentAmount = mode === 'full' ? remainingBalance : parseFloat(customAmount) || 0;
 
@@ -45,7 +93,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
     }
   };
 
-  const submitRepayment = () => {
+  const submitRepayment = async () => {
     if (repaymentAmount <= 0) {
       Alert.alert('Enter amount', 'Choose "Pay Full Balance" or enter a custom repayment amount.');
       return;
@@ -54,13 +102,39 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
       Alert.alert('Proof required', 'Upload a payment receipt or enter the transaction reference.');
       return;
     }
-    // Record the repayment in the member's audit trail (updates all figures).
-    addTransaction({
-      type: 'loan_repayment',
-      label: 'Loan Repayment',
-      amount: repaymentAmount,
-      reference: reference.trim(),
-    });
+    // Server-configured: create a PENDING loan repayment tied to the official
+    // loan record. The outstanding balance is recalculated by the backend on
+    // admin approval — never from client-supplied values.
+    if (isServerConfigured()) {
+      try {
+        await submitPayment({
+          txType: 'loan_repayment',
+          amount: repaymentAmount,
+          loanId: activeLoan?.id || null,
+          reference: reference.trim(),
+        });
+        if (!activeLoan) {
+          // No active server loan: fall back to the local audit trail.
+          addTransaction({
+            type: 'loan_repayment',
+            label: 'Loan Repayment',
+            amount: repaymentAmount,
+            reference: reference.trim(),
+          });
+        }
+      } catch (e) {
+        Alert.alert('Submission failed', e.message);
+        return;
+      }
+    } else {
+      // Record the repayment in the member's audit trail (updates all figures).
+      addTransaction({
+        type: 'loan_repayment',
+        label: 'Loan Repayment',
+        amount: repaymentAmount,
+        reference: reference.trim(),
+      });
+    }
     Alert.alert(
       'Repayment submitted',
       `Your loan repayment of ₦${repaymentAmount.toLocaleString()} has been submitted for verification.`,
@@ -70,7 +144,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <ScreenHeader
         title="Repay Loan"
         subtitle="Settle your outstanding cooperative loan"
@@ -105,7 +179,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
             style={[styles.modeBtn, mode === 'full' && styles.modeBtnActive]}
             onPress={() => setMode('full')}
           >
-            <TrendingDown size={18} color={mode === 'full' ? '#FFFFFF' : '#10B981'} />
+            <TrendingDown size={18} color={mode === 'full' ? '#FFFFFF' : colors.primary} />
             <Text style={[styles.modeBtnText, mode === 'full' && styles.modeBtnTextActive]}>
               Pay Full Balance
             </Text>
@@ -128,7 +202,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
               value={customAmount}
               onChangeText={setCustomAmount}
               placeholder="0.00"
-              placeholderTextColor="#526E63"
+              placeholderTextColor={colors.textSecondary}
               keyboardType="decimal-pad"
             />
           </View>
@@ -145,7 +219,7 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
         {/* Payment confirmation */}
         <Text style={styles.label}>Payment Confirmation</Text>
         <TouchableOpacity style={styles.uploadBtn} onPress={pickReceipt}>
-          <Upload size={20} color="#10B981" />
+          <Upload size={20} color={colors.primary} />
           <View style={styles.uploadTextGroup}>
             <Text style={styles.uploadTitle} numberOfLines={1}>
               {receipt ? receipt.name : 'Upload Payment Receipt'}
@@ -160,26 +234,40 @@ export default function RepayLoanScreen({ navigation: rawNav }) {
           value={reference}
           onChangeText={setReference}
           placeholder="e.g. TRF9988776655"
-          placeholderTextColor="#526E63"
+          placeholderTextColor={colors.textSecondary}
         />
 
         {/* Submit */}
         <TouchableOpacity style={styles.submitBtn} onPress={submitRepayment}>
-          <Send size={18} color="#FFFFFF" />
-          <Text style={styles.submitBtnText}>Submit Loan Repayment</Text>
+          <Send size={18} color={colors.background} />
+          <Text style={[styles.submitBtnText, { color: colors.background }]}>Submit Loan Repayment</Text>
         </TouchableOpacity>
+
+        {/* Phase 8: pay from available wallet balance (server-side loan) */}
+        {activeLoan ? (
+          <TouchableOpacity
+            style={[styles.submitBtn, { marginTop: 10, backgroundColor: colors.surface }]}
+            onPress={payFromWallet}
+            disabled={payingFromWallet}
+          >
+            <Send size={18} color={colors.primary} />
+            <Text style={[styles.submitBtnText, { color: colors.primary }]}>
+              {payingFromWallet ? 'Processing…' : 'Pay from Available Balance'}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 16, paddingBottom: 32 },
   metricsCard: {
-    backgroundColor: '#091813',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 20,
@@ -191,27 +279,27 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
   },
   metricLabel: {
-    color: '#A7F3D0',
+    color: colors.textSecondary,
     fontSize: 12,
   },
   metricValue: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 14,
     fontWeight: 'bold',
   },
   metricGreen: {
-    color: '#10B981',
+    color: colors.primary,
   },
   metricHighlight: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 15,
   },
   metricDivider: {
     height: 1,
-    backgroundColor: '#1B3D28',
+    backgroundColor: colors.border,
   },
   label: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
@@ -228,62 +316,62 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     paddingVertical: 12,
   },
   modeBtnActive: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   modeBtnText: {
-    color: '#10B981',
+    color: colors.primary,
     fontSize: 12,
     fontWeight: '600',
   },
   modeBtnTextActive: {
-    color: '#FFFFFF',
+    color: colors.background,
   },
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.inputBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     marginBottom: 18,
   },
   nairaPrefix: {
-    color: '#10B981',
+    color: colors.primary,
     fontSize: 18,
     fontWeight: 'bold',
     marginRight: 6,
   },
   amountInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 17,
     fontWeight: '600',
     paddingVertical: 13,
   },
   fullAmountBox: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     padding: 16,
     alignItems: 'center',
     marginBottom: 18,
   },
   fullAmountLabel: {
-    color: '#8EA89D',
+    color: colors.textSecondary,
     fontSize: 11,
   },
   fullAmountValue: {
-    color: '#10B981',
+    color: colors.primary,
     fontSize: 22,
     fontWeight: 'bold',
     marginTop: 4,
@@ -291,10 +379,10 @@ const styles = StyleSheet.create({
   uploadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#10B981',
+    borderColor: colors.primary,
     borderStyle: 'dashed',
     padding: 14,
     marginBottom: 14,
@@ -304,28 +392,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   uploadTitle: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '600',
   },
   uploadHint: {
-    color: '#8EA89D',
+    color: colors.textSecondary,
     fontSize: 11,
     marginTop: 2,
   },
   input: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.inputBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 14,
     marginBottom: 14,
   },
   submitBtn: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.primary,
     borderRadius: 14,
     paddingVertical: 15,
     flexDirection: 'row',
@@ -335,7 +423,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   submitBtnText: {
-    color: '#FFFFFF',
+    color: colors.background,
     fontWeight: 'bold',
     fontSize: 14,
   },

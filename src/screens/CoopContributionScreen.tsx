@@ -17,15 +17,19 @@ import { Calendar, Upload, Send, CheckCircle, XCircle } from 'lucide-react-nativ
 import * as DocumentPicker from 'expo-document-picker';
 import ScreenHeader from '../components/ScreenHeader';
 import BankDetailsCard from '../components/BankDetailsCard';
+import { saveContributionSchedule, isServerConfigured, submitPayment } from '../lib/ledger';
+import { useTheme } from '../theme/ThemeContext';
 
 export default function CoopContributionScreen({ navigation: rawNav }: { navigation?: any }) {
   const navigation = useSafeNavigation(rawNav);
   const { addTransaction } = useTransactions();
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
   const [schedule, setSchedule] = useState('monthly');
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
   const [senderName, setSenderName] = useState('');
-  const [receipt, setReceipt] = useState(null);
+const [receipt, setReceipt] = useState<any>(null);
 
   const pickReceipt = async () => {
     try {
@@ -53,14 +57,14 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
       return;
     }
 
-    navigation.navigate('AddFunds', {
+    rawNav?.navigate('AddFunds', {
       amount: parsedAmount,
       frequency: schedule,
       purpose: 'contribution',
     });
   };
 
-  const submitProof = () => {
+  const submitProof = async () => {
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       Alert.alert('Enter amount', 'Please enter a valid contribution amount.');
@@ -76,14 +80,35 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
       maximumFractionDigits: 2,
     });
 
-    // Record the contribution in the member's audit trail so every balance,
-    // history and statement updates automatically.
-    (addTransaction as any)({
-      type: 'contribution',
-      label: `${schedule.charAt(0).toUpperCase()}${schedule.slice(1)} Co-op Contribution`,
-      amount: parsedAmount,
-      reference: reference.trim(),
-    });
+    // Server-configured: create a PENDING payment. Official contribution
+    // records are updated ONLY when an admin approves (backend-authoritative).
+    if (isServerConfigured()) {
+      try {
+await submitPayment({
+  txType: 'contribution',
+  amount: parsedAmount,
+  reference: reference.trim(),
+  senderName: senderName.trim(),
+} as any);
+      } catch (e: any) {
+        Alert.alert('Submission failed', e?.message || 'Could not submit payment.');
+        return;
+      }
+    } else {
+      // Offline fallback: local audit trail only (existing behaviour).
+      (addTransaction as any)({
+        type: 'contribution',
+        label: `${schedule.charAt(0).toUpperCase()}${schedule.slice(1)} Co-op Contribution`,
+        amount: parsedAmount,
+        reference: reference.trim(),
+      });
+    }
+
+    // Phase 5: register the automatic contribution engine schedule
+    // (server charges the wallet on the due date when funded).
+    if (isServerConfigured()) {
+      saveContributionSchedule(parsedAmount, schedule, true).catch(() => {});
+    }
 
     Alert.alert(
       'Contribution submitted',
@@ -91,7 +116,7 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
       [
         {
           text: 'OK',
-          onPress: () => navigation.goBack(),
+        onPress: () => rawNav?.goBack(),
         },
       ]
     );
@@ -99,11 +124,11 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <ScreenHeader
         title="Coop Contribution"
         subtitle="Deposit weekly or monthly savings"
-        onBack={() => navigation.goBack()}
+      onBack={() => (rawNav as any)?.goBack?.()}
       />
 
       <ScrollView
@@ -119,7 +144,7 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
             onPress={() => setSchedule('weekly')}
             activeOpacity={0.7}
           >
-            <Calendar size={18} color={schedule === 'weekly' ? '#FFFFFF' : '#10B981'} />
+            <Calendar size={18} color={schedule === 'weekly' ? colors.background : colors.primary} />
             <Text style={[styles.scheduleBtnText, schedule === 'weekly' && styles.scheduleBtnTextActive]}>
               Weekly
             </Text>
@@ -130,13 +155,14 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
             onPress={() => setSchedule('monthly')}
             activeOpacity={0.7}
           >
-            <Calendar size={18} color={schedule === 'monthly' ? '#FFFFFF' : '#10B981'} />
+            <Calendar size={18} color={schedule === 'monthly' ? colors.background : colors.primary} />
             <Text style={[styles.scheduleBtnText, schedule === 'monthly' && styles.scheduleBtnTextActive]}>
               Monthly
             </Text>
           </TouchableOpacity>
         </View>
 
+        {/* Contribution amount input */}
         <Text style={styles.label}>Contribution Amount</Text>
         <View style={styles.amountInputWrap}>
           <Text style={styles.nairaPrefix}>{"\u20A6"}</Text>
@@ -145,7 +171,7 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
             value={amount}
             onChangeText={setAmount}
             placeholder="0.00"
-            placeholderTextColor="#526E63"
+            placeholderTextColor={colors.textSecondary}
             keyboardType="decimal-pad"
           />
         </View>
@@ -156,9 +182,9 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
 
         {receipt ? (
           <View style={styles.receiptSelectedBox}>
-            <CheckCircle size={20} color="#10B981" />
+            <CheckCircle size={20} color={colors.primary} />
             <Text style={styles.receiptName} numberOfLines={1}>
-              {receipt.name ? receipt.name : 'Receipt Attached'}
+           {(receipt as any)?.name || 'Receipt Attached'}
             </Text>
             <TouchableOpacity onPress={removeReceipt} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <XCircle size={20} color="#EF4444" />
@@ -166,7 +192,7 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
           </View>
         ) : (
           <TouchableOpacity style={styles.uploadBtn} onPress={pickReceipt} activeOpacity={0.7}>
-            <Upload size={20} color="#10B981" />
+            <Upload size={20} color={colors.primary} />
             <View style={styles.uploadTextGroup}>
               <Text style={styles.uploadTitle} numberOfLines={1}>
                 Upload Payment Receipt
@@ -184,7 +210,7 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
           value={reference}
           onChangeText={setReference}
           placeholder="e.g. GTB1234567890"
-          placeholderTextColor="#526E63"
+          placeholderTextColor={colors.textSecondary}
           autoCapitalize="characters"
         />
 
@@ -194,12 +220,12 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
           value={senderName}
           onChangeText={setSenderName}
           placeholder="Name on the paying account"
-          placeholderTextColor="#526E63"
+          placeholderTextColor={colors.textSecondary}
         />
 
         <View style={styles.actionSection}>
           <TouchableOpacity style={styles.submitBtn} onPress={proceedToPayment} activeOpacity={0.8}>
-            <Send size={18} color="#FFFFFF" />
+            <Send size={18} color={colors.background} />
             <Text style={styles.submitBtnText}>Proceed to Payment</Text>
           </TouchableOpacity>
 
@@ -214,10 +240,10 @@ export default function CoopContributionScreen({ navigation: rawNav }: { navigat
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#091813',
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -228,7 +254,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   label: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
@@ -236,10 +262,10 @@ const styles = StyleSheet.create({
   },
   scheduleToggle: {
     flexDirection: 'row',
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.inputBackground,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     padding: 4,
     marginBottom: 16,
   },
@@ -252,36 +278,36 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   scheduleBtnActive: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.primary,
   },
   scheduleBtnText: {
-    color: '#10B981',
+    color: colors.primary,
     fontSize: 13,
     fontWeight: '600',
     marginLeft: 6,
   },
   scheduleBtnTextActive: {
-    color: '#FFFFFF',
+    color: colors.background,
   },
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.inputBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     marginBottom: 18,
   },
   nairaPrefix: {
-    color: '#10B981',
+    color: colors.primary,
     fontSize: 18,
     fontWeight: 'bold',
     marginRight: 6,
   },
   amountInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 17,
     fontWeight: '600',
     paddingVertical: 13,
@@ -289,10 +315,10 @@ const styles = StyleSheet.create({
   uploadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#10B981',
+    borderColor: colors.primary,
     borderStyle: 'dashed',
     padding: 14,
     marginBottom: 10,
@@ -302,46 +328,46 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   uploadTitle: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '600',
   },
   uploadHint: {
-    color: '#8EA89D',
+    color: colors.textSecondary,
     fontSize: 11,
     marginTop: 2,
   },
   receiptSelectedBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#10B981',
+    borderColor: colors.primary,
     padding: 14,
     marginBottom: 10,
   },
   receiptName: {
     flex: 1,
     fontSize: 13,
-    color: '#065F46',
+    color: colors.text,
     fontWeight: '500',
     marginHorizontal: 10,
   },
   orText: {
     textAlign: 'center',
-    color: '#8EA89D',
+    color: colors.textSecondary,
     fontSize: 11,
     marginVertical: 10,
   },
   input: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.inputBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 14,
     marginBottom: 12,
   },
@@ -349,7 +375,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   submitBtn: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.primary,
     borderRadius: 14,
     paddingVertical: 15,
     flexDirection: 'row',
@@ -358,7 +384,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   submitBtnText: {
-    color: '#FFFFFF',
+    color: colors.background,
     fontWeight: 'bold',
     fontSize: 14,
     marginLeft: 8,
@@ -367,12 +393,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#10B981',
+    borderColor: colors.primary,
     paddingVertical: 14,
     alignItems: 'center',
   },
   secondaryBtnText: {
-    color: '#10B981',
+    color: colors.primary,
     fontWeight: 'bold',
     fontSize: 14,
   },

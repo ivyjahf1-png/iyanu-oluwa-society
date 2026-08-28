@@ -25,7 +25,7 @@ export default function BrightnessControl({ label, hint, value, onChange }) {
 
       <View style={styles.barRow}>
         <TouchableOpacity style={styles.stepBtn} onPress={() => step(-10)}>
-          <Minus size={14} color="#FFFFFF" />
+          <Minus size={14} color='#0F172A' />
         </TouchableOpacity>
 
         {/* Segmented bar */}
@@ -46,7 +46,7 @@ export default function BrightnessControl({ label, hint, value, onChange }) {
         </View>
 
         <TouchableOpacity style={styles.stepBtn} onPress={() => step(10)}>
-          <Plus size={14} color="#FFFFFF" />
+          <Plus size={14} color='#0F172A' />
         </TouchableOpacity>
       </View>
 
@@ -57,10 +57,10 @@ export default function BrightnessControl({ label, hint, value, onChange }) {
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     padding: 12,
     marginBottom: 12,
   },
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
   },
   segmentOff: {
-    backgroundColor: '#172F27',
+    backgroundColor: '#D1FAE5',
   },
   hint: {
     color: '#8EA89D',

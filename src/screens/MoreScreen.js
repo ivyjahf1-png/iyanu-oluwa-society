@@ -32,7 +32,7 @@ export default function MoreScreen({ navigation: rawNav }) {
       <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={true} contentContainerStyle={[styles.scrollContent, styles.grow]}>
         <View style={styles.headerCard}>
-          <Menu size={40} color="#A7F3D0" />
+          <Menu size={40} color="#047857" />
           <Text style={styles.title}>More</Text>
           <Text style={styles.subtitle}>Settings, support, and additional services will appear here.</Text>
         </View>
@@ -43,7 +43,7 @@ export default function MoreScreen({ navigation: rawNav }) {
           onPress={() => navigation.navigate('AdminSettings')}
         >
           <View style={[styles.adminIcon, { backgroundColor: '#8B5CF6' }]}>
-            <Settings size={20} color="#FFFFFF" />
+            <Settings size={20} color='#0F172A' />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Admin Settings</Text>
@@ -57,7 +57,7 @@ export default function MoreScreen({ navigation: rawNav }) {
           onPress={() => navigation.navigate('AdminDeposits')}
         >
           <View style={[styles.adminIcon, { backgroundColor: '#2563EB' }]}>
-            <CheckCircle2 size={20} color="#FFFFFF" />
+            <CheckCircle2 size={20} color='#0F172A' />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Verify Deposits</Text>
@@ -71,7 +71,7 @@ export default function MoreScreen({ navigation: rawNav }) {
           onPress={() => navigation.navigate('AdminMarketplace')}
         >
           <View style={[styles.adminIcon, { backgroundColor: '#F59E0B' }]}>
-            <PackageOpen size={20} color="#FFFFFF" />
+            <PackageOpen size={20} color='#0F172A' />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Marketplace Dashboard</Text>
@@ -86,7 +86,7 @@ export default function MoreScreen({ navigation: rawNav }) {
           onPress={() => navigation.navigate('Announcements')}
         >
           <View style={[styles.adminIcon, { backgroundColor: '#10B981' }]}>
-            <Megaphone size={20} color="#FFFFFF" />
+            <Megaphone size={20} color='#0F172A' />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Channels & Announcements</Text>
@@ -98,7 +98,7 @@ export default function MoreScreen({ navigation: rawNav }) {
         
         <TouchableOpacity style={styles.adminRow} onPress={() => navigation.navigate('AdminUserManagement')}>
           <View style={[styles.adminIcon, { backgroundColor: '#2563EB' }]}>
-            <Users size={20} color="#FFFFFF" />
+            <Users size={20} color='#0F172A' />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>User Management</Text>
@@ -113,7 +113,7 @@ export default function MoreScreen({ navigation: rawNav }) {
           onPress={() => navigation.navigate('SocietyHub')}
         >
           <View style={[styles.adminIcon, { backgroundColor: '#10B981' }]}>
-            <Award size={20} color="#FFFFFF" />
+            <Award size={20} color='#0F172A' />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Society Hub</Text>
@@ -125,7 +125,7 @@ export default function MoreScreen({ navigation: rawNav }) {
         {/* Developer: clear all local data */}
         <TouchableOpacity style={styles.adminRow} onPress={confirmClearAllData}>
           <View style={[styles.adminIcon, { backgroundColor: '#C0392B' }]}>
-            <Trash2 size={20} color="#FFFFFF" />
+            <Trash2 size={20} color='#0F172A' />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Clear All Data (Dev)</Text>
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 10,
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   adminTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: '600',
   },

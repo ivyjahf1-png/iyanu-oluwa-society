@@ -76,8 +76,8 @@ export default function AppLockScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor='#091813' barStyle="light-content" />
-      <LinearGradient colors={['#091813', '#1A3A24']} style={styles.gradient}>
+      <StatusBar backgroundColor='#06130D' barStyle="light-content" />
+      <LinearGradient colors={['#06130D', '#0A1C14']} style={styles.gradient}>
         <View style={styles.body}>
           <View style={styles.logoRow}>
             <Lock size={22} color="#10B981" />
@@ -206,7 +206,7 @@ function PasswordFallback() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#06130D' },
   gradient: { flex: 1 },
   body: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 32 },
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#172F27',
+    backgroundColor: '#132A20',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   link: { color: '#10B981', fontSize: 13, fontWeight: '600', marginTop: 18 },
   dots: { flexDirection: 'row', gap: 10, marginVertical: 12 },
   dotFilled: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#10B981' },
-  dotEmpty: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#172F27' },
+  dotEmpty: { width: 14, height: 14, borderRadius: 7, backgroundColor: '#132A20' },
   error: { color: '#F87171', fontSize: 12, marginTop: 6 },
   keypad: {
     flexDirection: 'row',
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     width: 76,
     height: 60,
     borderRadius: 14,
-    backgroundColor: '#172F27',
+    backgroundColor: '#132A20',
     justifyContent: 'center',
     alignItems: 'center',
     margin: 5,
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   keyText: { color: '#FFFFFF', fontSize: 22, fontWeight: '600' },
   passwordCard: { width: '100%' },
   input: {
-    backgroundColor: '#172F27',
+    backgroundColor: '#132A20',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,

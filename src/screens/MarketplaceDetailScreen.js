@@ -54,16 +54,16 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor='#091813' barStyle="light-content" />
+      <StatusBar backgroundColor='#F4F7F5' barStyle="dark-content" />
 
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeft size={24} color="#A7F3D0" />
+          <ChevronLeft size={24} color="#047857" />
         </TouchableOpacity>
         <Text style={styles.topBarTitle}>Listing Details</Text>
         <TouchableOpacity onPress={() => setFav(!fav)} style={styles.favBtn}>
-          <Heart size={22} color={fav ? '#C0392B' : '#A7F3D0'} />
+          <Heart size={22} color={fav ? '#C0392B' : '#047857'} />
         </TouchableOpacity>
       </View>
 
@@ -73,7 +73,7 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
           {item.imageUri ? (
             <SafeImage source={{ uri: item.imageUri }} style={styles.mediaImage} />
           ) : (
-            <MapPin size={64} color="#A7F3D0" />
+            <MapPin size={64} color="#047857" />
           )}
         </View>
 
@@ -113,27 +113,27 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0D1D18', justifyContent: 'center', alignItems: 'center' },
-  topBarTitle: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold', flex: 1, marginLeft: 12 },
-  favBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0D1D18', justifyContent: 'center', alignItems: 'center' },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
+  topBarTitle: { color: '#0F172A', fontSize: 18, fontWeight: 'bold', flex: 1, marginLeft: 12 },
+  favBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
   content: { paddingHorizontal: 16, paddingBottom: 24 },
   media: { height: 200, borderRadius: 20, backgroundColor: '#132620', justifyContent: 'center', alignItems: 'center', marginBottom: 16, overflow: 'hidden' },
   mediaImage: { width: '100%', height: '100%' },
-  title: { color: '#FFFFFF', fontSize: 19, fontWeight: 'bold', marginBottom: 6 },
-  price: { color: '#A7F3D0', fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
+  title: { color: '#0F172A', fontSize: 19, fontWeight: 'bold', marginBottom: 6 },
+  price: { color: '#047857', fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
   locationRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 18, flexWrap: 'wrap' },
   location: { color: '#9CB8A6', fontSize: 12, marginRight: 8 },
   verifiedBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, gap: 4 },
   verifiedText: { color: '#10B981', fontSize: 11, fontWeight: 'bold' },
   sectionHeader: { color: '#D3F99D', fontSize: 14, fontWeight: '700', marginBottom: 8 },
-  description: { color: '#FFFFFF', fontSize: 14, lineHeight: 21, marginBottom: 16 },
-  trustCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0D1D18', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#172F27', marginBottom: 16 },
+  description: { color: '#0F172A', fontSize: 14, lineHeight: 21, marginBottom: 16 },
+  trustCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#D1FAE5', marginBottom: 16 },
   trustTextGroup: { flex: 1, marginLeft: 10 },
-  trustTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
+  trustTitle: { color: '#0F172A', fontSize: 13, fontWeight: '600' },
   trustSub: { color: '#9CB8A6', fontSize: 11, marginTop: 2 },
   contactBtn: { backgroundColor: '#10B981', borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
-  contactedBtn: { backgroundColor: '#172F27' },
-  contactText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },
+  contactedBtn: { backgroundColor: '#D1FAE5' },
+  contactText: { color: '#0F172A', fontWeight: 'bold', fontSize: 14 },
 });

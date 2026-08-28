@@ -24,10 +24,6 @@ const DEFAULTS = {
   soundAlertsEnabled: true,
   alertSound: 'Chime',
   alertSoundUri: null,
-  // Appearance / theme settings
-  themeMode: 'light', // 'automatic' | 'light' | 'dark'
-  lightBrightness: 100, // 0–100 (higher = brighter light mode)
-  darkContrast: 60, // 0–100 (higher = deeper dark contrast)
 };
 
 const UserContext = createContext(null);

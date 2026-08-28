@@ -23,6 +23,8 @@ const ADMIN_ROUTES = new Set([
   'AdminDeposits',
   'AdminMarketplace',
   'AdminUserManagement',
+  'AdminLedger',
+  'AdminLoans',
   'Announcements',
   'PromotionalBanners',
   'SocietyHub',

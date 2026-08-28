@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   modeTextActive: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: '700',
   },
   closeBtn: {
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     color: '#8A97A6',
   },
   tabIconActive: {
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   // Stickers
   stickerFilterBar: {
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   stickerFilterTextActive: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: '700',
   },
   stickerCell: {

@@ -3,8 +3,9 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import { PiggyBank, Plus, ArrowUpRight, ShieldCheck, Lock } from 'lucide-react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
-import { COLORS, GRADIENTS } from '../constants/theme';
+import { GRADIENTS } from '../constants/theme';
 import { useTransactions } from '../context/TransactionsContext';
+import { useTheme } from '../theme/ThemeContext';
 
 const fmt = n =>
   Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -13,12 +14,13 @@ export default function SavingsHubScreen() {
   // Total Accumulated Savings derives from the real transaction ledger
   // (contributions + deposits - withdrawals). Starts at ₦0.00.
   const { totalSavings } = useTransactions();
+  const { colors } = useTheme();
 
   return (
     <ScreenWrapper>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.headerTitle}>Savings Hub</Text>
-        <Text style={styles.headerSub}>Manage your target and cooperative plans</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Savings Hub</Text>
+        <Text style={[styles.headerSub, { color: colors.textSecondary }]}>Manage your target and cooperative plans</Text>
 
         <LinearGradient
           colors={GRADIENTS.metallicCard}
@@ -27,45 +29,45 @@ export default function SavingsHubScreen() {
           style={styles.heroCard}
         >
           <View>
-            <Text style={styles.heroLabel}>Total Accumulated Savings</Text>
-            <Text style={styles.heroAmount}>₦ {fmt(totalSavings)}</Text>
+            <Text style={[styles.heroLabel, { color: colors.textSecondary }]}>Total Accumulated Savings</Text>
+            <Text style={[styles.heroAmount, { color: colors.text }]}>₦ {fmt(totalSavings)}</Text>
           </View>
-          <TouchableOpacity style={styles.heroBtn}>
-            <Plus size={16} color="#FFF" />
-            <Text style={styles.heroBtnText}>New Goal</Text>
+          <TouchableOpacity style={[styles.heroBtn, { backgroundColor: colors.primary }]}>
+            <Plus size={16} color={colors.background} />
+            <Text style={[styles.heroBtnText, { color: colors.background }]}>New Goal</Text>
           </TouchableOpacity>
         </LinearGradient>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Active Savings Plans</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Active Savings Plans</Text>
         </View>
 
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.cardRow}>
-            <View style={styles.iconBox}>
-              <PiggyBank size={20} color={COLORS.emeraldAccent} />
+            <View style={[styles.iconBox, { backgroundColor: colors.icon }]}>
+              <PiggyBank size={20} color={colors.primary} />
             </View>
             <View style={styles.cardTextGroup}>
-              <Text style={styles.planTitle}>Weekly Cooperative Target</Text>
-              <Text style={styles.planSub}>Cycle 4 of 12 • ₦10,000 / week</Text>
+              <Text style={[styles.planTitle, { color: colors.text }]}>Weekly Cooperative Target</Text>
+              <Text style={[styles.planSub, { color: colors.textSecondary }]}>Cycle 4 of 12 • ₦10,000 / week</Text>
             </View>
-            <ArrowUpRight size={20} color={COLORS.textSecondary} />
+            <ArrowUpRight size={20} color={colors.textSecondary} />
           </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressBar, { width: '33%' }]} />
+          <View style={[styles.progressTrack, { backgroundColor: colors.icon }]}>
+            <View style={[styles.progressBar, { backgroundColor: colors.primary, width: '33%' }]} />
           </View>
         </View>
 
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.cardRow}>
-            <View style={styles.iconBox}>
-              <Lock size={20} color={COLORS.emeraldAccent} />
+            <View style={[styles.iconBox, { backgroundColor: colors.icon }]}>
+              <Lock size={20} color={colors.primary} />
             </View>
             <View style={styles.cardTextGroup}>
-              <Text style={styles.planTitle}>Fixed Emergency Reserve</Text>
-              <Text style={styles.planSub}>Locked until Dec 2026</Text>
+              <Text style={[styles.planTitle, { color: colors.text }]}>Fixed Emergency Reserve</Text>
+              <Text style={[styles.planSub, { color: colors.textSecondary }]}>Locked until Dec 2026</Text>
             </View>
-            <ShieldCheck size={20} color={COLORS.emeraldAccent} />
+            <ShieldCheck size={20} color={colors.primary} />
           </View>
         </View>
       </ScrollView>
@@ -75,8 +77,8 @@ export default function SavingsHubScreen() {
 
 const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 90 },
-  headerTitle: { color: COLORS.textPrimary, fontSize: 24, fontWeight: '700' },
-  headerSub: { color: COLORS.textSecondary, fontSize: 13, marginBottom: 16 },
+  headerTitle: { fontSize: 24, fontWeight: '700' },
+  headerSub: { fontSize: 13, marginBottom: 16 },
   heroCard: {
     borderRadius: 20,
     padding: 18,
@@ -84,13 +86,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: '#E5E7EB',
     marginBottom: 20,
   },
-  heroLabel: { color: COLORS.textSecondary, fontSize: 12 },
-  heroAmount: { color: COLORS.textPrimary, fontSize: 24, fontWeight: '700', marginTop: 4 },
+  heroLabel: { fontSize: 12 },
+  heroAmount: { fontSize: 24, fontWeight: '700', marginTop: 4 },
   heroBtn: {
-    backgroundColor: COLORS.emeraldDark,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
@@ -98,15 +99,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 18,
   },
-  heroBtnText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
+  heroBtnText: { fontSize: 12, fontWeight: '600' },
   sectionHeader: { marginBottom: 12 },
-  sectionTitle: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '600' },
+  sectionTitle: { fontSize: 16, fontWeight: '600' },
   card: {
-    backgroundColor: COLORS.cardBg,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
     marginBottom: 12,
   },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -114,19 +113,17 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.iconBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardTextGroup: { flex: 1 },
-  planTitle: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '600' },
-  planSub: { color: COLORS.textSecondary, fontSize: 11, marginTop: 2 },
+  planTitle: { fontSize: 14, fontWeight: '600' },
+  planSub: { fontSize: 11, marginTop: 2 },
   progressTrack: {
     height: 6,
-    backgroundColor: COLORS.iconBg,
     borderRadius: 3,
     marginTop: 12,
     overflow: 'hidden',
   },
-  progressBar: { height: '100%', backgroundColor: COLORS.emeraldAccent },
+  progressBar: { height: '100%' },
 });

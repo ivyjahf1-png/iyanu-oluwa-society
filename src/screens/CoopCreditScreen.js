@@ -3,18 +3,21 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import { Wallet, Landmark, CheckCircle2 } from 'lucide-react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
-import { COLORS, GRADIENTS } from '../constants/theme';
+import { GRADIENTS } from '../constants/theme';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { useTransactions } from '../context/TransactionsContext';
 import { getAllSettings } from '../lib/supabase';
+import { useTheme } from '../theme/ThemeContext';
 
 const fmt = n =>
   Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-/** Co-op Credit — loan options & credit status (ledger + admin-limit driven). */
+/** Co-op Credit */
 export default function CoopCreditScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { totalSavings, loanOutstanding, totalPaid } = useTransactions();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
 
   // Admin-controlled limit (Admin Settings → Loan Eligibility).
   const [limitMode, setLimitMode] = useState('percent');
@@ -75,7 +78,7 @@ export default function CoopCreditScreen({ navigation: rawNav }) {
             onPress={() => navigation.navigate('RequestLoan')}
           >
             <LinearGradient colors={GRADIENTS.orangeBtn} style={styles.iconCircle}>
-              <Landmark size={20} color="#FFF" />
+              <Landmark size={20} color={colors.background} />
             </LinearGradient>
             <Text style={styles.cardTitle}>Request Credit</Text>
             <Text style={styles.cardSub}>Instant approval evaluation</Text>
@@ -86,7 +89,7 @@ export default function CoopCreditScreen({ navigation: rawNav }) {
             onPress={() => navigation.navigate('RepayLoan')}
           >
             <LinearGradient colors={GRADIENTS.purpleBtn} style={styles.iconCircle}>
-              <Wallet size={20} color="#FFF" />
+              <Wallet size={20} color={colors.background} />
             </LinearGradient>
             <Text style={styles.cardTitle}>Repayments</Text>
             <Text style={styles.cardSub}>Direct debit or manual transfer</Text>
@@ -95,7 +98,7 @@ export default function CoopCreditScreen({ navigation: rawNav }) {
 
         <View style={styles.statusCard}>
           <View style={styles.statusHeader}>
-            <CheckCircle2 size={18} color={COLORS.emeraldAccent} />
+            <CheckCircle2 size={18} color={colors.primary} />
             <Text style={styles.statusTitle}>Active Credit Line Status</Text>
           </View>
           <Text style={styles.statusText}>
@@ -109,10 +112,10 @@ export default function CoopCreditScreen({ navigation: rawNav }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 90 },
-  headerTitle: { color: COLORS.textPrimary, fontSize: 24, fontWeight: '700' },
-  headerSub: { color: COLORS.textSecondary, fontSize: 13, marginBottom: 16 },
+  headerTitle: { color: colors.text, fontSize: 24, fontWeight: '700' },
+  headerSub: { color: colors.textSecondary, fontSize: 13, marginBottom: 16 },
   heroCard: {
     borderRadius: 20,
     padding: 18,
@@ -120,27 +123,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: colors.border,
     marginBottom: 20,
   },
-  heroLabel: { color: COLORS.textSecondary, fontSize: 12 },
-  heroAmount: { color: COLORS.textPrimary, fontSize: 22, fontWeight: '700', marginTop: 4 },
+  heroLabel: { color: colors.textSecondary, fontSize: 12 },
+  heroAmount: { color: colors.text, fontSize: 22, fontWeight: '700', marginTop: 4 },
   applyBtn: {
-    backgroundColor: COLORS.emeraldDark,
+    backgroundColor: colors.primary,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 18,
   },
-  applyBtnText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
-  sectionTitle: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '600', marginBottom: 12 },
+  applyBtnText: { color: colors.background, fontSize: 12, fontWeight: '600' },
+  sectionTitle: { color: colors.text, fontSize: 16, fontWeight: '600', marginBottom: 12 },
   grid: { flexDirection: 'row', gap: 12, marginBottom: 16 },
   gridCard: {
     flex: 1,
-    backgroundColor: COLORS.cardBg,
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+    borderColor: colors.border,
     alignItems: 'center',
   },
   iconCircle: {
@@ -151,16 +154,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 8,
   },
-  cardTitle: { color: COLORS.textPrimary, fontSize: 13, fontWeight: '600', textAlign: 'center' },
-  cardSub: { color: COLORS.textSecondary, fontSize: 10, textAlign: 'center', marginTop: 4 },
+  cardTitle: { color: colors.text, fontSize: 13, fontWeight: '600', textAlign: 'center' },
+  cardSub: { color: colors.textSecondary, fontSize: 10, textAlign: 'center', marginTop: 4 },
   statusCard: {
-    backgroundColor: COLORS.cardBg,
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
+    borderColor: colors.border,
   },
   statusHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-  statusTitle: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '600' },
-  statusText: { color: COLORS.textSecondary, fontSize: 12, lineHeight: 16 },
+  statusTitle: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  statusText: { color: colors.textSecondary, fontSize: 12, lineHeight: 16 },
 });

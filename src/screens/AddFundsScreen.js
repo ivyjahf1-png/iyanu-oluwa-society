@@ -26,7 +26,7 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+      <StatusBar barStyle="dark-content" backgroundColor='#F4F7F5' />
       <ScreenHeader
         title="Add Funds"
         subtitle="Choose how you want to fund your wallet"
@@ -54,7 +54,7 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
           style={styles.optionRow}
           onPress={() => setShowComingSoon(true)}
         >
-          <View style={[styles.optionIcon, { backgroundColor: '#172F27' }]}>
+          <View style={[styles.optionIcon, { backgroundColor: '#D1FAE5' }]}>
             <CreditCard size={22} color="#10B981" />
           </View>
           <View style={styles.optionTextGroup}>
@@ -76,7 +76,7 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
             })
           }
         >
-          <View style={[styles.optionIcon, { backgroundColor: '#172F27' }]}>
+          <View style={[styles.optionIcon, { backgroundColor: '#D1FAE5' }]}>
             <Landmark size={22} color="#10B981" />
           </View>
           <View style={styles.optionTextGroup}>
@@ -123,16 +123,16 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     marginBottom: 12,
   },
   optionIcon: {
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   optionTextGroup: { flex: 1 },
   optionTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -157,11 +157,11 @@ const styles = StyleSheet.create({
   noteCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     gap: 8,
     marginTop: 8,
   },
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   pendingBanner: {
-    backgroundColor: '#091813',
+    backgroundColor: '#06130D',
     borderRadius: 14,
     padding: 14,
     marginBottom: 14,
@@ -183,12 +183,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pendingTitle: {
-    color: '#A7F3D0',
+    color: '#047857',
     fontSize: 12,
     fontWeight: '600',
   },
   pendingText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 15,
     fontWeight: 'bold',
   },
@@ -201,13 +201,13 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     width: '100%',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
   },
   modalTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 12,
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   modalBtnText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: 'bold',
     fontSize: 13,
   },

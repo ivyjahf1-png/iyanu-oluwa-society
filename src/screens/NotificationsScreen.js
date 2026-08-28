@@ -52,7 +52,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+      <StatusBar barStyle="dark-content" backgroundColor='#F4F7F5' />
       <ScreenHeader
         title="Notifications & Reminders"
         subtitle="Payment alerts and scheduling"
@@ -75,8 +75,8 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                 setRemindersEnabled(v);
                 updateUser({ remindersEnabled: v });
               }}
-              trackColor={{ false: '#172F27', true: '#10B981' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: '#D1FAE5', true: '#10B981' }}
+              thumbColor='#FFFFFF'
             />
           </View>
 
@@ -135,8 +135,8 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                 setSoundAlertsEnabled(v);
                 updateUser({ soundAlertsEnabled: v });
               }}
-              trackColor={{ false: '#172F27', true: '#10B981' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: '#D1FAE5', true: '#10B981' }}
+              thumbColor='#FFFFFF'
             />
           </View>
 
@@ -166,7 +166,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                 style={styles.deviceAudioBtn}
                 onPress={() => pickDeviceAudio()}
               >
-                <Music size={16} color="#FFFFFF" />
+                <Music size={16} color='#0F172A' />
                 <Text style={styles.deviceAudioText}>
                   {alertSoundUri
                     ? `Custom: ${alertSoundName}`
@@ -191,21 +191,21 @@ export default function NotificationsScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   sectionTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
     marginTop: 6,
   },
   card: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     marginBottom: 18,
   },
   switchRow: {
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   switchTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   label: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 12,
     fontWeight: '600',
     marginTop: 14,
@@ -244,10 +244,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingVertical: 9,
   },
   chipActive: {
@@ -255,21 +255,21 @@ const styles = StyleSheet.create({
     borderColor: '#10B981',
   },
   chipText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 12,
     fontWeight: '600',
   },
   chipTextActive: {
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   input: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 14,
     paddingVertical: 11,
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
   },
   soundGrid: {
@@ -283,13 +283,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#091813',
+    backgroundColor: '#06130D',
     borderRadius: 12,
     paddingVertical: 11,
     marginTop: 4,
   },
   deviceAudioText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -297,21 +297,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 14,
     paddingVertical: 9,
   },
   noteCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     gap: 8,
   },
   noteText: {

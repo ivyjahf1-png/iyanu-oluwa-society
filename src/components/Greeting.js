@@ -11,7 +11,7 @@ import {
   CloudFog,
   CloudLightning,
 } from 'lucide-react-native';
-import { useAppTheme } from '../context/ThemeContext';
+import { useTheme } from '../theme/ThemeContext';
 
 /**
  * Returns the current local time-of-day classification.
@@ -50,22 +50,22 @@ export function useTimeOfDay() {
 const WEATHER_ICONS = {
   sun: { Icon: Sun, tint: '#FBBF24' },
   moon: { Icon: Moon, tint: '#93C5FD' },
-  cloud: { Icon: Cloud, tint: '#CBD5E1' },
+  cloud: { Icon: Cloud, tint: '#334155' },
   'cloud-sun': { Icon: CloudSun, tint: '#FBBF24' },
   'cloud-moon': { Icon: CloudMoon, tint: '#93C5FD' },
   rain: { Icon: CloudRain, tint: '#60A5FA' },
   snow: { Icon: CloudSnow, tint: '#BAE6FD' },
-  fog: { Icon: CloudFog, tint: '#CBD5E1' },
+  fog: { Icon: CloudFog, tint: '#334155' },
   storm: { Icon: CloudLightning, tint: '#C4B5FD' },
 };
 
 export default function Greeting({ textStyle, iconColor, showIcon = true, weather }) {
   const { greeting, isDay } = useTimeOfDay();
-  const { isDark: themeIsDark } = useAppTheme();
+  const { colors } = useTheme();
   // Theme-aware fallbacks so the component stays fully legible in every palette
-  // (Dark Emerald / Pitch Black / Designer White). Callers that pass their own
+  // (Dark Emerald / Pitch Black / Designer Light). Callers that pass their own
   // `textStyle` (e.g. the dashboard header) keep their original typography.
-  const fallbackText = textStyle ? undefined : themeIsDark ? '#FFFFFF' : '#111827';
+  const fallbackText = textStyle ? undefined : colors.text;
   const iconTint = isDay ? '#FBBF24' : '#93C5FD'; // amber sun / soft-blue moon
 
   // Live weather override — only when real conditions are available.
@@ -87,16 +87,16 @@ export default function Greeting({ textStyle, iconColor, showIcon = true, weathe
         <View
           style={[
             styles.weatherChip,
-            !themeIsDark && {
-              backgroundColor: 'rgba(17, 24, 39, 0.08)',
-              borderColor: 'rgba(17, 24, 39, 0.15)',
+            {
+              backgroundColor: colors.icon,
+              borderColor: colors.border,
             },
           ]}
         >
           <Text
             style={[
               styles.weatherChipText,
-              !themeIsDark && { color: '#374151' },
+              { color: colors.textSecondary },
             ]}
           >
             {wx.temperature}°
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  text: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  text: { color: '#0F172A', fontSize: 16, fontWeight: '600' },
   weatherChip: {
     marginLeft: 2,
     paddingHorizontal: 8,
@@ -125,5 +125,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
   },
-  weatherChipText: { color: '#CBD5E1', fontSize: 11, fontWeight: '700' },
+  weatherChipText: { color: '#334155', fontSize: 11, fontWeight: '700' },
 });

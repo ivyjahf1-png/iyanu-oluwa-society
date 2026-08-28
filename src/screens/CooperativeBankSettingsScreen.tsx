@@ -100,7 +100,7 @@ export default function CooperativeBankSettings() {
   if (loading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <StatusBar backgroundColor='#091813' barStyle="light-content" />
+        <StatusBar backgroundColor='#F4F7F5' barStyle="dark-content" />
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#10B981" />
         </View>
@@ -110,7 +110,7 @@ export default function CooperativeBankSettings() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar backgroundColor='#091813' barStyle="light-content" />
+      <StatusBar backgroundColor='#F4F7F5' barStyle="dark-content" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -178,10 +178,10 @@ export default function CooperativeBankSettings() {
             activeOpacity={0.8}
           >
             {saving ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color='#0F172A' />
             ) : (
               <>
-                <Save size={20} color="#fff" />
+                <Save size={20} color='#0F172A' />
                 <Text style={styles.saveButtonText}>Save Settings</Text>
               </>
             )}
@@ -195,12 +195,12 @@ export default function CooperativeBankSettings() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#091813',
+    backgroundColor: '#06130D',
   },
   container: {
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
   },
   center: {
     flex: 1,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: '#0F172A',
   },
   description: {
     fontSize: 14,
@@ -234,13 +234,13 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: "#FFFFFF",
-    backgroundColor: '#0D1D18',
+    color: '#0F172A',
+    backgroundColor: '#FFFFFF',
   },
   saveButton: {
     marginTop: 12,
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   saveButtonText: {
-    color: "#fff",
+    color: '#0F172A',
     fontSize: 16,
     fontWeight: "600",
   },

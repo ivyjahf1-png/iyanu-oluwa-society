@@ -24,6 +24,8 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 import AddFundsScreen from '../screens/AddFundsScreen';
 import BankTransferScreen from '../screens/BankTransferScreen';
 import AdminMarketplaceScreen from '../screens/AdminMarketplaceScreen';
+import AdminLedgerScreen from '../screens/AdminLedgerScreen';
+import AdminLoansScreen from '../screens/AdminLoansScreen';
 import AIAssistantScreen from '../screens/AIAssistantScreen';
 import AccountStatementScreen from '../screens/AccountStatementScreen';
 import AnnouncementsScreen from '../screens/AnnouncementsScreen';
@@ -35,35 +37,42 @@ import ProfileSettingsScreen from '../screens/ProfileSettingsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
-import { COLORS } from '../constants/theme';
+import NotificationScreen from '../screens/NotificationScreen';
+import TransactionDetailScreen from '../screens/TransactionDetailScreen';
+import KYCVerificationScreen from '../screens/KYCVerificationScreen';
+import GuarantorRequestScreen from '../screens/GuarantorRequestScreen';
+import GuarantorApprovalScreen from '../screens/GuarantorApprovalScreen';
+import LoanScheduleScreen from '../screens/LoanScheduleScreen';
+import SupportScreen from '../screens/SupportScreen';
 import { useAuth } from '../context/AuthContext';
+import { useAppTheme } from '../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
-const tabBarOptions = {
-  headerShown: false,
-  tabBarActiveTintColor: COLORS.emeraldAccent,
-  tabBarInactiveTintColor: '#4E6C5C',
-  tabBarLabelStyle: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  tabBarStyle: {
-    backgroundColor: COLORS.background,
-    borderTopColor: COLORS.navBorder,
-    borderTopWidth: 1,
-    height: 65,
-    paddingTop: 11,
-    paddingBottom: 8,
-  },
-};
 
 const fullScreenOptions = {
   headerShown: false,
 };
 
 function BottomTabs() {
+  const { colors } = useAppTheme();
+  const tabBarOptions = {
+    headerShown: false,
+    tabBarActiveTintColor: colors.primary,
+    tabBarInactiveTintColor: colors.tabBarInactive,
+    tabBarLabelStyle: {
+      fontSize: 10,
+      fontWeight: '600',
+    },
+    tabBarStyle: {
+      backgroundColor: colors.tabBar,
+      borderTopColor: colors.border,
+      borderTopWidth: 1,
+      height: 65,
+      paddingTop: 11,
+      paddingBottom: 8,
+    },
+  };
   return (
     <Tab.Navigator initialRouteName="Dashboard" screenOptions={tabBarOptions}>
       <Tab.Screen
@@ -137,6 +146,8 @@ export default function AppNavigator() {
           <Stack.Screen name="AddFunds" component={AddFundsScreen} />
           <Stack.Screen name="BankTransfer" component={BankTransferScreen} />
           <Stack.Screen name="AdminMarketplace" component={AdminMarketplaceScreen} />
+          <Stack.Screen name="AdminLedger" component={AdminLedgerScreen} />
+          <Stack.Screen name="AdminLoans" component={AdminLoansScreen} />
           <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
           <Stack.Screen name="AccountStatement" component={AccountStatementScreen} />
           <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
@@ -147,6 +158,13 @@ export default function AppNavigator() {
           <Stack.Screen name="SocietyHub" component={SocietyScreen} />
           <Stack.Screen name="More" component={MoreScreen} />
           <Stack.Screen name="Co-op Hub" component={CoopHubScreen} />
+          <Stack.Screen name="KYCVerification" component={KYCVerificationScreen} />
+          <Stack.Screen name="NotificationCenter" component={NotificationScreen} />
+          <Stack.Screen name="TransactionDetail" component={TransactionDetailScreen} />
+          <Stack.Screen name="GuarantorRequest" component={GuarantorRequestScreen} />
+          <Stack.Screen name="GuarantorApproval" component={GuarantorApprovalScreen} />
+          <Stack.Screen name="LoanSchedule" component={LoanScheduleScreen} />
+          <Stack.Screen name="Support" component={SupportScreen} />
         </Stack.Navigator>
       </View>
     </SafeAreaView>
@@ -156,7 +174,7 @@ export default function AppNavigator() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F2A19',
+    backgroundColor: '#06130D',
     paddingTop: Platform.OS === 'android' ? 25 : 0,
   },
   webWrapper: {

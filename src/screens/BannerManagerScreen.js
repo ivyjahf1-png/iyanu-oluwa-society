@@ -81,7 +81,7 @@ export default function BannerManagerScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="#091813" barStyle="light-content" />
+      <StatusBar backgroundColor='#F4F7F5' barStyle="dark-content" />
       <ScreenHeader title="Promotional Banners" subtitle="Create cooperative banner popups" onBack={() => navigation?.goBack()} />
       <View style={styles.tabs}>
         <TouchableOpacity style={[styles.tab, tab === 'full' && styles.tabActive]} onPress={() => setTab('full')}>
@@ -114,10 +114,10 @@ export default function BannerManagerScreen({ navigation }) {
             {durationField}
             <View style={styles.switchRow}>
               <Text style={styles.switchLabel}>Active</Text>
-              <Switch value={fullActive} onValueChange={setFullActive} trackColor={{ false: '#172F27', true: '#10B981' }} thumbColor="#FFFFFF" />
+              <Switch value={fullActive} onValueChange={setFullActive} trackColor={{ false: '#D1FAE5', true: '#10B981' }} thumbColor='#FFFFFF' />
             </View>
             <TouchableOpacity style={styles.publishBtn} onPress={publishFull}>
-              <Plus size={18} color="#FFFFFF" />
+              <Plus size={18} color='#0F172A' />
               <Text style={styles.publishText}>Publish Full Banner</Text>
             </TouchableOpacity>
           </View>
@@ -130,10 +130,10 @@ export default function BannerManagerScreen({ navigation }) {
             {durationField}
             <View style={styles.switchRow}>
               <Text style={styles.switchLabel}>Active</Text>
-              <Switch value={photoActive} onValueChange={setPhotoActive} trackColor={{ false: '#172F27', true: '#10B981' }} thumbColor="#FFFFFF" />
+              <Switch value={photoActive} onValueChange={setPhotoActive} trackColor={{ false: '#D1FAE5', true: '#10B981' }} thumbColor='#FFFFFF' />
             </View>
             <TouchableOpacity style={styles.publishBtn} onPress={publishPhoto}>
-              <Plus size={18} color="#FFFFFF" />
+              <Plus size={18} color='#0F172A' />
               <Text style={styles.publishText}>Publish Photo Banner</Text>
             </TouchableOpacity>
           </View>
@@ -152,7 +152,7 @@ export default function BannerManagerScreen({ navigation }) {
                 <Text style={styles.rowMeta}>{b.category}{b.expiresAt ? ' • Timed' : ''} • {b.active ? 'LIVE' : 'OFF'}</Text>
               </View>
               <View style={styles.rowActions}>
-                <Switch value={b.active} onValueChange={(v) => updateBanner(b.id, { active: v })} trackColor={{ false: '#172F27', true: '#10B981' }} thumbColor="#FFFFFF" />
+                <Switch value={b.active} onValueChange={(v) => updateBanner(b.id, { active: v })} trackColor={{ false: '#D1FAE5', true: '#10B981' }} thumbColor='#FFFFFF' />
                 <TouchableOpacity onPress={() => removeBanner(b.id)}><Trash2 size={16} color="#EF4444" /></TouchableOpacity>
               </View>
             </View>
@@ -164,42 +164,42 @@ export default function BannerManagerScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   scroll: { flex: 1 },
   tabs: { flexDirection: 'row', backgroundColor: '#132620', borderRadius: 12, marginHorizontal: 16, marginVertical: 12, padding: 4 },
   tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 11, borderRadius: 10 },
   tabActive: { backgroundColor: '#10B981' },
   tabText: { color: '#8EA89D', fontSize: 13, fontWeight: '600' },
-  tabTextActive: { color: '#FFFFFF' },
-  card: { backgroundColor: '#132620', borderRadius: 16, marginHorizontal: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#172F27' },
+  tabTextActive: { color: '#0F172A' },
+  card: { backgroundColor: '#132620', borderRadius: 16, marginHorizontal: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#D1FAE5' },
   uploadBox: { borderWidth: 1.5, borderColor: '#10B981', borderStyle: 'dashed', borderRadius: 14, paddingVertical: 26, alignItems: 'center', justifyContent: 'center', marginBottom: 14, minHeight: 110 },
   uploadInner: { alignItems: 'center', gap: 8 },
   uploadText: { color: '#8EA89D', fontSize: 13 },
   preview: { width: '100%', height: 150, borderRadius: 12 },
   durLabel: { color: '#8EA89D', fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 8 },
   label: { color: '#8EA89D', fontSize: 13, fontWeight: '600', marginBottom: 6, marginTop: 8 },
-  input: { backgroundColor: '#0D1D18', borderRadius: 12, borderWidth: 1, borderColor: '#172F27', paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#FFFFFF', marginBottom: 6 },
+  input: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#D1FAE5', paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#0F172A', marginBottom: 6 },
   area: { height: 80, textAlignVertical: 'top' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 6 },
-  chip: { backgroundColor: '#0D1D18', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: '#172F27' },
+  chip: { backgroundColor: '#FFFFFF', borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: '#D1FAE5' },
   chipActive: { backgroundColor: '#10B981', borderColor: '#10B981' },
   chipText: { color: '#8EA89D', fontSize: 12 },
-  chipTextActive: { color: '#FFFFFF' },
+  chipTextActive: { color: '#0F172A' },
   durationRow: { flexDirection: 'row', gap: 8, marginBottom: 6, alignItems: 'center' },
   durationInput: { flex: 1, marginBottom: 0 },
-  unitBtn: { paddingHorizontal: 14, justifyContent: 'center', backgroundColor: '#0D1D18', borderRadius: 12, borderWidth: 1, borderColor: '#172F27' },
+  unitBtn: { paddingHorizontal: 14, justifyContent: 'center', backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#D1FAE5' },
   unitBtnActive: { backgroundColor: '#10B981' },
   unitBtnText: { color: '#8EA89D', fontSize: 12, fontWeight: '600' },
-  unitBtnTextActive: { color: '#FFFFFF' },
+  unitBtnTextActive: { color: '#0F172A' },
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 8 },
   switchLabel: { color: '#8EA89D', fontSize: 13, fontWeight: '600' },
   publishBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#10B981', borderRadius: 12, paddingVertical: 14, marginTop: 10 },
-  publishText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
+  publishText: { color: '#0F172A', fontSize: 15, fontWeight: 'bold' },
   sectionLabel: { color: '#8EA89D', fontSize: 14, fontWeight: 'bold', marginHorizontal: 16, marginTop: 6, marginBottom: 10 },
   empty: { color: '#4B6358', fontSize: 13, textAlign: 'center', margin: 20 },
-  bannerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#132620', borderRadius: 12, marginHorizontal: 16, marginBottom: 8, padding: 12, borderWidth: 1, borderColor: '#172F27' },
+  bannerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#132620', borderRadius: 12, marginHorizontal: 16, marginBottom: 8, padding: 12, borderWidth: 1, borderColor: '#D1FAE5' },
   rowLeft: { flex: 1 },
-  rowTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
+  rowTitle: { color: '#0F172A', fontSize: 13, fontWeight: '600' },
   rowMeta: { color: '#4B6358', fontSize: 11, marginTop: 2 },
   rowActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });

@@ -12,27 +12,32 @@ import RouteGuard from './src/navigation/RouteGuard';
 import { AdminLockProvider } from './src/components/AdminLock';
 import BroadcastModal from './src/components/BroadcastModal';
 import * as SplashScreen from 'expo-splash-screen';
-import { Image, View as RNView, View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Image, View as RNView, View, ActivityIndicator, StyleSheet, StatusBar } from 'react-native';
 
 // Keep the native splash screen visible while persisted auth/onboarding
 // state is restored. Hidden with a smooth fade once initialization finishes.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function ThemedContainer({ children }) {
-  const { isDark } = useAppTheme();
+  const { isDark, colors } = useAppTheme();
   const navTheme = {
     ...(isDark ? DarkTheme : DefaultTheme),
     colors: {
       ...(isDark ? DarkTheme : DefaultTheme).colors,
-      primary: '#00C875',
-      background: isDark ? '#0B1612' : '#F4F7F5',
-      card: isDark ? '#12241D' : '#FFFFFF',
-      text: isDark ? '#FFFFFF' : '#0B1612',
-      border: isDark ? '#2A3B31' : '#E5E7EB',
+      primary: colors.primary,
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: colors.border,
     },
   };
   return (
     <NavigationContainer ref={navigationRef} theme={navTheme}>
+      {/* Status bar reflects the active theme for the whole app shell. */}
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+      />
       {children}
       <RouteGuard />
       <BroadcastModal />
@@ -73,7 +78,7 @@ function AuthGate({ children }) {
           source={require('./assets/logo.png')}
           style={splashStyles.logo}
         />
-        <ActivityIndicator size="small" color="#00C875" style={{ marginTop: 24 }} />
+        <ActivityIndicator size="small" color="#10B981" style={{ marginTop: 24 }} />
       </RNView>
     );
   }

@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: '#0F172A',
   },
   subtitle: {
     fontSize: 14,
@@ -125,9 +125,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontWeight: "500",
-    color: "#FFFFFF",
+    color: '#0F172A',
     marginRight: 12,
   },
   copyButton: {

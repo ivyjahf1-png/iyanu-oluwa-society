@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { storage } from '../lib/storage';
+import { fetchLedger, recordMemberEntry, isServerConfigured } from '../lib/ledger';
 
 /**
  * TransactionsContext — the single audit trail for all member money movement.
@@ -31,6 +32,23 @@ export function TransactionsProvider({ children }) {
         // Corrupt payload — start empty rather than crash.
       }
       setHydrated(true);
+
+      // ---- Phase 3: server ledger hydration (additive) ----
+      // When Supabase is configured, the server ledger is authoritative:
+      // merge it over the local cache (server rows win by id). When it is
+      // unavailable, the local ledger continues to drive every figure.
+      if (isServerConfigured()) {
+        const serverRows = await fetchLedger();
+        if (serverRows && serverRows.length >= 0) {
+          setTransactions(prev => {
+            const byId = new Map(prev.map(t => [t.id, t]));
+            for (const row of serverRows) byId.set(row.id, row);
+            const merged = [...byId.values()].sort((a, b) => b.createdAt - a.createdAt);
+            storage.setItem(STORAGE_KEY, JSON.stringify(merged)).catch(() => {});
+            return merged;
+          });
+        }
+      }
     })();
   }, []);
 
@@ -41,8 +59,13 @@ export function TransactionsProvider({ children }) {
 
   /** Record a real transaction. Returns the stored entry. */
   const addTransaction = tx => {
+    // Offline/unconfirmed entries are recorded as PENDING and never counted in
+    // official derived balances, mirroring the DB rule that pending -> approved
+    // only on backend authorization. Online (server-backed) entries are 'approved'.
     const entry = {
       id: `t-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      status: isServerConfigured() ? 'approved' : 'pending',
+      offline: !isServerConfigured(),
       type: tx.type,
       label: tx.label,
       amount: Number(tx.amount) || 0,
@@ -51,12 +74,27 @@ export function TransactionsProvider({ children }) {
       reference: tx.reference || '',
     };
     persist([entry, ...transactions]);
+
+    // ---- Phase 3: server write-through (best-effort, never blocks UX) ----
+    // NOTE: contributions are NOT written through here any more — member
+    // submissions are PENDING payments (0003) and only reach the ledger on
+    // admin approval. Withdrawals keep the previous direct behaviour.
+    if (isServerConfigured() && tx.type === 'withdrawal') {
+      recordMemberEntry({
+        type: tx.type,
+        amount: entry.amount,
+        reference: entry.reference,
+        description: tx.label,
+      }).catch(() => {});
+    }
     return entry;
   };
 
   /* ---- Derived figures (audit-trail based) ---- */
   const sum = (types) =>
-    transactions.filter(t => types.includes(t.type)).reduce((s, t) => s + t.amount, 0);
+    transactions
+      .filter(t => types.includes(t.type) && t.status !== 'pending')
+      .reduce((s, t) => s + t.amount, 0);
 
   const totalSavings = sum(['contribution', 'deposit']) - sum(['withdrawal']);
   const totalContributions = sum(['contribution']);

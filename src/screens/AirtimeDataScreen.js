@@ -69,7 +69,7 @@ export default function AirtimeDataScreen({ navigation: rawNav, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+      <StatusBar barStyle="dark-content" backgroundColor='#F4F7F5' />
       <ScreenHeader
         title="Buy Airtime / Data"
         subtitle="Top up instantly for any network"
@@ -87,7 +87,7 @@ export default function AirtimeDataScreen({ navigation: rawNav, route }) {
               onPress={() => setProvider(p.key)}
             >
               <View style={[styles.providerDot, { backgroundColor: p.color }]}>
-                {provider === p.key ? <CheckCircle2 size={14} color="#FFFFFF" /> : null}
+                {provider === p.key ? <CheckCircle2 size={14} color='#0F172A' /> : null}
               </View>
               <Text style={[styles.providerLabel, provider === p.key && styles.providerLabelActive]}>
                 {p.label}
@@ -202,10 +202,10 @@ export default function AirtimeDataScreen({ navigation: rawNav, route }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   label: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
@@ -219,10 +219,10 @@ const styles = StyleSheet.create({
   providerBadge: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingVertical: 10,
     marginHorizontal: 3,
   },
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   providerLabel: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 11,
     fontWeight: '600',
   },
@@ -250,10 +250,10 @@ const styles = StyleSheet.create({
   },
   typeToggle: {
     flexDirection: 'row',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     padding: 4,
     marginBottom: 16,
   },
@@ -275,16 +275,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   typeBtnTextActive: {
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   input: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 15,
     marginBottom: 6,
   },
@@ -302,10 +302,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   amountChip: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 16,
     paddingVertical: 9,
   },
@@ -314,23 +314,23 @@ const styles = StyleSheet.create({
     borderColor: '#10B981',
   },
   amountChipText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
   },
   amountChipTextActive: {
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   planSelector: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 14,
     paddingVertical: 14,
   },
   planSelectorText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
   },
   planPlaceholder: {
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
   buyBtnText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: 'bold',
     fontSize: 14,
   },
@@ -354,13 +354,13 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
   },
   modalTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 15,
     fontWeight: 'bold',
     marginBottom: 12,
@@ -371,10 +371,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 13,
     borderBottomWidth: 1,
-    borderBottomColor: '#172F27',
+    borderBottomColor: '#D1FAE5',
   },
   modalRowTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
   },
   modalRowPrice: {

@@ -66,7 +66,7 @@ export default function AnnouncementsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+      <StatusBar barStyle="dark-content" backgroundColor='#F4F7F5' />
       <ScreenHeader
         title="Channels & Announcements"
         subtitle="Society-wide updates and push alerts"
@@ -97,7 +97,7 @@ export default function AnnouncementsScreen({ navigation }) {
           onPress={postAnnouncement}
           disabled={posting}
         >
-          <Megaphone size={17} color="#FFFFFF" />
+          <Megaphone size={17} color='#0F172A' />
           <Text style={styles.postBtnText}>{posting ? 'Posting…' : 'Post & Notify Members'}</Text>
         </TouchableOpacity>
 
@@ -140,23 +140,23 @@ export default function AnnouncementsScreen({ navigation }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   sectionTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
     marginTop: 6,
   },
   input: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     marginBottom: 12,
   },
@@ -172,21 +172,21 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   btnDisabled: { opacity: 0.6 },
-  postBtnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
+  postBtnText: { color: '#0F172A', fontWeight: 'bold', fontSize: 13 },
   emptyCard: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     padding: 24,
     alignItems: 'center',
   },
   emptyText: { color: '#8EA89D', fontSize: 12, marginTop: 8 },
   announcementCard: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     padding: 14,
     marginBottom: 10,
   },
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   dateText: { color: '#4B6358', fontSize: 10, marginLeft: 'auto' },
   deleteBtn: { marginLeft: 8, padding: 2 },
   announcementTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 4,

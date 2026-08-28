@@ -60,7 +60,7 @@ export default function BroadcastModal() {
               onPress={() => dismissBanner(current.id)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <X size={16} color="#FFFFFF" />
+              <X size={16} color='#0F172A' />
             </TouchableOpacity>
           </View>
         </View>
@@ -102,11 +102,11 @@ export default function BroadcastModal() {
               onPress={() => dismissBanner(current.id)}
             >
               <Text style={styles.actionBtnText}>Learn More</Text>
-              <ArrowRight size={16} color="#091813" />
+              <ArrowRight size={16} color="#F4F7F5" />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.closeBtn} onPress={() => dismissBanner(current.id)}>
-              <X size={16} color="#A7F3D0" />
+              <X size={16} color="#047857" />
               <Text style={styles.closeText}>Close</Text>
             </TouchableOpacity>
           </View>
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 380,
     maxHeight: '82%',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 22,
     borderWidth: 1,
     borderColor: '#1C4A2E',
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 20,
     fontWeight: 'bold',
     paddingHorizontal: 20,
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 14,
   },
-  actionBtnText: { color: '#091813', fontWeight: '800', fontSize: 14 },
+  actionBtnText: { color: '#06130D', fontWeight: '800', fontSize: 14 },
   closeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -204,5 +204,5 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 6,
   },
-  closeText: { color: '#A7F3D0', fontSize: 13, fontWeight: '600' },
+  closeText: { color: '#047857', fontSize: 13, fontWeight: '600' },
 });

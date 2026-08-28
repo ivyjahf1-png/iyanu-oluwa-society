@@ -126,7 +126,7 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor='#091813' barStyle="light-content" />
+      <StatusBar backgroundColor='#F4F7F5' barStyle="dark-content" />
       <ScreenHeader title="User Management" subtitle="Monitor and manage cooperative members" onBack={() => navigation?.goBack()} />
 
       <View style={styles.searchRow}>
@@ -148,7 +148,7 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
           <Users size={40} color="#9CB8A6" />
           <Text style={styles.empty}>{loadError || 'No members found yet.'}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={loadUsers}>
-            <RefreshCcw size={15} color="#FFFFFF" />
+            <RefreshCcw size={15} color='#0F172A' />
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -182,7 +182,7 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
                   onPress={() => sendPasswordReset(u)}
                   disabled={!u.email || resettingEmail === u.email}
                 >
-                  <KeyRound size={14} color="#FFFFFF" />
+                  <KeyRound size={14} color='#0F172A' />
                   <Text style={styles.resetEmailText}>
                     {resettingEmail === u.email ? 'Sending…' : 'Send Password Reset Email'}
                   </Text>
@@ -190,7 +190,7 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
               </View>
               <View style={styles.actions}>
                 <TouchableOpacity style={[styles.actionBtn, styles.suspendBtn]} onPress={() => suspendUser(u)}>
-                  <ShieldAlert size={16} color="#FFFFFF" />
+                  <ShieldAlert size={16} color='#0F172A' />
                 </TouchableOpacity>
               </View>
             </View>
@@ -202,39 +202,39 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   scroll: { flex: 1 },
   searchRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#0D1D18',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
     borderRadius: 12, marginHorizontal: 16, marginVertical: 12, paddingHorizontal: 12,
   },
-  searchInput: { flex: 1, paddingVertical: 10, color: '#FFFFFF', fontSize: 14, marginLeft: 8 },
+  searchInput: { flex: 1, paddingVertical: 10, color: '#0F172A', fontSize: 14, marginLeft: 8 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  empty: { color: '#A7F3D0', fontSize: 14, textAlign: 'center', marginTop: 12 },
+  empty: { color: '#047857', fontSize: 14, textAlign: 'center', marginTop: 12 },
   userCard: {
-    backgroundColor: '#0D1D18', borderRadius: 14, marginHorizontal: 16, marginBottom: 10,
+    backgroundColor: '#FFFFFF', borderRadius: 14, marginHorizontal: 16, marginBottom: 10,
     padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
   },
   userInfo: { flex: 1 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  userName: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
+  userName: { color: '#0F172A', fontSize: 15, fontWeight: 'bold' },
   statusPill: { borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   statusActive: { backgroundColor: 'rgba(16,185,129,0.18)' },
   statusSuspended: { backgroundColor: 'rgba(192,57,43,0.25)' },
-  statusText: { color: '#A7F3D0', fontSize: 9, fontWeight: '700' },
+  statusText: { color: '#047857', fontSize: 9, fontWeight: '700' },
   userEmail: { color: '#10B981', fontSize: 12, marginTop: 2 },
   userMeta: { color: '#8EA89D', fontSize: 11, marginTop: 2 },
   resetEmailBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#2563EB',
     borderRadius: 9, paddingVertical: 7, paddingHorizontal: 12, marginTop: 10, alignSelf: 'flex-start',
   },
-  resetEmailText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
+  resetEmailText: { color: '#0F172A', fontSize: 11, fontWeight: '700' },
   btnDisabled: { opacity: 0.55 },
   retryBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#10B981',
     borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, marginTop: 14,
   },
-  retryText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
+  retryText: { color: '#0F172A', fontSize: 12, fontWeight: '700' },
   actions: { flexDirection: 'row', gap: 8, marginLeft: 10 },
   actionBtn: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   resetBtn: { backgroundColor: '#2563EB' },

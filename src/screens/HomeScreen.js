@@ -23,10 +23,11 @@ import { deriveDisplayName } from '../auth/authService';
 import Greeting from '../components/Greeting';
 import useLiveEnvironment from '../hooks/useLiveEnvironment';
 import { COLORS, GRADIENTS } from '../constants/theme';
+import { useTheme } from '../theme/ThemeContext';
 
 export default function HomeScreen({ navigation }) {
-  // Centralized currency formatter — explicit Unicode escape so the ₦ symbol
-  // never suffers source-file encoding corruption (â‚¦ mojibake).
+  // Centralized currency formatter � explicit Unicode escape so the ? symbol
+  // never suffers source-file encoding corruption (₦ mojibake).
   const formatCurrency = (amount) => `\u20A6${Number(amount).toLocaleString()}`;
 
   const [hideMainBalance, setHideMainBalance] = useState(true);
@@ -43,6 +44,7 @@ export default function HomeScreen({ navigation }) {
   // Live environment (time-synced greeting + optional weather chip).
   // Fully additive: degrades gracefully when permission/network unavailable.
   const env = useLiveEnvironment();
+  const { colors } = useTheme();
   // Name resolution order: saved custom full name -> auth-derived email
   // prefix (skiszyofficial@gmail.com -> "Skiszyofficial") -> generic member.
   // The factory placeholder never masks the real email-derived identity.
@@ -59,7 +61,7 @@ export default function HomeScreen({ navigation }) {
     (userEmail ? deriveDisplayName(userEmail) : 'Member');
   const isAdminVisible = isAdminAccount(userEmail);
 
-  // Global admin verification: biometric prompt → PIN keypad fallback.
+  // Global admin verification: biometric prompt ? PIN keypad fallback.
   // Navigation to AdminSettings happens ONLY when access is granted.
   const { requestAdminAccess } = useAdminLock();
   const handleShieldAccess = async () => {
@@ -69,7 +71,7 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  // SECRET ADMIN TRIGGER — hidden on the brand logo inside the balance card.
+  // SECRET ADMIN TRIGGER � hidden on the brand logo inside the balance card.
   // Requires 5 quick taps within a 3-second window; single taps do nothing
   // visible (subtle no-op) so the backdoor stays completely hidden.
   const logoTapCount = useRef(0);
@@ -98,10 +100,10 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.pageBg} />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle="light-content" backgroundColor='#06130D' />
 
-      {/* FIXED TOP â€” Header + Available Balance Card stay static on screen */}
+      {/* FIXED TOP — Header + Available Balance Card stay static on screen */}
       <View style={styles.fixedTop}>
         {/* TOP HEADER */}
         <View style={styles.header}>
@@ -119,7 +121,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.iconCircle}
               onPress={() => navigateTo('Notifications')}
             >
-              <Ionicons name="notifications-outline" size={20} color={COLORS.textSoft} />
+              <Ionicons name="notifications-outline" size={20} color='#FFFFFF' />
               <View style={styles.notificationBadge} />
             </TouchableOpacity>
 
@@ -127,14 +129,14 @@ export default function HomeScreen({ navigation }) {
               style={styles.profileCircle}
               onPress={() => navigateTo('Profile')}
             >
-              <Ionicons name="person-outline" size={20} color={COLORS.pageBg} />
+              <Ionicons name="person-outline" size={20} color='#06130D' />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.iconCircle}
               onPress={() => navigateTo('Settings')}
             >
-              <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.textSoft} />
+              <Ionicons name="ellipsis-horizontal" size={20} color='#FFFFFF' />
             </TouchableOpacity>
           </View>
         </View>
@@ -156,7 +158,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.addFundBtn}
               onPress={() => navigateTo('AddFunds')}
             >
-              <Ionicons name="lock-closed" size={14} color={COLORS.textPrimary} />
+              <Ionicons name="lock-closed" size={14} color='#FFFFFF' />
               <Text style={styles.addFundText}>+ Add Fund</Text>
             </TouchableOpacity>
           </View>
@@ -168,7 +170,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.watermarkContainer}
             >
               <View style={styles.emblemOutline}>
-                <FontAwesome5 name="university" size={24} color={COLORS.textSilver} />
+                <FontAwesome5 name="university" size={24} color='#D1D5DB' />
               </View>
               <Text style={styles.watermarkTitle}>Standard Mutual Savings</Text>
               <Text style={styles.watermarkSub}>Community</Text>
@@ -181,7 +183,7 @@ export default function HomeScreen({ navigation }) {
               <Ionicons
                 name={hideMainBalance ? 'eye-outline' : 'eye-off-outline'}
                 size={14}
-                color={COLORS.textPrimary}
+                color='#FFFFFF'
               />
               <Text style={styles.showBalanceText}>
                 {hideMainBalance ? 'Show Balance' : 'Hide Balance'}
@@ -256,9 +258,9 @@ export default function HomeScreen({ navigation }) {
 
         {/* FINANCIAL SERVICES SECTION */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Financial Services</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Financial Services</Text>
           <TouchableOpacity onPress={() => navigateTo('FinancialServices')}>
-            <Text style={styles.viewAllText}>View All &gt;</Text>
+            <Text style={[styles.viewAllText, { color: colors.primary }]}>View All &gt;</Text>
           </TouchableOpacity>
         </View>
 
@@ -268,10 +270,10 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigateTo('CoopContribution')}
           >
             <LinearGradient colors={GRADIENTS.greenService} style={styles.serviceIconContainer}>
-              <FontAwesome5 name="piggy-bank" size={18} color={COLORS.textPrimary} />
+              <FontAwesome5 name="piggy-bank" size={18} color={colors.text} />
             </LinearGradient>
-            <Text style={styles.serviceLabel}>Coop Contribution</Text>
-            <Text style={styles.serviceSubtext}>Deposit weekly or monthly savings</Text>
+            <Text style={[styles.serviceLabel, { color: colors.text }]}>Coop Contribution</Text>
+            <Text style={[styles.serviceSubtext, { color: colors.textSecondary }]}>Deposit weekly or monthly savings</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -279,10 +281,10 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigateTo('AccountStatement')}
           >
             <LinearGradient colors={GRADIENTS.blueService} style={styles.serviceIconContainer}>
-              <Ionicons name="document-text-outline" size={20} color={COLORS.textPrimary} />
+              <Ionicons name="document-text-outline" size={20} color={colors.text} />
             </LinearGradient>
-            <Text style={styles.serviceLabel}>Account Statement</Text>
-            <Text style={styles.serviceSubtext}>Download report</Text>
+            <Text style={[styles.serviceLabel, { color: colors.text }]}>Account Statement</Text>
+            <Text style={[styles.serviceSubtext, { color: colors.textSecondary }]}>Download report</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -290,10 +292,10 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigateTo('RequestLoan')}
           >
             <LinearGradient colors={GRADIENTS.orangeService} style={styles.serviceIconContainer}>
-              <FontAwesome5 name="hand-holding-usd" size={18} color={COLORS.textPrimary} />
+              <FontAwesome5 name="hand-holding-usd" size={18} color={colors.text} />
             </LinearGradient>
-            <Text style={styles.serviceLabel}>Request Loan</Text>
-            <Text style={styles.serviceSubtext}>Apply for member credit</Text>
+            <Text style={[styles.serviceLabel, { color: colors.text }]}>Request Loan</Text>
+            <Text style={[styles.serviceSubtext, { color: colors.textSecondary }]}>Apply for member credit</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -301,101 +303,101 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigateTo('RepayLoan')}
           >
             <LinearGradient colors={GRADIENTS.purpleService} style={styles.serviceIconContainer}>
-              <Ionicons name="card-outline" size={20} color={COLORS.textPrimary} />
+              <Ionicons name="card-outline" size={20} color={colors.text} />
             </LinearGradient>
-            <Text style={styles.serviceLabel}>Repay Loan</Text>
-            <Text style={styles.serviceSubtext}>Make loan repayments</Text>
+            <Text style={[styles.serviceLabel, { color: colors.text }]}>Repay Loan</Text>
+            <Text style={[styles.serviceSubtext, { color: colors.textSecondary }]}>Make loan repayments</Text>
           </TouchableOpacity>
         </ScrollView>
 
         {/* COOP AI ASSISTANT BANNER */}
-        <View style={styles.aiBanner}>
+        <View style={[styles.aiBanner, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.aiLeft}>
-            <View style={styles.botIconWrapper}>
-              <MaterialCommunityIcons name="robot-outline" size={24} color={COLORS.textSoft} />
+            <View style={[styles.botIconWrapper, { backgroundColor: colors.icon }]}>
+              <MaterialCommunityIcons name="robot-outline" size={24} color={colors.primary} />
             </View>
             <View style={styles.aiTextGroup}>
-              <Text style={styles.aiTitle}>Coop AI Assistant</Text>
-              <Text style={styles.aiSubtext}>
+              <Text style={[styles.aiTitle, { color: colors.text }]}>Coop AI Assistant</Text>
+              <Text style={[styles.aiSubtext, { color: colors.textSecondary }]}>
                 Ask questions about your savings or loan limits.
               </Text>
             </View>
           </View>
 
           <TouchableOpacity
-            style={styles.askNowBtn}
+            style={[styles.askNowBtn, { backgroundColor: colors.primary }]}
             onPress={() => navigateTo('AIAssistant')}
           >
-            <Text style={styles.askNowText}>ASK NOW</Text>
+            <Text style={[styles.askNowText, { color: colors.background }]}>ASK NOW</Text>
           </TouchableOpacity>
         </View>
 
         {/* COOPERATIVE HUB SECTION */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Cooperative Hub</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Cooperative Hub</Text>
           <TouchableOpacity onPress={() => navigateTo('Marketplace')}>
-            <Text style={styles.viewAllText}>View All &gt;</Text>
+            <Text style={[styles.viewAllText, { color: colors.primary }]}>View All &gt;</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
-          style={styles.hubListItem}
+          style={[styles.hubListItem, { backgroundColor: colors.card, borderColor: colors.border }]}
           onPress={() => navigateTo('Marketplace', { category: 'land_and_property' })}
         >
           <View style={styles.hubLeft}>
-            <View style={[styles.hubIconCircle, { backgroundColor: COLORS.accentGreen }]}>
-              <Ionicons name="home-outline" size={20} color={COLORS.textPrimary} />
+            <View style={[styles.hubIconCircle, { backgroundColor: colors.icon }]}>
+              <Ionicons name="home-outline" size={20} color={colors.primary} />
             </View>
             <View style={styles.hubTextContainer}>
-              <Text style={styles.hubItemTitle}>Land & Property</Text>
-              <Text style={styles.hubItemSub}>
+              <Text style={[styles.hubItemTitle, { color: colors.text }]}>Land & Property</Text>
+              <Text style={[styles.hubItemSub, { color: colors.textSecondary }]}>
                 Acquire plots with flexible payment plans
               </Text>
             </View>
           </View>
           <View style={styles.hubRight}>
-            <View style={styles.hubTagIcon}>
-              <Ionicons name="location-outline" size={16} color={COLORS.mintAccent} />
+            <View style={[styles.hubTagIcon, { backgroundColor: colors.icon }]}>
+              <Ionicons name="location-outline" size={16} color={colors.primary} />
             </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.textDim} />
+            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.hubListItem}
+          style={[styles.hubListItem, { backgroundColor: colors.card, borderColor: colors.border }]}
           onPress={() => navigateTo('Marketplace', { category: 'vehicles_and_appliances' })}
         >
           <View style={styles.hubLeft}>
-            <View style={[styles.hubIconCircle, { backgroundColor: COLORS.accentBlue }]}>
-              <Ionicons name="car-outline" size={20} color={COLORS.textPrimary} />
+            <View style={[styles.hubIconCircle, { backgroundColor: colors.icon }]}>
+              <Ionicons name="car-outline" size={20} color={colors.primary} />
             </View>
             <View style={styles.hubTextContainer}>
-              <Text style={styles.hubItemTitle}>Vehicles</Text>
-              <Text style={styles.hubItemSub}>Member auto financing options</Text>
+              <Text style={[styles.hubItemTitle, { color: colors.text }]}>Vehicles</Text>
+              <Text style={[styles.hubItemSub, { color: colors.textSecondary }]}>Member auto financing options</Text>
             </View>
           </View>
           <View style={styles.hubRight}>
-            <View style={styles.hubTagIcon}>
-              <Ionicons name="car-sport-outline" size={16} color={COLORS.mintAccent} />
+            <View style={[styles.hubTagIcon, { backgroundColor: colors.icon }]}>
+              <Ionicons name="car-sport-outline" size={16} color={colors.primary} />
             </View>
-            <Ionicons name="chevron-forward" size={18} color={COLORS.textDim} />
+            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.hubListItem}
+          style={[styles.hubListItem, { backgroundColor: colors.card, borderColor: colors.border }]}
           onPress={() => navigateTo('MeetingChat')}
         >
           <View style={styles.hubLeft}>
-            <View style={[styles.hubIconCircle, { backgroundColor: COLORS.accentPurple }]}>
-              <Ionicons name="chatbox-ellipses-outline" size={20} color={COLORS.textPrimary} />
+            <View style={[styles.hubIconCircle, { backgroundColor: colors.icon }]}>
+              <Ionicons name="chatbox-ellipses-outline" size={20} color={colors.primary} />
             </View>
             <View style={styles.hubTextContainer}>
-              <Text style={styles.hubItemTitle}>Meeting Chat</Text>
-              <Text style={styles.hubItemSub}>Discuss & decide with members</Text>
+              <Text style={[styles.hubItemTitle, { color: colors.text }]}>Meeting Chat</Text>
+              <Text style={[styles.hubItemSub, { color: colors.textSecondary }]}>Discuss & decide with members</Text>
             </View>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={COLORS.textDim} />
+          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -410,7 +412,7 @@ const styles = StyleSheet.create({
   fixedTop: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    backgroundColor: COLORS.pageBg,
+    backgroundColor: '#06130D',
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -423,16 +425,16 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 20,
   },
-  greetingText: { color: COLORS.textFaint, fontSize: 14, fontWeight: '400' },
-  userName: { color: COLORS.textPrimary, fontSize: 24, fontWeight: '700', marginTop: 2 },
+  greetingText: { color: '#A7F3D0', fontSize: 14, fontWeight: '400' },
+  userName: { color: '#FFFFFF', fontSize: 24, fontWeight: '700', marginTop: 2 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 5 },
-  societyName: { color: COLORS.textFaint, fontSize: 13 },
+  societyName: { color: '#A7F3D0', fontSize: 13 },
   headerActions: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   iconCircle: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: COLORS.iconSurface,
+    backgroundColor: 'rgba(255, 255, 255, 0.10)',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -455,7 +457,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: COLORS.textPrimary,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -469,8 +471,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   cardLeft: { justifyContent: 'space-between' },
-  cardLabel: { color: COLORS.textLight, fontSize: 13, fontWeight: '500' },
-  balanceText: { color: COLORS.textPrimary, fontSize: 26, fontWeight: '700', marginVertical: 10 },
+  cardLabel: { color: '#A7F3D0', fontSize: 13, fontWeight: '500' },
+  balanceText: { color: '#FFFFFF', fontSize: 26, fontWeight: '700', marginVertical: 10 },
   addFundBtn: {
     backgroundColor: COLORS.addFundDeep,
     flexDirection: 'row',
@@ -481,7 +483,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignSelf: 'flex-start',
   },
-  addFundText: { color: COLORS.textPrimary, fontSize: 13, fontWeight: '600' },
+  addFundText: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
   cardRight: { alignItems: 'flex-end', justifyContent: 'space-between' },
   watermarkContainer: { alignItems: 'center', opacity: 0.8 },
   emblemOutline: {
@@ -490,8 +492,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  watermarkTitle: { color: COLORS.textSoft, fontSize: 10, fontWeight: '600', marginTop: 4 },
-  watermarkSub: { color: COLORS.textFaint, fontSize: 9 },
+  watermarkTitle: { color: '#E2E8F0', fontSize: 10, fontWeight: '600', marginTop: 4 },
+  watermarkSub: { color: '#94A3B8', fontSize: 9 },
   showBalanceBtn: {
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
     flexDirection: 'row',
@@ -503,7 +505,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  showBalanceText: { color: COLORS.textPrimary, fontSize: 12 },
+  showBalanceText: { color: '#FFFFFF', fontSize: 12 },
   dualCardRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   subCard: {
     flex: 1,
@@ -514,7 +516,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.cardBorderSoft,
   },
   subCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  subCardTitle: { color: COLORS.textSoft, fontSize: 14, fontWeight: '500' },
+  subCardTitle: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '500' },
   subCardHeaderIcons: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   miniIconCircle: {
     width: 26,
@@ -591,7 +593,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 20,
   },
-  askNowText: { color: COLORS.pageBg, fontSize: 11, fontWeight: '700' },
+  askNowText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
   hubListItem: {
     backgroundColor: COLORS.cardSurface,
     borderRadius: 14,

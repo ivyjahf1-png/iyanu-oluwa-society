@@ -71,12 +71,12 @@ export default function MarketplaceScreen({ navigation: rawNav, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor='#091813' barStyle="light-content" />
+      <StatusBar backgroundColor='#F4F7F5' barStyle="dark-content" />
 
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeft size={24} color="#A7F3D0" />
+          <ChevronLeft size={24} color="#047857" />
         </TouchableOpacity>
         <Text style={styles.topBarTitle}>Member Marketplace</Text>
       </View>
@@ -134,9 +134,9 @@ export default function MarketplaceScreen({ navigation: rawNav, route }) {
                   {item.imageUri ? (
                     <SafeImage source={{ uri: item.imageUri }} style={styles.cardMediaImage} />
                   ) : Icon ? (
-                    <Icon size={34} color="#A7F3D0" />
+                    <Icon size={34} color="#047857" />
                   ) : (
-                    <ShoppingBag size={34} color="#A7F3D0" />
+                    <ShoppingBag size={34} color="#047857" />
                   )}
                   <TouchableOpacity onPress={() => toggleFavorite(item.id)} style={styles.favBtn}>
                     <Heart size={18} color={fav ? '#C0392B' : '#9CB8A6'} fill={fav ? '#C0392B' : 'transparent'} />
@@ -169,7 +169,7 @@ export default function MarketplaceScreen({ navigation: rawNav, route }) {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#091813' 
+    backgroundColor: '#06130D' 
   },
   topBar: { 
     flexDirection: 'row', 
@@ -181,12 +181,12 @@ const styles = StyleSheet.create({
     width: 40, 
     height: 40, 
     borderRadius: 20, 
-    backgroundColor: '#0D1D18', 
+    backgroundColor: '#FFFFFF', 
     justifyContent: 'center', 
     alignItems: 'center' 
   },
   topBarTitle: { 
-    color: '#FFFFFF', 
+    color: '#0F172A', 
     fontSize: 18, 
     fontWeight: 'bold', 
     marginLeft: 12 
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   searchBar: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    backgroundColor: '#0D1D18', 
+    backgroundColor: '#FFFFFF', 
     borderRadius: 12, 
     marginHorizontal: 16, 
     paddingHorizontal: 12, 
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   searchInput: { 
     flex: 1, 
-    color: '#FFFFFF', 
+    color: '#0F172A', 
     fontSize: 14, 
     paddingVertical: 10, 
     marginLeft: 8 
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     marginBottom: 8 
   },
   chip: { 
-    backgroundColor: '#0D1D18', 
+    backgroundColor: '#FFFFFF', 
     borderRadius: 16, 
     paddingHorizontal: 12, 
     paddingVertical: 6, 
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     fontSize: 12 
   },
   chipTextActive: { 
-    color: '#FFFFFF', 
+    color: '#0F172A', 
     fontWeight: 'bold' 
   },
   resultCount: { 
@@ -251,10 +251,10 @@ const styles = StyleSheet.create({
   },
   card: { 
     width: '48%', 
-    backgroundColor: '#0D1D18', 
+    backgroundColor: '#FFFFFF', 
     borderRadius: 14, 
     borderWidth: 1, 
-    borderColor: '#172F27', 
+    borderColor: '#D1FAE5', 
     marginBottom: 10, 
     overflow: 'hidden' 
   },
@@ -283,12 +283,12 @@ const styles = StyleSheet.create({
     padding: 10 
   },
   cardTitle: { 
-    color: '#FFFFFF', 
+    color: '#0F172A', 
     fontSize: 13, 
     fontWeight: '600' 
   },
   cardPrice: { 
-    color: '#A7F3D0', 
+    color: '#047857', 
     fontSize: 13, 
     fontWeight: 'bold', 
     marginTop: 4 

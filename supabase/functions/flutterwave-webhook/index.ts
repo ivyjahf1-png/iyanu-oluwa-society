@@ -22,14 +22,43 @@ const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
 
+async function getSetting(key: string): Promise<string | null> {
+  // Secrets live in private_settings (no RLS policies). Fall back to
+  // app_settings for deployments that have not migrated yet.
+  for (const table of ['private_settings', 'app_settings']) {
+    const { data, error } = await adminClient
+      .from(table)
+      .select('value')
+      .eq('key', key)
+      .single();
+    if (!error && data?.value) return data.value;
+  }
+  return null;
+}
+
 async function getSecretHash(): Promise<string> {
-  const { data, error } = await adminClient
-    .from('app_settings')
-    .select('value')
-    .eq('key', 'flutterwave_secret_hash')
-    .single();
-  if (error || !data?.value) throw new Error('flutterwave_secret_hash is not configured');
-  return data.value;
+  const hash = await getSetting('flutterwave_secret_hash');
+  if (!hash) throw new Error('flutterwave_secret_hash is not configured');
+  return hash;
+}
+
+/**
+ * Phase 9 verification: confirm the payment directly with Flutterwave using
+ * the secret key before trusting the webhook payload amount/status.
+ */
+async function verifyWithFlutterwave(txRef: string): Promise<{ ok: boolean; amount: number }> {
+  const secretKey = await getSetting('flutterwave_secret_key');
+  if (!secretKey) return { ok: true, amount: 0 }; // unconfigured -> fall back to payload
+  const res = await fetch(
+    `https://api.flutterwave.com/v3/transactions/verify_by_reference?tx_ref=${encodeURIComponent(txRef)}`,
+    { headers: { Authorization: `Bearer ${secretKey}` } },
+  );
+  if (!res.ok) return { ok: false, amount: 0 };
+  const json = await res.json();
+  if (json?.status !== 'success' || json?.data?.status !== 'successful') {
+    return { ok: false, amount: 0 };
+  }
+  return { ok: true, amount: Number(json.data.amount ?? 0) };
 }
 
 /** Constant-time-ish comparison to avoid trivial timing attacks. */
@@ -73,7 +102,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const txRef: string = data['tx_ref'] ?? '';
-    const paidAmount: number = Number(data['amount'] ?? 0);
+    let paidAmount: number = Number(data['amount'] ?? 0);
 
     if (!txRef) {
       return new Response(JSON.stringify({ error: 'Missing tx_ref' }), {
@@ -81,6 +110,16 @@ Deno.serve(async (req: Request) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
+    // ---- 3. Server-side verification with Flutterwave (Phase 9) ------------
+    const verified = await verifyWithFlutterwave(txRef);
+    if (!verified.ok) {
+      return new Response(
+        JSON.stringify({ error: 'Payment verification with Flutterwave failed' }),
+        { status: 402, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+    if (verified.amount > 0) paidAmount = verified.amount;
 
     // ---- 3. Locate the matching pending deposit ----------------------------
     const { data: deposit, error: depositError } = await adminClient

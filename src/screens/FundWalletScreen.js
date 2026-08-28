@@ -144,7 +144,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#2D1E1B" />
+      <StatusBar barStyle="dark-content" backgroundColor='#06130D' />
       <ScreenHeader
         title="Fund Wallet"
         subtitle="Choose instant or free bank transfer"
@@ -286,7 +286,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
               onPress={submitManualDeposit}
               disabled={submitting}
             >
-              <Send size={18} color="#FFFFFF" />
+              <Send size={18} color='#0F172A' />
               <Text style={styles.submitBtnText}>
                 {submitting ? 'Submitting…' : 'Submit Deposit for Approval'}
               </Text>
@@ -300,10 +300,10 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   metaBanner: {
-    backgroundColor: '#091813',
+    backgroundColor: '#06130D',
     borderRadius: 14,
     padding: 14,
     marginBottom: 14,
@@ -314,12 +314,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metaBannerLabel: {
-    color: '#A7F3D0',
+    color: '#047857',
     fontSize: 12,
     fontWeight: '600',
   },
   metaBannerValue: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 15,
     fontWeight: 'bold',
   },
@@ -334,15 +334,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingVertical: 12,
   },
   methodBtnActive: {
-    backgroundColor: '#091813',
-    borderColor: '#091813',
+    backgroundColor: '#06130D',
+    borderColor: '#F4F7F5',
   },
   methodBtnText: {
     color: '#10B981',
@@ -350,17 +350,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   methodBtnTextActive: {
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   optionCard: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
   },
   optionTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 15,
     fontWeight: 'bold',
   },
@@ -376,14 +376,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 9,
     borderBottomWidth: 1,
-    borderBottomColor: '#172F27',
+    borderBottomColor: '#D1FAE5',
   },
   detailLabel: {
     color: '#8EA89D',
     fontSize: 12,
   },
   detailValue: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   label: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
@@ -413,10 +413,10 @@ const styles = StyleSheet.create({
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 14,
   },
   nairaPrefix: {
@@ -427,25 +427,25 @@ const styles = StyleSheet.create({
   },
   amountInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 17,
     fontWeight: '600',
     paddingVertical: 13,
   },
   input: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
   },
   uploadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#10B981',
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   uploadTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitBtnText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: 'bold',
     fontSize: 14,
   },

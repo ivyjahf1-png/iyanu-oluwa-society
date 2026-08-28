@@ -39,7 +39,7 @@ export default function SavingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor='#091813' barStyle="light-content" />
+      <StatusBar backgroundColor='#F4F7F5' barStyle="dark-content" />
       <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollContent, styles.grow]} showsVerticalScrollIndicator={false}>
 
         {/* Header */}
@@ -55,9 +55,9 @@ export default function SavingsScreen() {
               onPress={() => setSavingsVisible(!savingsVisible)}
             >
               {savingsVisible ? (
-                <Eye size={18} color="#FFFFFF" />
+                <Eye size={18} color='#0F172A' />
               ) : (
-                <EyeOff size={18} color="#FFFFFF" />
+                <EyeOff size={18} color='#0F172A' />
               )}
             </TouchableOpacity>
           </View>
@@ -76,14 +76,14 @@ export default function SavingsScreen() {
               style={styles.primaryBtn}
               onPress={() => Alert.alert('Coming Soon', 'Deposits will be available soon.')}
             >
-              <Lock color="#FFFFFF" size={16} />
+              <Lock color='#0F172A' size={16} />
               <Text style={styles.btnText}>Deposit</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.secondaryBtn}
               onPress={() => Alert.alert('Coming Soon', 'Withdrawals will be available soon.')}
             >
-              <Lock color="#A7F3D0" size={16} />
+              <Lock color="#047857" size={16} />
               <Text style={styles.secBtnText}>Withdraw</Text>
             </TouchableOpacity>
           </View>
@@ -112,7 +112,7 @@ export default function SavingsScreen() {
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <View style={styles.iconCircle}>
-              <Calendar color="#A7F3D0" size={20} />
+              <Calendar color="#047857" size={20} />
             </View>
             <View style={styles.infoTextGroup}>
               <Text style={styles.infoTitle}>Next Due Date</Text>
@@ -125,7 +125,7 @@ export default function SavingsScreen() {
 
           <View style={styles.infoRow}>
             <View style={styles.iconCircle}>
-              <ShieldCheck color="#A7F3D0" size={20} />
+              <ShieldCheck color="#047857" size={20} />
             </View>
             <View style={styles.infoTextGroup}>
               <Text style={styles.infoTitle}>Lock Status</Text>
@@ -183,9 +183,9 @@ export default function SavingsScreen() {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   scrollContent: { padding: 16 },
-  headerTitle: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
+  headerTitle: { color: '#0F172A', fontSize: 20, fontWeight: 'bold' },
   headerSub: { color: '#9CB8A6', fontSize: 12, marginBottom: 16, marginTop: 4 },
   balanceCard: { backgroundColor: '#132620', borderRadius: 16, padding: 20, marginBottom: 16 },
   balanceLabel: { color: '#D3F99D', fontSize: 13 },
@@ -195,36 +195,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   eyeToggleBtn: { padding: 4 },
-  balanceAmount: { color: '#FFFFFF', fontSize: 28, fontWeight: 'bold', marginVertical: 6 },
+  balanceAmount: { color: '#0F172A', fontSize: 28, fontWeight: 'bold', marginVertical: 6 },
   badgeRow: { flexDirection: 'row', marginBottom: 16 },
   interestBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, gap: 4 },
   interestText: { color: '#10B981', fontSize: 11, fontWeight: 'bold' },
   actionRow: { flexDirection: 'row', gap: 12 },
   primaryBtn: { flex: 1, backgroundColor: '#10B981', paddingVertical: 12, borderRadius: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6 },
-  btnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
-  secondaryBtn: { flex: 1, backgroundColor: '#0D1D18', paddingVertical: 12, borderRadius: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#172F27' },
-  secBtnText: { color: '#A7F3D0', fontWeight: 'bold', fontSize: 13 },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#0D1D18', borderRadius: 10, padding: 4, marginBottom: 16 },
+  btnText: { color: '#0F172A', fontWeight: 'bold', fontSize: 13 },
+  secondaryBtn: { flex: 1, backgroundColor: '#FFFFFF', paddingVertical: 12, borderRadius: 10, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: '#D1FAE5' },
+  secBtnText: { color: '#047857', fontWeight: 'bold', fontSize: 13 },
+  tabContainer: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 10, padding: 4, marginBottom: 16 },
   tab: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
   activeTab: { backgroundColor: '#132620' },
   tabText: { color: '#9CB8A6', fontSize: 12, fontWeight: '600' },
-  activeTabText: { color: '#FFFFFF' },
-  infoCard: { backgroundColor: '#0D1D18', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#172F27', marginBottom: 20 },
+  activeTabText: { color: '#0F172A' },
+  infoCard: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 16, borderWidth: 1, borderColor: '#D1FAE5', marginBottom: 20 },
   infoRow: { flexDirection: 'row', alignItems: 'center' },
-  iconCircle: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#172F27', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  iconCircle: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#D1FAE5', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   infoTextGroup: { flex: 1 },
-  infoTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
+  infoTitle: { color: '#0F172A', fontSize: 13, fontWeight: '600' },
   infoSub: { color: '#9CB8A6', fontSize: 11, marginTop: 2 },
-  infoAmount: { color: '#A7F3D0', fontSize: 14, fontWeight: 'bold' },
+  infoAmount: { color: '#047857', fontSize: 14, fontWeight: 'bold' },
   statusBadgeText: { color: '#10B981', fontSize: 11, fontWeight: 'bold', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
   divider: { height: 1, backgroundColor: '#1B3D28', marginVertical: 12 },
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionHeader: { color: '#D3F99D', fontSize: 15, fontWeight: '700' },
-  historyList: { backgroundColor: '#0D1D18', borderRadius: 14, borderWidth: 1, borderColor: '#172F27', paddingHorizontal: 14 },
+  historyList: { backgroundColor: '#FFFFFF', borderRadius: 14, borderWidth: 1, borderColor: '#D1FAE5', paddingHorizontal: 14 },
   historyItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#1B3D28' },
   historyLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   histIconWrapper: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center' },
-  histTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '500' },
+  histTitle: { color: '#0F172A', fontSize: 13, fontWeight: '500' },
   histDate: { color: '#9CB8A6', fontSize: 10, marginTop: 2 },
   histAmount: { color: '#10B981', fontSize: 13, fontWeight: 'bold' },
 });

@@ -28,7 +28,7 @@ export default class ErrorBoundary extends React.Component {
 
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor='#091813' />
+        <StatusBar barStyle="dark-content" backgroundColor='#F4F7F5' />
         <Text style={styles.emoji}>🛠️</Text>
         <Text style={styles.title}>Something went wrong</Text>
         <Text style={styles.message}>
@@ -45,15 +45,15 @@ export default class ErrorBoundary extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#091813',
+    backgroundColor: '#06130D',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 28,
   },
   emoji: { fontSize: 52, marginBottom: 14 },
-  title: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
+  title: { color: '#0F172A', fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
   message: {
-    color: '#A7F3D0',
+    color: '#047857',
     fontSize: 13,
     textAlign: 'center',
     marginTop: 8,
@@ -66,5 +66,5 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     marginTop: 22,
   },
-  buttonText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },
+  buttonText: { color: '#0F172A', fontWeight: 'bold', fontSize: 14 },
 });

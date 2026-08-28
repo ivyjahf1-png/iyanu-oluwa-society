@@ -22,6 +22,8 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import ScreenHeader from '../components/ScreenHeader';
 import { useTransactions } from '../context/TransactionsContext';
+import { fetchReceiptByReference, generateReceiptPdf } from '../lib/receipt';
+import { isServerConfigured } from '../lib/ledger';
 
 // ---------------------------------------------------------------------------
 // Transaction ledger engine — built ENTIRELY from the real audit-trail
@@ -65,12 +67,12 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
         <meta charset="utf-8" />
         <style>
           body { font-family: Helvetica, Arial, sans-serif; color: #1a1a1a; padding: 32px; }
-          .brand { color: #091813; font-size: 22px; font-weight: bold; }
+          .brand { color: #06130D; font-size: 22px; font-weight: bold; }
           .tag { color: #4CAF50; font-size: 12px; margin-bottom: 4px; }
           .meta { font-size: 11px; color: #555; margin-top: 14px; line-height: 1.6; }
           .divider { border-top: 2px solid #4CAF50; margin: 18px 0; }
           table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th { background: #091813; color: #fff; font-size: 11px; text-align: left; padding: 8px; }
+          th { background: #06130D; color: #fff; font-size: 11px; text-align: left; padding: 8px; }
           td { font-size: 11px; padding: 8px; border-bottom: 1px solid #ddd; }
           .credit { color: #127A41; font-weight: bold; }
           .debit { color: #C0392B; font-weight: bold; }
@@ -162,9 +164,28 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
     }
   };
 
+  // Phase 7/8: generate + share an official thermal receipt for a ledger row
+  // that has an approved backend payment reference (authoritative records).
+  const viewReceipt = async entry => {
+    if (!isServerConfigured() || !entry?.reference) {
+      Alert.alert('Receipt unavailable', 'This transaction has no approved receipt yet.');
+      return;
+    }
+    try {
+      const receipt = await fetchReceiptByReference(entry.reference);
+      if (!receipt) {
+        Alert.alert('Receipt unavailable', 'No official receipt was generated for this transaction yet.');
+        return;
+      }
+      await generateReceiptPdf(receipt, { share: true });
+    } catch (e) {
+      Alert.alert('Receipt failed', e.message);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+      <StatusBar barStyle="dark-content" backgroundColor='#F4F7F5' />
       <ScreenHeader
         title="Account Statement"
         subtitle="Transaction ledger & downloadable report"
@@ -174,11 +195,11 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
       {/* Print & Share actions */}
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.actionBtn} onPress={printStatement}>
-          <Printer size={17} color="#FFFFFF" />
+          <Printer size={17} color='#0F172A' />
           <Text style={styles.actionBtnText}>Print</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.actionBtn, styles.shareBtn]} onPress={sharePdf}>
-          <Share2 size={17} color="#FFFFFF" />
+          <Share2 size={17} color='#0F172A' />
           <Text style={styles.actionBtnText}>Share PDF</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -187,9 +208,9 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
           disabled={generating}
         >
           {generating ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
+            <ActivityIndicator size="small" color='#0F172A' />
           ) : (
-            <FileText size={17} color="#FFFFFF" />
+            <FileText size={17} color='#0F172A' />
           )}
           <Text style={styles.actionBtnText}>{generating ? '…' : 'Generate'}</Text>
         </TouchableOpacity>
@@ -233,6 +254,15 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
               </Text>
               <Text style={styles.runningBalance}>Bal ₦{fmt(entry.running)}</Text>
             </View>
+            {entry.reference && isServerConfigured() ? (
+              <TouchableOpacity
+                style={styles.receiptRowBtn}
+                onPress={() => viewReceipt(entry)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <FileText size={14} color="#10B981" />
+              </TouchableOpacity>
+            ) : null}
           </View>
         ))}
 
@@ -250,7 +280,7 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   actionRow: {
     flexDirection: 'row',
     gap: 10,
@@ -263,23 +293,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#091813',
+    backgroundColor: '#06130D',
     borderRadius: 12,
     paddingVertical: 11,
   },
   shareBtn: { backgroundColor: '#127A41' },
   generateBtn: { backgroundColor: '#10B981' },
-  actionBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: 'bold' },
+  actionBtnText: { color: '#0F172A', fontSize: 12, fontWeight: 'bold' },
   content: { padding: 16, paddingBottom: 32 },
   summaryCard: {
-    backgroundColor: '#091813',
+    backgroundColor: '#06130D',
     borderRadius: 16,
     padding: 18,
     marginBottom: 18,
   },
-  summaryLabel: { color: '#A7F3D0', fontSize: 12 },
+  summaryLabel: { color: '#047857', fontSize: 12 },
   summaryValue: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 26,
     fontWeight: 'bold',
     marginTop: 4,
@@ -292,7 +322,7 @@ const styles = StyleSheet.create({
   summaryMeta: { color: '#D3F99D', fontSize: 11 },
   debitText: { color: '#FFB4A9' },
   ledgerTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
@@ -300,11 +330,11 @@ const styles = StyleSheet.create({
   ledgerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     marginBottom: 8,
   },
   ledgerIcon: {
@@ -315,11 +345,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 10,
   },
-  creditIcon: { backgroundColor: '#0D1D18' },
+  creditIcon: { backgroundColor: '#FFFFFF' },
   debitIcon: { backgroundColor: '#FDE8E8' },
   ledgerInfo: { flex: 1 },
   ledgerLabel: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -332,16 +362,25 @@ const styles = StyleSheet.create({
   creditAmount: { color: '#10B981', fontSize: 12, fontWeight: 'bold' },
   debitAmount: { color: '#C0392B', fontSize: 12, fontWeight: 'bold' },
   runningBalance: { color: '#8EA89D', fontSize: 9, marginTop: 2 },
+  receiptRowBtn: {
+    marginLeft: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#D1FAE5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   pdfReadyCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#10B981',
     padding: 12,
     marginTop: 8,
   },
-  pdfReadyText: { color: '#FFFFFF', fontSize: 12 },
+  pdfReadyText: { color: '#0F172A', fontSize: 12 },
 });

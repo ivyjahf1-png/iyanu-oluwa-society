@@ -121,7 +121,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+      <StatusBar barStyle="dark-content" backgroundColor='#F4F7F5' />
       <ScreenHeader
         title="Marketplace Dashboard"
         subtitle="Upload & manage inventory"
@@ -187,7 +187,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
             />
 
             <TouchableOpacity style={styles.submitBtn} onPress={submitItem}>
-              <Plus size={17} color="#FFFFFF" />
+              <Plus size={17} color='#0F172A' />
               <Text style={styles.submitBtnText}>Publish Item</Text>
             </TouchableOpacity>
           </View>
@@ -237,13 +237,13 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                   onPress={() => setViewItem(item)}
                   style={[styles.actionBtn, styles.viewBtn]}
                 >
-                  <Eye size={16} color="#FFFFFF" />
+                  <Eye size={16} color='#0F172A' />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => openEdit(item)}
                   style={[styles.actionBtn, styles.editBtn]}
                 >
-                  <Pencil size={16} color="#FFFFFF" />
+                  <Pencil size={16} color='#0F172A' />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => removeItem(item.id)} style={styles.deleteBtn}>
                   <Trash2 size={17} color="#C0392B" />
@@ -260,7 +260,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Item Details</Text>
                 <TouchableOpacity onPress={() => setViewItem(null)} style={styles.modalClose}>
-                  <X size={20} color='#091813' />
+                  <X size={20} color='#F4F7F5' />
                 </TouchableOpacity>
               </View>
               {viewItem && (
@@ -285,7 +285,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Edit Item</Text>
                 <TouchableOpacity onPress={() => setEditItem(null)} style={styles.modalClose}>
-                  <X size={20} color='#091813' />
+                  <X size={20} color='#F4F7F5' />
                 </TouchableOpacity>
               </View>
               <TextInput
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -359,28 +359,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 14,
   },
-  modalTitle: { color: '#FFFFFF', fontSize: 17, fontWeight: 'bold' },
+  modalTitle: { color: '#0F172A', fontSize: 17, fontWeight: 'bold' },
   modalClose: { padding: 4 },
   modalImage: {
     width: '100%',
     height: 180,
     borderRadius: 12,
     marginBottom: 12,
-    backgroundColor: '#172F27',
+    backgroundColor: '#D1FAE5',
   },
-  modalName: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
+  modalName: { color: '#0F172A', fontSize: 18, fontWeight: 'bold' },
   modalPrice: { color: '#10B981', fontSize: 16, fontWeight: '700', marginTop: 4 },
   modalLocation: { color: '#8EA89D', fontSize: 13, marginTop: 4 },
   modalDesc: { color: '#8EA89D', fontSize: 14, marginTop: 10, lineHeight: 20 },
   editInput: {
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    color: '#FFFFFF',
-    backgroundColor: '#0D1D18',
+    color: '#0F172A',
+    backgroundColor: '#FFFFFF',
     marginBottom: 12,
   },
   editTextarea: { height: 90, textAlignVertical: 'top' },
@@ -391,17 +391,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
   },
-  saveEditText: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
+  saveEditText: { color: '#0F172A', fontSize: 15, fontWeight: 'bold' },
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   uploadToggle: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#10B981',
@@ -409,8 +409,8 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   uploadToggleActive: {
-    backgroundColor: '#091813',
-    borderColor: '#091813',
+    backgroundColor: '#06130D',
+    borderColor: '#F4F7F5',
   },
   uploadToggleText: {
     color: '#10B981',
@@ -418,14 +418,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   uploadToggleTextActive: {
-    color: '#FFFFFF',
+    color: '#0F172A',
   },
   formCard: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     marginBottom: 16,
   },
   imagePicker: {
@@ -446,13 +446,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   input: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     marginBottom: 12,
   },
@@ -470,23 +470,23 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   submitBtnText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: 'bold',
     fontSize: 14,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     paddingHorizontal: 12,
     marginBottom: 14,
   },
   searchInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     paddingVertical: 11,
     marginLeft: 8,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     paddingVertical: 46,
   },
   emptyTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 15,
     fontWeight: 'bold',
     marginTop: 12,
@@ -511,11 +511,11 @@ const styles = StyleSheet.create({
   itemCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     marginBottom: 10,
   },
   itemThumb: {
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   itemThumbPlaceholder: {
-    backgroundColor: '#172F27',
+    backgroundColor: '#D1FAE5',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   itemTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
   },

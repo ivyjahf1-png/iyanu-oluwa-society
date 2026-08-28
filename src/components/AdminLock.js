@@ -289,12 +289,12 @@ export function AdminLockProvider({ children }) {
               value={recoveryKey}
               onChangeText={setRecoveryKey}
               placeholder="Master recovery key"
-              placeholderTextColor="#526E63"
+              placeholderTextColor="#9CB8A6"
               autoCapitalize="none"
               secureTextEntry
             />
             <TouchableOpacity style={styles.recoveryBtn} onPress={submitRecovery}>
-              <ShieldCheck size={18} color="#FFFFFF" />
+              <ShieldCheck size={18} color='#0F172A' />
               <Text style={styles.recoveryBtnText}>Reset Admin Security</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#1C4A2E',
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   logo: { width: 56, height: 56 },
-  title: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
+  title: { color: '#0F172A', fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
   subtitle: { color: '#8EA89D', fontSize: 12, marginTop: 4, marginBottom: 16, textAlign: 'center' },
   dotsRow: { flexDirection: 'row', gap: 12, marginBottom: 18 },
   dot: {
@@ -393,14 +393,14 @@ const styles = StyleSheet.create({
   recoveryCard: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#1C4A2E',
     padding: 24,
   },
   recoveryHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  recoveryTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  recoveryTitle: { color: '#0F172A', fontSize: 16, fontWeight: 'bold' },
   recoverySub: { color: '#8EA89D', fontSize: 12, lineHeight: 18, marginBottom: 14 },
   recoveryInput: {
     backgroundColor: '#132620',
@@ -422,6 +422,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 13,
   },
-  recoveryBtnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 },
+  recoveryBtnText: { color: '#0F172A', fontWeight: 'bold', fontSize: 14 },
   recoveryCancel: { marginTop: 14, alignItems: 'center', padding: 6 },
 });

@@ -17,6 +17,8 @@ import ScreenHeader from '../components/ScreenHeader';
 import useLoanInterest from '../hooks/useLoanInterest';
 import { useTransactions } from '../context/TransactionsContext';
 import { getAllSettings } from '../lib/supabase';
+import { requestLoan, isServerConfigured } from '../lib/ledger';
+import { useTheme } from '../theme/ThemeContext';
 
 const TENURES = [
   { label: '1 Month', months: 1 },
@@ -29,6 +31,8 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   // Savings come from the member's real transaction ledger.
   const { totalSavings } = useTransactions();
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
 
   // Max eligible loan limit is ADMIN-CONTROLLED (Admin Settings → Loan
   // Eligibility): either a fixed amount or a percentage of total savings
@@ -76,7 +80,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
 
   const fmt = n => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const submitApplication = () => {
+  const submitApplication = async () => {
     if (!amount || breakdown.principal <= 0) {
       Alert.alert('Enter amount', 'Please enter a valid requested loan amount.');
       return;
@@ -97,6 +101,27 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
       Alert.alert('Terms & Conditions', 'You must accept the terms to continue.');
       return;
     }
+
+    // Phase 7: server-side loan application (admin reviews & disburses).
+    if (isServerConfigured()) {
+      try {
+        await requestLoan({
+          amount: breakdown.principal,
+          tenureMonths,
+          purpose: purpose.trim(),
+          monthlyRate: 0.025,
+        });
+        Alert.alert(
+          'Application submitted',
+          'Loan of ₦' + fmt(breakdown.principal) + ' over ' + tenureMonths + ' month(s). Total repayment ₦' + fmt(breakdown.totalRepayment) + '. Your application is now pending admin review.'
+        );
+      } catch (e) {
+        Alert.alert('Submission failed', e.message);
+      }
+      navigation.goBack();
+      return;
+    }
+
     Alert.alert(
       'Application submitted',
       'Loan of ₦' + fmt(breakdown.principal) + ' over ' + tenureMonths + ' month(s). Total repayment ₦' + fmt(breakdown.totalRepayment) + '.'
@@ -106,7 +131,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <ScreenHeader
         title="Request Loan"
         subtitle="Apply for member credit with flexible repayment"
@@ -121,7 +146,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
       >
         {/* Eligibility */}
         <View style={styles.eligibleCard}>
-          <PiggyBank size={20} color="#10B981" />
+          <PiggyBank size={20} color={colors.primary} />
           <View style={styles.eligibleTextGroup}>
             <Text style={styles.eligibleLabel}>Max Eligible Loan Limit</Text>
             <Text style={styles.eligibleValue}>₦{fmt(maxEligible)}</Text>
@@ -138,7 +163,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
             value={amount}
             onChangeText={setAmount}
             placeholder="0.00"
-            placeholderTextColor="#526E63"
+            placeholderTextColor={colors.textSecondary}
             keyboardType="decimal-pad"
           />
         </View>
@@ -187,7 +212,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
           value={bvn}
           onChangeText={setBvn}
           placeholder="11-digit BVN"
-          placeholderTextColor="#526E63"
+          placeholderTextColor={colors.textSecondary}
           keyboardType="number-pad"
           maxLength={11}
         />
@@ -199,7 +224,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
           value={purpose}
           onChangeText={setPurpose}
           placeholder="e.g. School fees, business capital..."
-          placeholderTextColor="#526E63"
+          placeholderTextColor={colors.textSecondary}
           multiline
           numberOfLines={3}
         />
@@ -234,7 +259,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
         {/* Terms & conditions */}
         <TouchableOpacity style={styles.termsRow} onPress={() => setAgreed(!agreed)}>
           <View style={[styles.checkbox, agreed && styles.checkboxActive]}>
-            {agreed ? <CheckCircle2 size={16} color="#FFFFFF" /> : null}
+            {agreed ? <CheckCircle2 size={16} color={colors.background} /> : null}
           </View>
           <Text style={styles.termsText}>
             I agree to the cooperative loan terms, interest rate and repayment schedule.
@@ -243,7 +268,7 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
 
         {/* Submit */}
         <TouchableOpacity style={styles.submitBtn} onPress={submitApplication}>
-          <Send size={18} color="#FFFFFF" />
+          <Send size={18} color={colors.background} />
           <Text style={styles.submitBtnText}>Submit Loan Application</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -251,10 +276,10 @@ export default function RequestLoanScreen({ navigation: rawNav }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors) => StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#091813' 
+    backgroundColor: colors.background 
   },
   scrollView: { 
     flex: 1 
@@ -267,10 +292,10 @@ const styles = StyleSheet.create({
   eligibleCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.card,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#10B981',
+    borderColor: colors.primary,
     padding: 14,
     marginBottom: 18,
   },
@@ -279,22 +304,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eligibleLabel: {
-    color: '#8EA89D',
+    color: colors.textSecondary,
     fontSize: 11,
   },
   eligibleValue: {
-    color: '#10B981',
+    color: colors.primary,
     fontSize: 19,
     fontWeight: 'bold',
     marginTop: 2,
   },
   eligibleHint: {
-    color: '#8EA89D',
+    color: colors.textSecondary,
     fontSize: 10,
     marginTop: 2,
   },
   label: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
@@ -303,22 +328,22 @@ const styles = StyleSheet.create({
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.inputBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     marginBottom: 16,
   },
   nairaPrefix: {
-    color: '#10B981',
+    color: colors.primary,
     fontSize: 18,
     fontWeight: 'bold',
     marginRight: 6,
   },
   amountInput: {
     flex: 1,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 17,
     fontWeight: '600',
     paddingVertical: 13,
@@ -330,31 +355,31 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tenureChip: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.card,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     paddingHorizontal: 15,
     paddingVertical: 9,
   },
   tenureChipActive: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   tenureChipText: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 12,
     fontWeight: '600',
   },
   tenureChipTextActive: {
-    color: '#FFFFFF',
+    color: colors.background,
   },
   freqToggle: {
     flexDirection: 'row',
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.inputBackground,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     padding: 4,
     marginBottom: 16,
   },
@@ -365,24 +390,24 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   freqBtnActive: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.primary,
   },
   freqBtnText: {
-    color: '#10B981',
+    color: colors.primary,
     fontSize: 13,
     fontWeight: '600',
   },
   freqBtnTextActive: {
-    color: '#FFFFFF',
+    color: colors.background,
   },
   input: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: colors.inputBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: colors.border,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 14,
     marginBottom: 14,
   },
@@ -391,13 +416,13 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   summaryCard: {
-    backgroundColor: '#091813',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
   },
   summaryTitle: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 10,
@@ -408,43 +433,43 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   summaryLabel: {
-    color: '#A7F3D0',
+    color: colors.textSecondary,
     fontSize: 12,
   },
   summaryValue: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '600',
   },
   summaryDivider: {
     height: 1,
-    backgroundColor: '#1B3D28',
+    backgroundColor: colors.border,
     marginVertical: 6,
   },
   summaryTotalLabel: {
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 13,
     fontWeight: 'bold',
   },
   summaryTotalValue: {
-    color: '#10B981',
+    color: colors.primary,
     fontSize: 15,
     fontWeight: 'bold',
   },
   installmentBox: {
-    backgroundColor: '#1B3D28',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 12,
     marginTop: 10,
     alignItems: 'center',
   },
   installmentLabel: {
-    color: '#A7F3D0',
+    color: colors.textSecondary,
     fontSize: 11,
     textAlign: 'center',
   },
   installmentValue: {
-    color: '#10B981',
+    color: colors.primary,
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 4,
@@ -459,22 +484,22 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#10B981',
+    borderColor: colors.primary,
     marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxActive: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.primary,
   },
   termsText: {
     flex: 1,
-    color: '#FFFFFF',
+    color: colors.text,
     fontSize: 12,
     lineHeight: 17,
   },
   submitBtn: {
-    backgroundColor: '#10B981',
+    backgroundColor: colors.primary,
     borderRadius: 14,
     paddingVertical: 15,
     flexDirection: 'row',
@@ -484,7 +509,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   submitBtnText: {
-    color: '#FFFFFF',
+    color: colors.background,
     fontWeight: 'bold',
     fontSize: 14,
   },

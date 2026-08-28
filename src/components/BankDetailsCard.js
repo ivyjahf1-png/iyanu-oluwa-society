@@ -3,14 +3,17 @@ import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Landmark, Copy, ShieldCheck } from 'lucide-react-native';
 import { useBankDetails } from '../context/BankContext';
+import { useTheme } from '../theme/ThemeContext';
 
 /**
  * Dynamic Cooperative Bank Account card.
  * Reads live details from BankContext (set by the Admin Settings screen)
- * and supports tap-to-copy on the account number.
+ * and supports tap-to-copy on the account number. Theme-aware: colors follow
+ * the active theme so text stays readable on light and dark backgrounds.
  */
 export default function BankDetailsCard() {
   const { bankName, accountNumber, accountName } = useBankDetails();
+  const { colors } = useTheme();
 
   const copyAccountNumber = async () => {
     if (!accountNumber) return;
@@ -19,35 +22,35 @@ export default function BankDetailsCard() {
   };
 
   return (
-    <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Landmark size={18} color="#10B981" />
-        <Text style={styles.headerTitle}>Cooperative Bank Account</Text>
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View style={[styles.headerRow, { borderBottomColor: colors.border }]}>
+        <Landmark size={18} color={colors.primary} />
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Cooperative Bank Account</Text>
       </View>
 
       <View style={styles.detailRow}>
-        <Text style={styles.detailLabel}>Bank Name</Text>
-        <Text style={styles.detailValue}>{bankName || 'Not configured'}</Text>
+        <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Bank Name</Text>
+        <Text style={[styles.detailValue, { color: colors.text }]}>{bankName || 'Not configured'}</Text>
       </View>
 
       <TouchableOpacity style={styles.detailRow} onPress={copyAccountNumber} disabled={!accountNumber}>
-        <Text style={styles.detailLabel}>Account Number</Text>
+        <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Account Number</Text>
         <View style={styles.copyRow}>
-          <Text style={[styles.detailValue, styles.accountNumber]}>
+          <Text style={[styles.detailValue, styles.accountNumber, { color: colors.text }]}>
             {accountNumber || 'Not configured'}
           </Text>
-          {accountNumber ? <Copy size={15} color="#10B981" /> : null}
+          {accountNumber ? <Copy size={15} color={colors.primary} /> : null}
         </View>
       </TouchableOpacity>
 
       <View style={styles.detailRow}>
-        <Text style={styles.detailLabel}>Account Name</Text>
-        <Text style={styles.detailValue}>{accountName || 'Not configured'}</Text>
+        <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Account Name</Text>
+        <Text style={[styles.detailValue, { color: colors.text }]}>{accountName || 'Not configured'}</Text>
       </View>
 
-      <View style={styles.footerRow}>
-        <ShieldCheck size={14} color="#10B981" />
-        <Text style={styles.footerText}>
+      <View style={[styles.footerRow, { borderTopColor: colors.border }]}>
+        <ShieldCheck size={14} color={colors.primary} />
+        <Text style={[styles.footerText, { color: colors.textSecondary }]}>
           {accountNumber
             ? 'Tap the account number to copy'
             : 'Awaiting account details from the cooperative admin'}
@@ -59,11 +62,9 @@ export default function BankDetailsCard() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#0D1D18',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#172F27',
     marginBottom: 20,
   },
   headerRow: {
@@ -73,10 +74,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#172F27',
   },
   headerTitle: {
-    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -87,11 +86,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   detailLabel: {
-    color: '#8EA89D',
     fontSize: 12,
   },
   detailValue: {
-    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -112,10 +109,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#172F27',
   },
   footerText: {
-    color: '#8EA89D',
     fontSize: 11,
   },
 });

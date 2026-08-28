@@ -29,7 +29,7 @@ export default function BankTransferScreen({ navigation: rawNav }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor='#091813' />
+      <StatusBar barStyle="dark-content" backgroundColor='#F4F7F5' />
       <ScreenHeader
         title="Bank Transfer"
         subtitle="Your saved payout account"
@@ -100,14 +100,14 @@ export default function BankTransferScreen({ navigation: rawNav }) {
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: '#091813' },
+  container: { flex: 1, backgroundColor: '#F4F7F5' },
   content: { padding: 16, paddingBottom: 32 },
   card: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
   },
   headerRow: {
     flexDirection: 'row',
@@ -116,10 +116,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#172F27',
+    borderBottomColor: '#D1FAE5',
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   detailValue: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -155,22 +155,22 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#172F27',
+    borderTopColor: '#D1FAE5',
   },
   footerText: {
     color: '#8EA89D',
     fontSize: 11,
   },
   emptyCard: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#172F27',
+    borderColor: '#D1FAE5',
     alignItems: 'center',
   },
   emptyTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 15,
     fontWeight: 'bold',
     marginTop: 12,
@@ -190,12 +190,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   primaryBtnText: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontWeight: 'bold',
     fontSize: 13,
   },
   secondaryBtn: {
-    backgroundColor: '#0D1D18',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#10B981',
