@@ -16,10 +16,12 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Bot, Sparkles, MoreVertical, Trash2, Pencil, Check, X, Mic, Send } from 'lucide-react-native';
+import { Bot, Sparkles, MoreVertical, Trash2, Pencil, Check, X, Mic, Send, Copy } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { askAI } from '../lib/aiChat';
+import { toast } from '../lib/safe';
 import { useTheme } from '../theme/ThemeContext';
+import * as Clipboard from 'expo-clipboard';
 
 const SUGGESTIONS = [
   'How is my loan interest calculated?',
@@ -160,6 +162,16 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
     setEditingText(msg.text ?? '');
   };
 
+  /** Copy an AI response to the clipboard with friendly feedback. */
+  const handleCopyMessage = async text => {
+    try {
+      await Clipboard.setStringAsync(text ?? '');
+      toast('Copied to clipboard', 'Message copied successfully.');
+    } catch (e) {
+      toast('Could not copy', 'Please copy the message manually.');
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
@@ -167,7 +179,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
           bottom input column locked in place while only messages scroll. */}
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
         <ScreenHeader
@@ -277,7 +289,19 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
                 </View>
               ) : (
                 <>
-                  <Text style={item.sender === 'me' ? styles.bubbleTextMine : styles.bubbleText}>{item.text}</Text>
+                  <Text selectable style={item.sender === 'me' ? styles.bubbleTextMine : styles.bubbleText}>{item.text}</Text>
+                  {item.sender === 'ai' ? (
+                    <View style={styles.aiCopyRow}>
+                      <TouchableOpacity
+                        style={styles.copyBtn}
+                        onPress={() => handleCopyMessage(item.text)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Copy size={12} color={colors.textSecondary} />
+                        <Text style={styles.copyLabel}>Copy</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
                   {item.sender === 'me' && !loading ? (
                     <View style={styles.editHintRow}>
                       <Pencil size={10} color={colors.textSecondary} />
@@ -366,6 +390,7 @@ const makeStyles = (colors) =>
     paddingTop: 4,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    flexShrink: 0,
   },
   suggestionWrap: {
     flexDirection: 'row',
@@ -449,6 +474,7 @@ const makeStyles = (colors) =>
     marginHorizontal: 12,
     marginBottom: 10,
     gap: 8,
+    flexShrink: 0,
   },
   textInput: { flex: 1, color: colors.text, fontSize: 14, maxHeight: 120, paddingVertical: 8, paddingHorizontal: 6 },
   micBtn: {
@@ -499,6 +525,11 @@ const makeStyles = (colors) =>
   editSave: { backgroundColor: colors.primary, borderRadius: 8, padding: 5 },
   editHintRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4, alignSelf: 'flex-end' },
   editHint: { color: colors.textSecondary, fontSize: 9 },
+
+  // AI response copy action
+  aiCopyRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 4 },
+  copyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 2, paddingHorizontal: 4 },
+  copyLabel: { color: colors.textSecondary, fontSize: 10 },
 
   // Clear-chat confirmation
   confirmOverlay: {

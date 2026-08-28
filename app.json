@@ -22,6 +22,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.ivyjahf1.iyanuoluwasociety",
+      "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "RECORD_AUDIO",
         "MODIFY_AUDIO_SETTINGS"

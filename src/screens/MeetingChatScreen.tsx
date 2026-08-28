@@ -37,10 +37,13 @@ import {
   Pencil,
   Trash2,
   Plus,
+  Copy,
 } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
+import * as Clipboard from 'expo-clipboard';
 import { storage } from '../lib/storage';
+import { toast } from '../lib/safe';
 import { onMeetingMessage, broadcastMeetingMessage, MeetingMessage } from '../lib/meetingChat';
 import { supabase } from '../lib/supabase';
 import EmojiPicker from '../components/EmojiPicker';
@@ -607,6 +610,16 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     return AVATAR_COLORS[n % AVATAR_COLORS.length];
   };
 
+  /** Copy a chat message to the clipboard with friendly feedback. */
+  const handleCopyMessage = async (text: string) => {
+    try {
+      await Clipboard.setStringAsync(text || '');
+      toast('Copied to clipboard', 'Message copied successfully.');
+    } catch (e) {
+      toast('Could not copy', 'Please copy the message manually.');
+    }
+  };
+
   const renderMessage = (msg: ChatMessage) => {
     if (msg.type === 'system') return renderSystemPill(msg.text || '', 'system');
     if (msg.isMe) {
@@ -684,12 +697,22 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
                   </TouchableOpacity>
                 </View>
               </View>
-            ) : (
-              <Text style={styles.outText}>{msg.text || ''}</Text>
+                        ) : (
+              <Text
+                selectable
+                style={styles.outText}
+              >{msg.text || ''}</Text>
             )}
             <View style={styles.outMetaRow}>
               {msg.edited ? <Text style={styles.editedTag}>(edited)</Text> : null}
               <Text style={styles.outTime}>{msg.time}</Text>
+              <TouchableOpacity
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                onPress={() => handleCopyMessage(msg.text || '')}
+                style={{ paddingHorizontal: 4 }}
+              >
+                <Copy size={13} color={colors.textSecondary} />
+              </TouchableOpacity>
               <Check size={13} color={colors.primary} />
             </View>
           </TouchableOpacity>
@@ -738,10 +761,19 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
               </View>
               <Download size={16} color={colors.primary} />
             </TouchableOpacity>
-          ) : (
-            <Text style={styles.inText}>{msg.text || ''}</Text>
+                    ) : (
+            <Text selectable style={styles.inText}>{msg.text || ''}</Text>
           )}
-          <Text style={styles.inTime}>{msg.time}</Text>
+          <View style={styles.inMetaRow}>
+            <Text style={styles.inTime}>{msg.time}</Text>
+            <TouchableOpacity
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              onPress={() => handleCopyMessage(msg.text || '')}
+              style={{ paddingHorizontal: 4 }}
+            >
+              <Copy size={13} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -760,7 +792,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
           input column pinned while ONLY the message list scrolls vertically. */}
       <KeyboardAvoidingView
         style={styles.keyboardWrap}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
       {/* Header */}
@@ -1009,6 +1041,7 @@ const makeStyles = (c: Record<string, string>, dk: boolean) => StyleSheet.create
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: c.card, paddingHorizontal: 12, paddingVertical: 10,
     borderBottomWidth: 1, borderBottomColor: c.border,
+    flexShrink: 0,
   },
   backBtn: { padding: 6 },
   headerInfo: { flex: 1, marginLeft: 10 },
@@ -1049,7 +1082,8 @@ const makeStyles = (c: Record<string, string>, dk: boolean) => StyleSheet.create
   inSenderPhone: { color: c.textSecondary, fontSize: 10, flexShrink: 1 },
   inText: { color: dk ? c.text : '#0F172A', fontSize: 14, lineHeight: 20 },
   inSubtext: { color: c.textSecondary, fontSize: 11, marginTop: 2 },
-  inTime: { color: c.textSecondary, fontSize: 10, alignSelf: 'flex-end', marginTop: 6 },
+    inTime: { color: c.textSecondary, fontSize: 10, alignSelf: 'flex-end', marginTop: 6 },
+  inMetaRow: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', gap: 4 },
   inImage: { width: '100%', height: 180, borderRadius: 10, marginTop: 6 },
 
   // Outgoing
@@ -1131,6 +1165,7 @@ const makeStyles = (c: Record<string, string>, dk: boolean) => StyleSheet.create
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: c.card, paddingHorizontal: 12, paddingVertical: 10,
     borderTopWidth: 1, borderTopColor: c.border,
+    flexShrink: 0,
   },
   inputBarLeading: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   iconBtn: { padding: 4 },
