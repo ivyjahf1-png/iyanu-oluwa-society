@@ -44,6 +44,7 @@ import { storage } from '../lib/storage';
 import { onMeetingMessage, broadcastMeetingMessage, MeetingMessage } from '../lib/meetingChat';
 import { supabase } from '../lib/supabase';
 import EmojiPicker from '../components/EmojiPicker';
+import { useTheme } from '../theme/ThemeContext';
 
 /** Local message model used for rendering. */
 interface ChatMessage {
@@ -170,6 +171,8 @@ const SEED_MESSAGES: ChatMessage[] = [
   },
 ];
 export default function MeetingChatScreen({ navigation }: { navigation: any }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const [messages, setMessages] = useState<ChatMessage[]>(SEED_MESSAGES);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [inputText, setInputText] = useState<string>('');
@@ -630,23 +633,23 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
                 <Image source={{ uri: msg.mediaUrl }} style={styles.outImage} />
                 {msg.fileSize ? (
                   <View style={styles.downloadBadge}>
-                    <Download size={12} color='#0F172A' />
+                    <Download size={12} color={colors.text} />
                     <Text style={styles.downloadBadgeText}>{msg.fileSize}</Text>
                   </View>
                 ) : null}
               </TouchableOpacity>
             ) : msg.type === 'file' ? (
               <TouchableOpacity style={styles.fileCard} onPress={() => downloadMedia(msg.mediaUrl || '', msg.fileName)}>
-                <FileText size={18} color="#047857" />
+                <FileText size={18} color={colors.primary} />
                 <View style={{ flex: 1, marginLeft: 8 }}>
                   <Text style={styles.outText} numberOfLines={1}>{msg.fileName || 'Attachment'}</Text>
                   <Text style={styles.outSubtext}>{msg.fileSize || ''}</Text>
                 </View>
-                <Download size={16} color="#047857" />
+                <Download size={16} color={colors.primary} />
               </TouchableOpacity>
             ) : msg.type === 'voice' ? (
               <View style={styles.voiceRow}>
-                <Play size={18} color="#047857" />
+                <Play size={18} color={colors.primary} />
                 {[4, 9, 6, 11, 7, 10, 5].map((h, i) => (
                   <View key={i} style={[styles.waveBar, { height: h }]} />
                 ))}
@@ -660,7 +663,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
                   onChangeText={setEditDraft}
                   multiline
                   autoFocus
-                  placeholderTextColor="#6B7F76"
+                  placeholderTextColor={colors.textSecondary}
                 />
                 <View style={styles.editActions}>
                   <TouchableOpacity
@@ -670,14 +673,14 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
                       setEditDraft('');
                     }}
                   >
-                    <X size={14} color="#9CB8A6" />
+                    <X size={14} color={colors.textSecondary} />
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.editSave, !editDraft.trim() && { opacity: 0.5 }]}
                     onPress={saveEditedMessage}
                     disabled={!editDraft.trim()}
                   >
-                    <Check size={14} color='#0F172A' />
+                    <Check size={14} color={colors.text} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -687,7 +690,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
             <View style={styles.outMetaRow}>
               {msg.edited ? <Text style={styles.editedTag}>(edited)</Text> : null}
               <Text style={styles.outTime}>{msg.time}</Text>
-              <Check size={13} color="#047857" />
+              <Check size={13} color={colors.primary} />
             </View>
           </TouchableOpacity>
         </View>
@@ -721,19 +724,19 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
               <Image source={{ uri: msg.mediaUrl }} style={styles.inImage} />
               {msg.fileSize ? (
                 <View style={styles.downloadBadge}>
-                  <Download size={12} color='#0F172A' />
+                  <Download size={12} color={colors.text} />
                   <Text style={styles.downloadBadgeText}>{msg.fileSize}</Text>
                 </View>
               ) : null}
             </TouchableOpacity>
           ) : msg.type === 'file' ? (
             <TouchableOpacity style={styles.fileCard} onPress={() => downloadMedia(msg.mediaUrl || '', msg.fileName)}>
-              <FileText size={18} color="#047857" />
+              <FileText size={18} color={colors.primary} />
               <View style={{ flex: 1, marginLeft: 8 }}>
                 <Text style={styles.inText} numberOfLines={1}>{msg.fileName || 'Attachment'}</Text>
                 <Text style={styles.inSubtext}>{msg.fileSize || ''}</Text>
               </View>
-              <Download size={16} color="#047857" />
+              <Download size={16} color={colors.primary} />
             </TouchableOpacity>
           ) : (
             <Text style={styles.inText}>{msg.text || ''}</Text>
@@ -751,7 +754,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
   // ---------- Render ----------
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B1412" />
+<StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* ROOT FLEX LAYOUT — KeyboardAvoidingView keeps the header and bottom
           input column pinned while ONLY the message list scrolls vertically. */}
@@ -763,7 +766,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <ChevronLeft size={24} color='#0F172A' />
+          <ChevronLeft size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerInfo}>
           <Text style={styles.groupName}>Co-op General Assembly</Text>
@@ -773,16 +776,16 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={() => navigation.navigate('CallScreen', { type: 'voice' })}>
-            <Phone size={20} color="#047857" />
+            <Phone size={20} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('CallScreen', { type: 'video' })}>
-            <Video size={20} color="#047857" />
+            <Video size={20} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setIsOnlineVisible(v => !v)}>
-            {isOnlineVisible ? <Eye size={20} color='#0F172A' /> : <EyeOff size={20} color="#FFD700" />}
+            {isOnlineVisible ? <Eye size={20} color={colors.text} /> : <EyeOff size={20} color={colors.warning} />}
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setShowOverflowMenu(true)}>
-            <MoreHorizontal size={22} color='#0F172A' />
+            <MoreHorizontal size={22} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -790,13 +793,13 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
       {/* Search */}
       {showSearch ? (
         <View style={styles.searchBar}>
-          <Search size={16} color="#9CB8A6" />
+          <Search size={16} color={colors.textSecondary} />
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search chat history..."
-            placeholderTextColor="#9CB8A6"
+            placeholderTextColor={colors.textSecondary}
           />
           <TouchableOpacity onPress={() => { setSearchQuery(''); setShowSearch(false); }}>
             <Text style={styles.searchCancel}>Cancel</Text>
@@ -823,7 +826,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
       {/* Voice note recording bar */}
       {voiceState.recording ? (
         <View style={styles.recordingBar}>
-          <Mic size={20} color="#FF3B30" />
+          <Mic size={20} color={colors.danger} />
           <Text style={styles.recordingText}>Recording… {fmtDuration(voiceState.seconds)}</Text>
           {voiceState.locked ? (
             <>
@@ -831,14 +834,14 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
                 style={styles.cancelRecBtn}
                 onPress={() => stopRecording('discard')}
               >
-                <Trash2 size={15} color="#F87171" />
+                <Trash2 size={15} color={colors.danger} />
                 <Text style={styles.cancelRecText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.sendRecBtn}
                 onPress={() => stopRecording('send')}
               >
-                <Send size={13} color="#F4F7F5" />
+                <Send size={13} color='#FFFFFF' />
                 <Text style={styles.sendRecText}>Send</Text>
               </TouchableOpacity>
             </>
@@ -866,13 +869,13 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
       <View style={styles.inputBar}>
         <View style={styles.inputBarLeading}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => setShowEmojiPicker(v => !v)}>
-            <Smile size={22} color="#047857" />
+            <Smile size={22} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn} onPress={pickAttachment}>
-            <Paperclip size={20} color="#047857" />
+            <Paperclip size={20} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconBtn} onPress={lunchImage}>
-            <Camera size={22} color="#047857" />
+            <Camera size={22} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -882,7 +885,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
             value={inputText}
             onChangeText={setInputText}
             placeholder="Message"
-            placeholderTextColor="#6B7F76"
+            placeholderTextColor={colors.textSecondary}
             multiline
             onSubmitEditing={sendMessage}
           />
@@ -890,7 +893,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
 
         {inputText.trim() ? (
           <TouchableOpacity onPress={sendMessage} style={styles.voiceNoteBtn}>
-            <Send size={18} color='#0F172A' />
+            <Send size={18} color={colors.text} />
           </TouchableOpacity>
         ) : (
           <View
@@ -900,7 +903,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
             onTouchEnd={onMicTouchEnd}
             onTouchCancel={onMicTouchEnd}
           >
-            <Mic size={18} color='#0F172A' />
+            <Mic size={18} color={colors.text} />
           </View>
         )}
       </View>
@@ -929,7 +932,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         onRequestClose={() => setViewerUri(null)}>
         <View style={styles.viewerOverlay}>
           <TouchableOpacity style={styles.viewerClose} onPress={() => setViewerUri(null)}>
-            <X size={20} color='#0F172A' />
+            <X size={20} color={colors.text} />
           </TouchableOpacity>
           {viewerUri ? <Image source={{ uri: viewerUri }} style={styles.viewerImage} resizeMode="contain" /> : null}
         </View>
@@ -953,16 +956,16 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
                 if (msg) beginEditMessage(msg);
               }}
             >
-              <Pencil size={17} color="#047857" />
-              <Text style={[styles.actionText, { color: '#047857' }]}>Edit Chat</Text>
+              <Pencil size={17} color={colors.primary} />
+              <Text style={[styles.actionText, { color: colors.primary }]}>Edit Chat</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.actionRow, styles.actionRowLast]}
               onPress={() => actionMsgId && deleteMessage(actionMsgId)}
             >
-              <Trash2 size={17} color="#F87171" />
-              <Text style={[styles.actionText, { color: '#F87171' }]}>Delete Chat</Text>
+              <Trash2 size={17} color={colors.danger} />
+              <Text style={[styles.actionText, { color: colors.danger }]}>Delete Chat</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -977,7 +980,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
       >
         <View style={styles.confirmOverlay}>
           <View style={styles.confirmCard}>
-            <Trash2 size={22} color="#F87171" />
+            <Trash2 size={22} color={colors.danger} />
             <Text style={styles.confirmTitle}>Clear Chat?</Text>
             <Text style={styles.confirmText}>
               This will erase the entire meeting conversation. This cannot be undone.
@@ -999,34 +1002,34 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
 }
 
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B1412', overflow: 'hidden', width: '100%', maxWidth: '100%', ...(({ touchAction: 'pan-y' } as any)) },
+const makeStyles = (c: Record<string, string>, dk: boolean) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.background, overflow: 'hidden', width: '100%', maxWidth: '100%', ...(({ touchAction: 'pan-y' } as any)) },
   keyboardWrap: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: '#1C4A2E',
+    backgroundColor: c.card, paddingHorizontal: 12, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: c.border,
   },
   backBtn: { padding: 6 },
   headerInfo: { flex: 1, marginLeft: 10 },
-  groupName: { color: '#0F172A', fontSize: 16, fontWeight: 'bold' },
-  onlineStatus: { color: '#047857', fontSize: 11, marginTop: 2 },
+  groupName: { color: c.text, fontSize: 16, fontWeight: 'bold' },
+  onlineStatus: { color: c.primary, fontSize: 11, marginTop: 2 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 8,
-    borderBottomWidth: 1, borderBottomColor: '#1C4A2E',
+    backgroundColor: c.card, paddingHorizontal: 12, paddingVertical: 8,
+    borderBottomWidth: 1, borderBottomColor: c.border,
   },
-  searchInput: { flex: 1, color: '#0F172A', fontSize: 13, paddingVertical: 4 },
-  searchCancel: { color: '#10B981', fontSize: 13, fontWeight: '600' },
+  searchInput: { flex: 1, color: c.text, fontSize: 13, paddingVertical: 4 },
+  searchCancel: { color: c.primary, fontSize: 13, fontWeight: '600' },
   scrollView: { flex: 1 },
   messageList: { paddingHorizontal: 12, paddingVertical: 12, paddingBottom: 8, flexGrow: 1 },
 
   // System / date pills
   systemPillRow: { alignItems: 'center', marginVertical: 10 },
-  systemPill: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 6 },
+  systemPill: { backgroundColor: dk ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.06)', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 6 },
   datePill: { backgroundColor: 'rgba(16,185,129,0.16)' },
-  systemPillText: { color: '#9CB8A6', fontSize: 12, fontWeight: '600' },
+  systemPillText: { color: c.textSecondary, fontSize: 12, fontWeight: '600' },
 
   // Incoming
   inRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12, marginRight: 40 },
@@ -1035,69 +1038,69 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center', marginRight: 8, overflow: 'hidden',
   },
   avatarImage: { width: '100%', height: '100%' },
-  avatarText: { color: '#0F172A', fontSize: 14, fontWeight: '700' },
+  avatarText: { color: c.text, fontSize: 14, fontWeight: '700' },
   inCard: {
-    flex: 1, backgroundColor: '#12261F', borderRadius: 14,
+    flex: 1, backgroundColor: c.surface, borderRadius: 14,
     borderTopLeftRadius: 4, paddingHorizontal: 12, paddingVertical: 9,
-    borderWidth: 1, borderColor: '#1C4A2E',
+    borderWidth: 1, borderColor: c.border,
   },
   inHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
-  inSenderName: { color: '#D4AF37', fontSize: 12, fontWeight: '700', flexShrink: 1, marginRight: 8 },
-  inSenderPhone: { color: '#6B7F76', fontSize: 10, flexShrink: 1 },
-  inText: { color: '#F1F5F1', fontSize: 14, lineHeight: 20 },
-  inSubtext: { color: '#9CB8A6', fontSize: 11, marginTop: 2 },
-  inTime: { color: '#6B7F76', fontSize: 10, alignSelf: 'flex-end', marginTop: 6 },
+  inSenderName: { color: dk ? '#D4AF37' : '#B45309', fontSize: 12, fontWeight: '700', flexShrink: 1, marginRight: 8 },
+  inSenderPhone: { color: c.textSecondary, fontSize: 10, flexShrink: 1 },
+  inText: { color: dk ? c.text : '#0F172A', fontSize: 14, lineHeight: 20 },
+  inSubtext: { color: c.textSecondary, fontSize: 11, marginTop: 2 },
+  inTime: { color: c.textSecondary, fontSize: 10, alignSelf: 'flex-end', marginTop: 6 },
   inImage: { width: '100%', height: 180, borderRadius: 10, marginTop: 6 },
 
   // Outgoing
   outRow: { alignItems: 'flex-end', marginBottom: 12, marginLeft: 60 },
   outBubble: {
-    backgroundColor: '#10B981', borderRadius: 14, borderTopRightRadius: 4,
+    backgroundColor: c.primary, borderRadius: 14, borderTopRightRadius: 4,
     paddingHorizontal: 12, paddingVertical: 8, maxWidth: '100%',
   },
-  outText: { color: '#F4F7F5', fontSize: 14, lineHeight: 20, fontWeight: '500' },
-  outSubtext: { color: '#064E3B', fontSize: 11, marginTop: 2 },
+  outText: { color: c.background, fontSize: 14, lineHeight: 20, fontWeight: '500' },
+  outSubtext: { color: c.background, fontSize: 11, marginTop: 2 },
   outImage: { width: 200, height: 140, borderRadius: 10, marginBottom: 4 },
   outMetaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 4 },
-  outTime: { color: '#064E3B', fontSize: 10, fontWeight: '600' },
+  outTime: { color: c.background, fontSize: 10, fontWeight: '600' },
 
   // Shared media / download
   downloadBadge: {
     position: 'absolute', bottom: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 4,
     backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 3,
   },
-  downloadBadgeText: { color: '#0F172A', fontSize: 10, fontWeight: '600' },
+  downloadBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '600' },
   fileCard: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
   voiceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  waveBar: { width: 3, borderRadius: 2, backgroundColor: '#047857' },
-  voiceDuration: { color: '#047857', fontSize: 12, marginLeft: 6 },
+  waveBar: { width: 3, borderRadius: 2, backgroundColor: c.primary },
+  voiceDuration: { color: c.primary, fontSize: 12, marginLeft: 6 },
 
   // Recording bar
   recordingBar: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#3A1D24', paddingHorizontal: 16, paddingVertical: 8, marginHorizontal: 12, borderRadius: 12, marginBottom: 6,
+    backgroundColor: dk ? '#3A1D24' : '#FDE8E8', paddingHorizontal: 16, paddingVertical: 8, marginHorizontal: 12, borderRadius: 12, marginBottom: 6,
   },
-  recordingText: { color: '#F87171', fontSize: 13, fontWeight: '600' },
-  recordingHint: { color: '#9CB8A6', fontSize: 11, marginLeft: 'auto' },
+  recordingText: { color: c.danger, fontSize: 13, fontWeight: '600' },
+  recordingHint: { color: c.textSecondary, fontSize: 11, marginLeft: 'auto' },
   cancelRecBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     marginLeft: 'auto', paddingVertical: 4, paddingHorizontal: 8,
   },
-  cancelRecText: { color: '#F87171', fontSize: 12, fontWeight: '600' },
+  cancelRecText: { color: c.danger, fontSize: 12, fontWeight: '600' },
   sendRecBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: '#10B981', borderRadius: 14, paddingVertical: 5, paddingHorizontal: 12,
+    backgroundColor: c.primary, borderRadius: 14, paddingVertical: 5, paddingHorizontal: 12,
   },
-  sendRecText: { color: '#F4F7F5', fontSize: 12, fontWeight: '700' },
+  sendRecText: { color: c.background, fontSize: 12, fontWeight: '700' },
 
   // Picker panel (emoji + stickers)
-  pickerPanel: { backgroundColor: '#FFFFFF', padding: 10, maxHeight: 240 },
-  pickerTabBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4, paddingVertical: 6, gap: 10, borderBottomWidth: 1, borderBottomColor: '#1C4A2E' },
+  pickerPanel: { backgroundColor: c.card, padding: 10, maxHeight: 240 },
+  pickerTabBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4, paddingVertical: 6, gap: 10, borderBottomWidth: 1, borderBottomColor: c.border },
   pickerTab: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14 },
-  pickerTabActive: { backgroundColor: '#132620' },
-  pickerTabText: { color: '#9CB8A6', fontSize: 13, fontWeight: '600', marginHorizontal: 6 },
-  pickerTabTextActive: { color: '#10B981', fontWeight: '800' },
-  emojiSectionHeader: { color: '#047857', fontSize: 12, fontWeight: '700', paddingVertical: 4, paddingHorizontal: 10, marginTop: 4 },
+  pickerTabActive: { backgroundColor: c.inputBackground },
+  pickerTabText: { color: c.textSecondary, fontSize: 13, fontWeight: '600', marginHorizontal: 6 },
+  pickerTabTextActive: { color: c.primary, fontWeight: '800' },
+  emojiSectionHeader: { color: c.primary, fontSize: 12, fontWeight: '700', paddingVertical: 4, paddingHorizontal: 10, marginTop: 4 },
   emojiCellContainer: { padding: 2, alignItems: 'center', justifyContent: 'center' },
   emojiCell: { fontSize: 24, padding: 6 },
 
@@ -1108,47 +1111,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: '#132620',
+    backgroundColor: c.inputBackground,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: c.border,
   },
-  stickerFilterPillActive: { backgroundColor: '#064E3B', borderColor: '#10B981' },
-  stickerFilterText: { color: '#9CB8A6', fontSize: 12, fontWeight: '600' },
-  stickerFilterTextActive: { color: '#047857', fontWeight: '800' },
-  stickerSectionTitle: { color: '#047857', fontSize: 12, fontWeight: '700', paddingVertical: 4, marginTop: 4 },
+  stickerFilterPillActive: { backgroundColor: dk ? c.surface : c.inputBackground, borderColor: c.primary },
+  stickerFilterText: { color: c.textSecondary, fontSize: 12, fontWeight: '600' },
+  stickerFilterTextActive: { color: c.primary, fontWeight: '800' },
+  stickerSectionTitle: { color: c.primary, fontSize: 12, fontWeight: '700', paddingVertical: 4, marginTop: 4 },
   stickerPackSection: { marginBottom: 8 },
   stickerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'center', alignItems: 'center' },
-  stickerCell: { width: 58, height: 58, borderRadius: 10, backgroundColor: '#132620', justifyContent: 'center', alignItems: 'center', marginBottom: 8, overflow: 'hidden' },
+  stickerCell: { width: 58, height: 58, borderRadius: 10, backgroundColor: c.inputBackground, justifyContent: 'center', alignItems: 'center', marginBottom: 8, overflow: 'hidden' },
   stickerImg: { width: 48, height: 48, resizeMode: 'contain' },
-  addStickersRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#1C4A2E', borderStyle: 'dashed', backgroundColor: '#0B1412', gap: 8 },
-  addStickersText: { color: '#047857', fontSize: 13, fontWeight: '700' },
+  addStickersRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: c.border, borderStyle: 'dashed', backgroundColor: c.background, gap: 8 },
+  addStickersText: { color: c.primary, fontSize: 13, fontWeight: '700' },
 
   // Bottom input bar
   inputBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF', paddingHorizontal: 12, paddingVertical: 10,
-    borderTopWidth: 1, borderTopColor: '#1C4A2E',
+    backgroundColor: c.card, paddingHorizontal: 12, paddingVertical: 10,
+    borderTopWidth: 1, borderTopColor: c.border,
   },
   inputBarLeading: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   iconBtn: { padding: 4 },
   textInputWrapper: { flex: 1, marginHorizontal: 6, justifyContent: 'center' },
   textInput: {
-    flex: 1, minHeight: 42, maxHeight: 120, borderRadius: 21, backgroundColor: '#132620',
-    paddingHorizontal: 16, paddingVertical: 10, color: '#0F172A', fontSize: 14,
+    flex: 1, minHeight: 42, maxHeight: 120, borderRadius: 21, backgroundColor: c.inputBackground,
+    paddingHorizontal: 16, paddingVertical: 10, color: c.text, fontSize: 14,
     textAlignVertical: 'center',
   },
   voiceNoteBtn: {
-    width: 42, height: 42, borderRadius: 21, backgroundColor: '#10B981',
+    width: 42, height: 42, borderRadius: 21, backgroundColor: c.primary,
     justifyContent: 'center', alignItems: 'center',
   },
-  recordingBtn: { backgroundColor: '#FF3B30' },
+  recordingBtn: { backgroundColor: c.danger },
 
   // Modals
-  noResults: { color: '#9CB8A6', fontSize: 13, textAlign: 'center', marginTop: 24 },
+  noResults: { color: c.textSecondary, fontSize: 13, textAlign: 'center', marginTop: 24 },
   menuOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'flex-end', padding: 16 },
-  menuSheet: { backgroundColor: '#132620', borderRadius: 14, paddingVertical: 6, width: 230, marginTop: 80 },
-  menuRow: { paddingVertical: 13, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#1C4A2E' },
-  menuRowText: { color: '#0F172A', fontSize: 13, fontWeight: '500' },
+  menuSheet: { backgroundColor: c.inputBackground, borderRadius: 14, paddingVertical: 6, width: 230, marginTop: 80 },
+  menuRow: { paddingVertical: 13, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: c.border },
+  menuRowText: { color: c.text, fontSize: 13, fontWeight: '500' },
   menuRowDanger: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1170,14 +1173,14 @@ const styles = StyleSheet.create({
   actionSheet: {
     width: '100%',
     maxWidth: 300,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: c.card,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: c.border,
     paddingVertical: 4,
   },
   actionTitle: {
-    color: '#9CB8A6',
+    color: c.textSecondary,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -1191,7 +1194,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 18,
     borderTopWidth: 1,
-    borderTopColor: '#D1FAE5',
+    borderTopColor: c.border,
   },
   actionRowLast: { borderBottomWidth: 0 },
   actionText: { fontSize: 14, fontWeight: '600' },
@@ -1199,9 +1202,9 @@ const styles = StyleSheet.create({
   // Inline edit (meeting chat)
   editBox: { minWidth: 160 },
   editInput: {
-    color: '#F4F7F5',
+    color: c.text,
     fontSize: 14,
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: c.inputBackground,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 6,
@@ -1209,10 +1212,10 @@ const styles = StyleSheet.create({
   },
   editActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
   editCancel: { padding: 5 },
-  editSave: { backgroundColor: '#064E3B', borderRadius: 8, padding: 5 },
+  editSave: { backgroundColor: c.primary, borderRadius: 8, padding: 5 },
 
   // (edited) tag
-  editedTag: { color: '#064E3B', fontSize: 10, fontStyle: 'italic', marginRight: 4 },
+  editedTag: { color: c.textSecondary, fontSize: 10, fontStyle: 'italic', marginRight: 4 },
 
   // Clear-chat confirmation
   confirmOverlay: {
@@ -1225,16 +1228,16 @@ const styles = StyleSheet.create({
   confirmCard: {
     width: '100%',
     maxWidth: 330,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: c.card,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: c.border,
     padding: 22,
     alignItems: 'center',
   },
-  confirmTitle: { color: '#0F172A', fontSize: 17, fontWeight: 'bold', marginTop: 10 },
+  confirmTitle: { color: c.text, fontSize: 17, fontWeight: 'bold', marginTop: 10 },
   confirmText: {
-    color: '#9CB8A6',
+    color: c.textSecondary,
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',
@@ -1247,11 +1250,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1C4A2E',
+    borderColor: c.border,
     alignItems: 'center',
   },
-  confirmCancelText: { color: '#9CB8A6', fontWeight: '600', fontSize: 13 },
-  confirmOk: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: '#DC2626', alignItems: 'center' },
-  confirmOkText: { color: '#0F172A', fontWeight: 'bold', fontSize: 13 },
+  confirmCancelText: { color: c.textSecondary, fontWeight: '600', fontSize: 13 },
+  confirmOk: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: c.danger, alignItems: 'center' },
+  confirmOkText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
 });
 

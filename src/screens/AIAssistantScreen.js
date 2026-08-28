@@ -16,7 +16,7 @@ import {
   Alert,
 } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Send, Bot, Sparkles, MoreVertical, Trash2, Pencil, Check, X, Mic } from 'lucide-react-native';
+import { Bot, Sparkles, MoreVertical, Trash2, Pencil, Check, X, Mic, Send } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { askAI } from '../lib/aiChat';
 import { useTheme } from '../theme/ThemeContext';
@@ -297,7 +297,9 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
           }
         />
 
-        {/* FIXED BOTTOM INPUT COLUMN */}
+        {/* FIXED BOTTOM INPUT BAR — sticky footer pinned to the bottom of the
+            KeyboardAvoidingView root. It stays in place while the message list
+            (FlatList, flex:1 above) scrolls vertically underneath it. */}
         <View style={styles.inputBar}>
           <TextInput
             style={styles.textInput}
@@ -356,7 +358,7 @@ const makeStyles = (colors) =>
   StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, backgroundColor: colors.background, overflow: 'hidden' },
   flex: { flex: 1 },
   messageList: { padding: 16, paddingBottom: 12 },
   suggestHeader: {

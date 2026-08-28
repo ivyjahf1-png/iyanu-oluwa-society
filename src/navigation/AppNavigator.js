@@ -46,6 +46,9 @@ import GuarantorRequestScreen from '../screens/GuarantorRequestScreen';
 import GuarantorApprovalScreen from '../screens/GuarantorApprovalScreen';
 import LoanScheduleScreen from '../screens/LoanScheduleScreen';
 import SupportScreen from '../screens/SupportScreen';
+import AuditScreen from '../screens/AuditScreen';
+import AddGoalScreen from '../screens/AddGoalScreen';
+import CoopTargetDetailsScreen from '../screens/CoopTargetDetailsScreen';
 import { useAuth } from '../context/AuthContext';
 import { useAppTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
@@ -174,6 +177,13 @@ export default function AppNavigator() {
           <Stack.Screen name="GuarantorApproval" component={GuarantorApprovalScreen} />
           <Stack.Screen name="LoanSchedule" component={LoanScheduleScreen} />
           <Stack.Screen name="Support" component={SupportScreen} />
+          <Stack.Screen
+            name="AuditScreen"
+            component={AuditScreen}
+            initialParams={{ auditorId: undefined }}
+          />
+          <Stack.Screen name="AddGoal" component={AddGoalScreen} />
+          <Stack.Screen name="CoopTargetDetails" component={CoopTargetDetailsScreen} />
         </Stack.Navigator>
       </View>
     </SafeAreaView>

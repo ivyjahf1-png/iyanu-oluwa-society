@@ -49,6 +49,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AppLockScreen from './src/components/AppLockScreen';
 import { TransactionsProvider } from './src/context/TransactionsContext';
 import { BannerProvider } from './src/context/BannerContext';
+import { SavingsPlansProvider } from './src/context/SavingsPlansContext';
 import { startRealtimeSync } from './src/lib/realtime';
 
 /** Shows the app once auth state is restored; gates on the lock screen. */
@@ -110,7 +111,8 @@ export default function App() {
             <AuthGate>
           <UserProvider>
             <AnnouncementsProvider>
-              <MarketItemsProvider>
+              <SavingsPlansProvider>
+                <MarketItemsProvider>
                 <BankProvider>
                   <ThemeProvider>
                     <AdminLockProvider>
@@ -121,6 +123,7 @@ export default function App() {
                   </ThemeProvider>
                 </BankProvider>
               </MarketItemsProvider>
+              </SavingsPlansProvider>
             </AnnouncementsProvider>
           </UserProvider>
           </AuthGate>

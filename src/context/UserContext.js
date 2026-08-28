@@ -26,6 +26,8 @@ const DEFAULTS = {
   alertSoundUri: null,
   // Feature icon size preference: 'small' | 'medium' | 'large'
   iconSize: 'medium',
+  // Access role: 'member' | 'admin' | 'auditor'. Derives audit-menu visibility.
+  role: 'member',
 };
 
 const UserContext = createContext(null);

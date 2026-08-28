@@ -42,6 +42,9 @@ export const KNOWN_ROUTES = new Set([
   'CoopCredit',
   'Society',
   'SocietyHub',
+  'AuditScreen',
+  'AddGoal',
+  'CoopTargetDetails',
 ]);
 
 /**

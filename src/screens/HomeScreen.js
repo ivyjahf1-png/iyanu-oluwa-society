@@ -62,6 +62,9 @@ export default function HomeScreen({ navigation }) {
     authDisplayName ||
     (userEmail ? deriveDisplayName(userEmail) : 'Member');
   const isAdminVisible = isAdminAccount(userEmail);
+  // Auditor access: a user whose profile role is 'auditor' gets the dedicated
+  // financial AuditScreen instead of the standard user menu.
+  const isAuditor = user?.role === 'auditor';
 
   // Global admin verification: biometric prompt ? PIN keypad fallback.
   // Navigation to AdminSettings happens ONLY when access is granted.
@@ -136,7 +139,7 @@ export default function HomeScreen({ navigation }) {
 
             <TouchableOpacity
               style={styles.iconCircle}
-              onPress={() => navigateTo('ProfileSettings')}
+              onPress={() => (isAuditor ? navigateTo('AuditScreen') : navigateTo('ProfileSettings'))}
             >
               <Ionicons name="ellipsis-horizontal" size={20} color='#FFFFFF' />
             </TouchableOpacity>
