@@ -1000,7 +1000,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0B1412', overflow: 'hidden', width: '100%', maxWidth: '100%', touchAction: 'pan-y' },
+  container: { flex: 1, backgroundColor: '#0B1412', overflow: 'hidden', width: '100%', maxWidth: '100%', ...(({ touchAction: 'pan-y' } as any)) },
   keyboardWrap: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center',

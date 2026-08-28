@@ -11,6 +11,8 @@ import {
   Modal,
   Alert,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { Smartphone, Database, CheckCircle2 } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
@@ -31,6 +33,8 @@ const DATA_PLANS = [
 ];
 
 export default function AirtimeDataScreen({ navigation: rawNav, route }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   // Preselect provider / transaction type when arriving from the Data modal.
   const initialProvider = route.params?.provider;
@@ -87,7 +91,7 @@ export default function AirtimeDataScreen({ navigation: rawNav, route }) {
               onPress={() => setProvider(p.key)}
             >
               <View style={[styles.providerDot, { backgroundColor: p.color }]}>
-                {provider === p.key ? <CheckCircle2 size={14} color='#0F172A' /> : null}
+                {provider === p.key ? <CheckCircle2 size={14} color={colors.text} /> : null}
               </View>
               <Text style={[styles.providerLabel, provider === p.key && styles.providerLabelActive]}>
                 {p.label}
@@ -199,7 +203,7 @@ export default function AirtimeDataScreen({ navigation: rawNav, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -393,3 +397,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+
+const styles = makeStyles(themes.darkEmerald, true);

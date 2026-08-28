@@ -25,6 +25,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Fingerprint, Delete, ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
@@ -32,6 +34,8 @@ import { AUTH_COLORS, AUTH_GRADIENTS } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 
 export default function SignInScreen({ navigation, route }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const { loginWithPassword, loginWithPasscode, methods } = useAuth();
   const [mode, setMode] = useState('password'); // 'password' | 'passcode'
   const [email, setEmail] = useState('');
@@ -184,7 +188,7 @@ export default function SignInScreen({ navigation, route }) {
               onPress={handleBiometricAuth}
               disabled={bioRunning}
             >
-              <Fingerprint size={22} color="#10B981" />
+              <Fingerprint size={22} color={colors.success} />
               <Text style={styles.bioBtnText}>
                 {bioRunning ? 'Authenticating...' : 'Sign in with Fingerprint / Face ID'}
               </Text>
@@ -314,7 +318,7 @@ export default function SignInScreen({ navigation, route }) {
                 </TouchableOpacity>
               </View>
 
-              {checkingPin && <ActivityIndicator color="#10B981" style={styles.pinLoader} />}
+              {checkingPin && <ActivityIndicator color={colors.success} style={styles.pinLoader} />}
 
               <TouchableOpacity
                 style={[styles.primaryBtn, pin.length < 4 && { opacity: 0.5 }]}
@@ -348,7 +352,7 @@ export default function SignInScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: AUTH_COLORS.background },
   gradient: { flex: 1 },
   scrollContent: { paddingHorizontal: 24, paddingBottom: 40 },
@@ -497,3 +501,6 @@ const styles = StyleSheet.create({
   footerTxt: { color: AUTH_COLORS.textSecondary, fontSize: 13 },
   link: { color: '#10B981', fontSize: 13, fontWeight: '600' },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);
+

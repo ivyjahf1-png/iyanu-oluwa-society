@@ -12,6 +12,7 @@ import {
   CloudLightning,
 } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 
 /**
  * Returns the current local time-of-day classification.
@@ -61,7 +62,8 @@ const WEATHER_ICONS = {
 
 export default function Greeting({ textStyle, iconColor, showIcon = true, weather }) {
   const { greeting, isDay } = useTimeOfDay();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   // Theme-aware fallbacks so the component stays fully legible in every palette
   // (Dark Emerald / Pitch Black / Designer Light). Callers that pass their own
   // `textStyle` (e.g. the dashboard header) keep their original typography.
@@ -107,7 +109,7 @@ export default function Greeting({ textStyle, iconColor, showIcon = true, weathe
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   iconWrap: {
     width: 22,
@@ -127,3 +129,6 @@ const styles = StyleSheet.create({
   },
   weatherChipText: { color: '#334155', fontSize: 11, fontWeight: '700' },
 });
+
+
+const styles = makeStyles(themes.darkEmerald, true);

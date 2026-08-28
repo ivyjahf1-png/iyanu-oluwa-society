@@ -9,6 +9,8 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import * as Clipboard from 'expo-clipboard';
 import { Landmark, Copy, ShieldCheck, User } from 'lucide-react-native';
@@ -16,6 +18,8 @@ import ScreenHeader from '../components/ScreenHeader';
 import { useUser } from '../context/UserContext';
 
 export default function BankTransferScreen({ navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   const { user, updateUser } = useUser();
 
@@ -40,7 +44,7 @@ export default function BankTransferScreen({ navigation: rawNav }) {
         {hasSavedDetails ? (
           <View style={styles.card}>
             <View style={styles.headerRow}>
-              <Landmark size={18} color="#10B981" />
+              <Landmark size={18} color={colors.success} />
               <Text style={styles.headerTitle}>Saved Bank Account</Text>
             </View>
 
@@ -54,7 +58,7 @@ export default function BankTransferScreen({ navigation: rawNav }) {
                 <Text style={[styles.detailValue, styles.accountNumber]}>
                   {user.userAccountNumber}
                 </Text>
-                <Copy size={15} color="#10B981" />
+                <Copy size={15} color={colors.success} />
               </View>
             </TouchableOpacity>
             <View style={styles.detailRow}>
@@ -63,13 +67,13 @@ export default function BankTransferScreen({ navigation: rawNav }) {
             </View>
 
             <View style={styles.footerRow}>
-              <ShieldCheck size={14} color="#10B981" />
+              <ShieldCheck size={14} color={colors.success} />
               <Text style={styles.footerText}>Tap the account number to copy</Text>
             </View>
           </View>
         ) : (
           <View style={styles.emptyCard}>
-            <User size={34} color="#9CB8A6" />
+            <User size={34} color={colors.textSecondary} />
             <Text style={styles.emptyTitle}>No bank account saved yet</Text>
             <Text style={styles.emptySub}>
               Add your bank details in Profile Settings to enable transfers.
@@ -97,7 +101,7 @@ export default function BankTransferScreen({ navigation: rawNav }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -209,3 +213,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

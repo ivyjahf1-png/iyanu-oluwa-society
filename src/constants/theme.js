@@ -82,6 +82,117 @@ export const AUTH_GRADIENTS = {
 };
 
 /* ==========================================================================
+   RUNTIME THEME BRIDGE
+   Some screens (and inline JSX color reads) still reference the static
+   COLORS object. To make the WHOLE app follow the active theme, the
+   canonical ThemeProvider (src/theme/ThemeContext.tsx) calls
+   syncStaticTheme() whenever the resolved theme changes, mutating COLORS
+   in place. Inline reads therefore always reflect the current theme.
+   (Module-level StyleSheet.create values are baked at import time and are
+   handled per-screen; inline reads are covered universally by this bridge.)
+   ========================================================================== */
+
+/** Light-mode palette for the static layer (mirrors designerLight). */
+export const STATIC_LIGHT_COLORS = {
+  background: '#F4F7F5',
+  cardBg: '#FFFFFF',
+  cardBorder: '#E2E8F0',
+  textPrimary: '#0F172A',
+  textSecondary: '#64748B',
+  emeraldAccent: '#10B981',
+  emeraldDark: '#059669',
+  navBorder: '#E2E8F0',
+  navBg: '#FFFFFF',
+  iconBg: '#D1FAE5',
+  inputBg: '#FFFFFF',
+  placeholder: '#94A3B8',
+  pageBg: '#F4F6F8',
+  cardSurface: '#FFFFFF',
+  cardSurfaceSoft: '#D1FAE5',
+  iconSurface: '#D1FAE5',
+  cardBorderSoft: '#E2E8F0',
+  textFaint: '#64748B',
+  textDim: '#6B7280',
+  textSoft: '#334155',
+  textLight: '#475569',
+  textSilver: '#334155',
+};
+
+/** Dark-mode palette for the static layer (mirrors darkEmerald). */
+export const STATIC_DARK_COLORS = {
+  background: '#061D15',
+  cardBg: '#0C2B20',
+  cardBorder: '#174233',
+  textPrimary: '#FFFFFF',
+  textSecondary: '#88B0A0',
+  emeraldAccent: '#00D084',
+  emeraldDark: '#00A844',
+  navBorder: '#174233',
+  navBg: '#061D15',
+  iconBg: '#123D2E',
+  inputBg: '#09241A',
+  placeholder: '#6B8A7E',
+  pageBg: '#061D15',
+  cardSurface: '#0C2B20',
+  cardSurfaceSoft: '#123D2E',
+  iconSurface: '#123D2E',
+  cardBorderSoft: '#174233',
+  textFaint: '#88B0A0',
+  textDim: '#88B0A0',
+  textSoft: '#C9E2D8',
+  textLight: '#A7C6B9',
+  textSilver: '#C9E2D8',
+};
+
+/**
+ * Mutate the exported COLORS (and friends) so every static reference
+ * follows the active theme. Called by the canonical ThemeProvider on
+ * every resolved-theme change with the exact resolved palette.
+ */
+export function syncStaticTheme(isDark, colors) {
+  if (colors) {
+    // Map the canonical runtime palette onto the static token names for
+    // exact per-theme fidelity (darkEmerald vs pitchBlack vs light).
+    Object.assign(COLORS, {
+      background: colors.background,
+      pageBg: colors.background,
+      cardBg: colors.card,
+      cardSurface: colors.card,
+      cardBorder: colors.border,
+      cardBorderSoft: colors.border,
+      textPrimary: colors.text,
+      textSecondary: colors.textSecondary,
+      textFaint: colors.textSecondary,
+      textDim: colors.textSecondary,
+      textSoft: colors.text,
+      textLight: colors.textSecondary,
+      textSilver: colors.text,
+      emeraldAccent: colors.primary,
+      emeraldDark: colors.primaryDark,
+      iconBg: colors.surface,
+      iconSurface: colors.surface,
+      inputBg: colors.inputBackground,
+      placeholder: colors.textSecondary,
+      navBg: colors.tabBar,
+      navBorder: colors.border,
+      cardSurfaceSoft: colors.surface,
+    });
+  } else {
+    const src = isDark ? STATIC_DARK_COLORS : STATIC_LIGHT_COLORS;
+    Object.assign(COLORS, src);
+  }
+  // Accent gradients work on both modes; the hero gradient is dark-only
+  // styling, so swap it for a light-friendly pair in light mode.
+  if (isDark) {
+    GRADIENTS.metallicCard = ['#132A20', '#0A1A13'];
+    GRADIENTS.metallicDashboard = ['#1A3327', '#132A20', '#0E211A', '#0A1A13'];
+  } else {
+    GRADIENTS.metallicCard = ['#10B981', '#059669'];
+    GRADIENTS.metallicDashboard = ['#D1FAE5', '#A7F3D0', '#D1FAE5', '#ECFDF5'];
+  }
+}
+
+/* ==========================================================================
    SEMANTIC DESIGN TOKENS — strict light/dark theme pairs (WCAG AAA).
    Single source of truth for the semantic color contract. Consumers map
    these onto the runtime theme (src/theme/colors.ts) via useTheme().

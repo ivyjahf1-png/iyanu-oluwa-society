@@ -10,6 +10,8 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import * as Notifications from 'expo-notifications';
 import {
   ChevronLeft,
@@ -30,6 +32,8 @@ Notifications.setNotificationHandler({
 });
 
 export default function AnnouncementsScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const { announcements, addAnnouncement, removeAnnouncement } = useAnnouncements();
 
   const [title, setTitle] = useState('');
@@ -97,7 +101,7 @@ export default function AnnouncementsScreen({ navigation }) {
           onPress={postAnnouncement}
           disabled={posting}
         >
-          <Megaphone size={17} color='#0F172A' />
+          <Megaphone size={17} color={colors.text} />
           <Text style={styles.postBtnText}>{posting ? 'Posting…' : 'Post & Notify Members'}</Text>
         </TouchableOpacity>
 
@@ -105,14 +109,14 @@ export default function AnnouncementsScreen({ navigation }) {
         <Text style={styles.sectionTitle}>Recent Announcements</Text>
         {announcements.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Bell size={30} color="#9CB8A6" />
+            <Bell size={30} color={colors.textSecondary} />
             <Text style={styles.emptyText}>No announcements yet.</Text>
           </View>
         ) : (
           announcements.map(a => (
             <View key={a.id} style={styles.announcementCard}>
               <View style={styles.announcementHead}>
-                <Bell size={14} color="#10B981" />
+                <Bell size={14} color={colors.success} />
                 <Text style={styles.authorText}>{a.author}</Text>
                 <Text style={styles.dateText}>
                   {new Date(a.createdAt).toLocaleDateString('en-GB', {
@@ -124,7 +128,7 @@ export default function AnnouncementsScreen({ navigation }) {
                   onPress={() => removeAnnouncement(a.id)}
                   style={styles.deleteBtn}
                 >
-                  <Trash2 size={15} color="#C0392B" />
+                  <Trash2 size={15} color={colors.danger} />
                 </TouchableOpacity>
               </View>
               <Text style={styles.announcementTitle}>{a.title}</Text>
@@ -137,7 +141,7 @@ export default function AnnouncementsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -211,3 +215,6 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
 });
+
+
+const styles = makeStyles(themes.darkEmerald, true);

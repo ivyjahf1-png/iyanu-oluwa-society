@@ -24,8 +24,11 @@ import Greeting from '../components/Greeting';
 import useLiveEnvironment from '../hooks/useLiveEnvironment';
 import { COLORS, GRADIENTS } from '../constants/theme';
 import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 
 export default function HomeScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   // Centralized currency formatter � explicit Unicode escape so the ? symbol
   // never suffers source-file encoding corruption (₦ mojibake).
   const formatCurrency = (amount) => `\u20A6${Number(amount).toLocaleString()}`;
@@ -44,7 +47,6 @@ export default function HomeScreen({ navigation }) {
   // Live environment (time-synced greeting + optional weather chip).
   // Fully additive: degrades gracefully when permission/network unavailable.
   const env = useLiveEnvironment();
-  const { colors } = useTheme();
   // Name resolution order: saved custom full name -> auth-derived email
   // prefix (skiszyofficial@gmail.com -> "Skiszyofficial") -> generic member.
   // The factory placeholder never masks the real email-derived identity.
@@ -134,7 +136,7 @@ export default function HomeScreen({ navigation }) {
 
             <TouchableOpacity
               style={styles.iconCircle}
-              onPress={() => navigateTo('Settings')}
+              onPress={() => navigateTo('ProfileSettings')}
             >
               <Ionicons name="ellipsis-horizontal" size={20} color='#FFFFFF' />
             </TouchableOpacity>
@@ -211,11 +213,11 @@ export default function HomeScreen({ navigation }) {
                   <Ionicons
                     name={hideSavingsBalance ? 'eye-off-outline' : 'eye-outline'}
                     size={15}
-                    color={COLORS.textDim}
+                    color={colors.textSecondary}
                   />
                 </TouchableOpacity>
                 <View style={styles.miniIconCircle}>
-                  <FontAwesome5 name="piggy-bank" size={12} color={COLORS.mintAccent} />
+                  <FontAwesome5 name="piggy-bank" size={12} color={colors.primary} />
                 </View>
               </View>
             </View>
@@ -238,11 +240,11 @@ export default function HomeScreen({ navigation }) {
                   <Ionicons
                     name={hideLoanBalance ? 'eye-off-outline' : 'eye-outline'}
                     size={15}
-                    color={COLORS.textDim}
+                    color={colors.textSecondary}
                   />
                 </TouchableOpacity>
                 <View style={styles.miniIconCircle}>
-                  <Ionicons name="wallet-outline" size={13} color={COLORS.mintAccent} />
+                  <Ionicons name="wallet-outline" size={13} color={colors.primary} />
                 </View>
               </View>
             </View>
@@ -270,7 +272,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigateTo('CoopContribution')}
           >
             <LinearGradient colors={GRADIENTS.greenService} style={styles.serviceIconContainer}>
-              <FontAwesome5 name="piggy-bank" size={18} color={colors.text} />
+              <FontAwesome5 name="piggy-bank" size={16} color={isDark ? colors.text : '#FFFFFF'} />
             </LinearGradient>
             <Text style={[styles.serviceLabel, { color: colors.text }]}>Coop Contribution</Text>
             <Text style={[styles.serviceSubtext, { color: colors.textSecondary }]}>Deposit weekly or monthly savings</Text>
@@ -281,7 +283,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigateTo('AccountStatement')}
           >
             <LinearGradient colors={GRADIENTS.blueService} style={styles.serviceIconContainer}>
-              <Ionicons name="document-text-outline" size={20} color={colors.text} />
+              <Ionicons name="document-text-outline" size={18} color={isDark ? colors.text : '#FFFFFF'} />
             </LinearGradient>
             <Text style={[styles.serviceLabel, { color: colors.text }]}>Account Statement</Text>
             <Text style={[styles.serviceSubtext, { color: colors.textSecondary }]}>Download report</Text>
@@ -292,7 +294,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigateTo('RequestLoan')}
           >
             <LinearGradient colors={GRADIENTS.orangeService} style={styles.serviceIconContainer}>
-              <FontAwesome5 name="hand-holding-usd" size={18} color={colors.text} />
+              <FontAwesome5 name="hand-holding-usd" size={16} color={isDark ? colors.text : '#FFFFFF'} />
             </LinearGradient>
             <Text style={[styles.serviceLabel, { color: colors.text }]}>Request Loan</Text>
             <Text style={[styles.serviceSubtext, { color: colors.textSecondary }]}>Apply for member credit</Text>
@@ -303,7 +305,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => navigateTo('RepayLoan')}
           >
             <LinearGradient colors={GRADIENTS.purpleService} style={styles.serviceIconContainer}>
-              <Ionicons name="card-outline" size={20} color={colors.text} />
+              <Ionicons name="card-outline" size={18} color={isDark ? colors.text : '#FFFFFF'} />
             </LinearGradient>
             <Text style={[styles.serviceLabel, { color: colors.text }]}>Repay Loan</Text>
             <Text style={[styles.serviceSubtext, { color: colors.textSecondary }]}>Make loan repayments</Text>
@@ -313,7 +315,7 @@ export default function HomeScreen({ navigation }) {
         {/* COOP AI ASSISTANT BANNER */}
         <View style={[styles.aiBanner, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.aiLeft}>
-            <View style={[styles.botIconWrapper, { backgroundColor: colors.icon }]}>
+            <View style={[styles.botIconWrapper, { backgroundColor: colors.surface }]}>
               <MaterialCommunityIcons name="robot-outline" size={24} color={colors.primary} />
             </View>
             <View style={styles.aiTextGroup}>
@@ -345,7 +347,7 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigateTo('Marketplace', { category: 'land_and_property' })}
         >
           <View style={styles.hubLeft}>
-            <View style={[styles.hubIconCircle, { backgroundColor: colors.icon }]}>
+            <View style={[styles.hubIconCircle, { backgroundColor: colors.surface }]}>
               <Ionicons name="home-outline" size={20} color={colors.primary} />
             </View>
             <View style={styles.hubTextContainer}>
@@ -356,7 +358,7 @@ export default function HomeScreen({ navigation }) {
             </View>
           </View>
           <View style={styles.hubRight}>
-            <View style={[styles.hubTagIcon, { backgroundColor: colors.icon }]}>
+            <View style={[styles.hubTagIcon, { backgroundColor: colors.surface }]}>
               <Ionicons name="location-outline" size={16} color={colors.primary} />
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
@@ -368,7 +370,7 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigateTo('Marketplace', { category: 'vehicles_and_appliances' })}
         >
           <View style={styles.hubLeft}>
-            <View style={[styles.hubIconCircle, { backgroundColor: colors.icon }]}>
+            <View style={[styles.hubIconCircle, { backgroundColor: colors.surface }]}>
               <Ionicons name="car-outline" size={20} color={colors.primary} />
             </View>
             <View style={styles.hubTextContainer}>
@@ -377,7 +379,7 @@ export default function HomeScreen({ navigation }) {
             </View>
           </View>
           <View style={styles.hubRight}>
-            <View style={[styles.hubTagIcon, { backgroundColor: colors.icon }]}>
+            <View style={[styles.hubTagIcon, { backgroundColor: colors.surface }]}>
               <Ionicons name="car-sport-outline" size={16} color={colors.primary} />
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
@@ -389,7 +391,7 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigateTo('MeetingChat')}
         >
           <View style={styles.hubLeft}>
-            <View style={[styles.hubIconCircle, { backgroundColor: colors.icon }]}>
+            <View style={[styles.hubIconCircle, { backgroundColor: colors.surface }]}>
               <Ionicons name="chatbox-ellipses-outline" size={20} color={colors.primary} />
             </View>
             <View style={styles.hubTextContainer}>
@@ -404,10 +406,10 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.pageBg,
+    backgroundColor: colors.background,
   },
   fixedTop: {
     paddingHorizontal: 16,
@@ -509,70 +511,71 @@ const styles = StyleSheet.create({
   dualCardRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
   subCard: {
     flex: 1,
-    backgroundColor: COLORS.cardSurface,
-    borderRadius: 16,
-    padding: 14,
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    padding: 12,
     borderWidth: 1,
-    borderColor: COLORS.cardBorderSoft,
+    borderColor: colors.border,
   },
   subCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  subCardTitle: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '500' },
+  subCardTitle: { color: colors.text, fontSize: 12.5, fontWeight: '600' },
   subCardHeaderIcons: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   miniIconCircle: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: COLORS.cardSurfaceSoft,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  subCardAmount: { color: COLORS.textPrimary, fontSize: 20, fontWeight: '700', marginVertical: 10 },
-  divider: { height: 1, backgroundColor: COLORS.cardBorderSoft, marginBottom: 8 },
-  subCardFooterText: { color: COLORS.textDim, fontSize: 11 },
+  subCardAmount: { color: colors.text, fontSize: 18, fontWeight: '700', marginVertical: 8 },
+  divider: { height: 1, backgroundColor: colors.border, marginBottom: 8 },
+  subCardFooterText: { color: colors.textSecondary, fontSize: 10.5 },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  sectionTitle: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '600' },
-  viewAllText: { color: COLORS.mintAccent, fontSize: 13, fontWeight: '500' },
+  sectionTitle: { color: colors.text, fontSize: 15, fontWeight: '600' },
+  viewAllText: { color: colors.primary, fontSize: 13, fontWeight: '500' },
   servicesScroll: { marginBottom: 20 },
   serviceItem: {
-    width: 120,
-    backgroundColor: COLORS.cardSurface,
-    borderRadius: 14,
-    padding: 12,
+    width: 104,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     marginRight: 10,
     borderWidth: 1,
-    borderColor: COLORS.cardBorderSoft,
+    borderColor: colors.border,
     alignItems: 'center',
   },
   serviceIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   serviceLabel: {
-    color: COLORS.textPrimary,
-    fontSize: 11,
+    color: colors.text,
+    fontSize: 10.5,
     fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 3,
   },
-  serviceSubtext: { color: COLORS.textDim, fontSize: 9, textAlign: 'center', lineHeight: 11 },
+  serviceSubtext: { color: colors.textSecondary, fontSize: 9, textAlign: 'center', lineHeight: 11 },
   aiBanner: {
-    backgroundColor: COLORS.cardSurface,
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: COLORS.cardBorderSoft,
+    borderColor: colors.border,
     marginBottom: 20,
   },
   aiLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
@@ -580,22 +583,22 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: COLORS.cardSurfaceSoft,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   aiTextGroup: { flex: 1 },
-  aiTitle: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '700' },
-  aiSubtext: { color: COLORS.textDim, fontSize: 10, marginTop: 2 },
+  aiTitle: { color: colors.text, fontSize: 14, fontWeight: '700' },
+  aiSubtext: { color: colors.textSecondary, fontSize: 10, marginTop: 2 },
   askNowBtn: {
-    backgroundColor: COLORS.mintAccent,
+    backgroundColor: colors.primary,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 20,
   },
-  askNowText: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
+  askNowText: { color: colors.background, fontSize: 11, fontWeight: '700' },
   hubListItem: {
-    backgroundColor: COLORS.cardSurface,
+    backgroundColor: colors.card,
     borderRadius: 14,
     padding: 14,
     flexDirection: 'row',
@@ -603,7 +606,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: COLORS.cardBorderSoft,
+    borderColor: colors.border,
   },
   hubLeft: {
     flexDirection: 'row',
@@ -622,12 +625,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hubItemTitle: {
-    color: COLORS.textPrimary,
+    color: colors.text,
     fontSize: 14,
     fontWeight: '700',
   },
   hubItemSub: {
-    color: COLORS.textDim,
+    color: colors.textSecondary,
     fontSize: 11,
     marginTop: 2,
   },
@@ -636,9 +639,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   hubTagIcon: {
-    backgroundColor: COLORS.iconSurface,
+    backgroundColor: colors.surface,
     padding: 6,
     borderRadius: 8,
     marginRight: 8,
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);
+

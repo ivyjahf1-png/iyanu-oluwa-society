@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import {
   PiggyBank,
   ArrowUpRight,
@@ -23,6 +25,8 @@ import {
 import { useTransactions } from '../context/TransactionsContext';
 
 export default function SavingsScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const [activeTab, setActiveTab] = useState('monthly');
   const [savingsVisible, setSavingsVisible] = useState(true);
   const { transactions, totalSavings } = useTransactions();
@@ -55,9 +59,9 @@ export default function SavingsScreen() {
               onPress={() => setSavingsVisible(!savingsVisible)}
             >
               {savingsVisible ? (
-                <Eye size={18} color='#0F172A' />
+                <Eye size={18} color={colors.text} />
               ) : (
-                <EyeOff size={18} color='#0F172A' />
+                <EyeOff size={18} color={colors.text} />
               )}
             </TouchableOpacity>
           </View>
@@ -66,7 +70,7 @@ export default function SavingsScreen() {
           </Text>
           <View style={styles.badgeRow}>
             <View style={styles.interestBadge}>
-              <TrendingUp color="#10B981" size={14} />
+              <TrendingUp color={colors.success} size={14} />
               <Text style={styles.interestText}>+8.5% p.a. Dividend</Text>
             </View>
           </View>
@@ -76,14 +80,14 @@ export default function SavingsScreen() {
               style={styles.primaryBtn}
               onPress={() => Alert.alert('Coming Soon', 'Deposits will be available soon.')}
             >
-              <Lock color='#0F172A' size={16} />
+              <Lock color={colors.text} size={16} />
               <Text style={styles.btnText}>Deposit</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.secondaryBtn}
               onPress={() => Alert.alert('Coming Soon', 'Withdrawals will be available soon.')}
             >
-              <Lock color="#047857" size={16} />
+              <Lock color={colors.primaryDark} size={16} />
               <Text style={styles.secBtnText}>Withdraw</Text>
             </TouchableOpacity>
           </View>
@@ -112,7 +116,7 @@ export default function SavingsScreen() {
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <View style={styles.iconCircle}>
-              <Calendar color="#047857" size={20} />
+              <Calendar color={colors.primaryDark} size={20} />
             </View>
             <View style={styles.infoTextGroup}>
               <Text style={styles.infoTitle}>Next Due Date</Text>
@@ -125,7 +129,7 @@ export default function SavingsScreen() {
 
           <View style={styles.infoRow}>
             <View style={styles.iconCircle}>
-              <ShieldCheck color="#047857" size={20} />
+              <ShieldCheck color={colors.primaryDark} size={20} />
             </View>
             <View style={styles.infoTextGroup}>
               <Text style={styles.infoTitle}>Lock Status</Text>
@@ -138,7 +142,7 @@ export default function SavingsScreen() {
         {/* Recent Transactions */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionHeader}>Contribution History</Text>
-          <History color="#9CB8A6" size={18} />
+          <History color={colors.textSecondary} size={18} />
         </View>
 
         <View style={styles.historyList}>
@@ -146,7 +150,7 @@ export default function SavingsScreen() {
             <View style={styles.historyItem}>
               <View style={styles.historyLeft}>
                 <View style={styles.histIconWrapper}>
-                  <PiggyBank color="#10B981" size={18} />
+                  <PiggyBank color={colors.success} size={18} />
                 </View>
                 <View>
                   <Text style={styles.histTitle}>No contributions yet</Text>
@@ -160,7 +164,7 @@ export default function SavingsScreen() {
               <View key={t.id} style={styles.historyItem}>
                 <View style={styles.historyLeft}>
                   <View style={styles.histIconWrapper}>
-                    <PiggyBank color="#10B981" size={18} />
+                    <PiggyBank color={colors.success} size={18} />
                   </View>
                   <View>
                     <Text style={styles.histTitle}>{t.label}</Text>
@@ -180,7 +184,7 @@ export default function SavingsScreen() {
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -228,3 +232,5 @@ const styles = StyleSheet.create({
   histDate: { color: '#9CB8A6', fontSize: 10, marginTop: 2 },
   histAmount: { color: '#10B981', fontSize: 13, fontWeight: 'bold' },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

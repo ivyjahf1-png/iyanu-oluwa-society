@@ -1,9 +1,13 @@
 import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, StatusBar } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { PhoneOff, MicOff, VideoOff, Volume2, ChevronLeft } from 'lucide-react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 
 export default function CallScreen({ route, navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   const { type } = route.params || { type: 'voice' };
 
@@ -14,7 +18,7 @@ export default function CallScreen({ route, navigation: rawNav }) {
       {/* Back navigation control */}
       <View style={styles.backRow}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeft size={24} color="#047857" />
+          <ChevronLeft size={24} color={colors.primaryDark} />
         </TouchableOpacity>
       </View>
 
@@ -32,23 +36,23 @@ export default function CallScreen({ route, navigation: rawNav }) {
 
       <View style={styles.controls}>
         <TouchableOpacity style={styles.controlBtn}>
-          <MicOff color='#0F172A' size={22} />
+          <MicOff color={colors.text} size={22} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.controlBtn}>
-          <VideoOff color='#0F172A' size={22} />
+          <VideoOff color={colors.text} size={22} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.controlBtn}>
-          <Volume2 color='#0F172A' size={22} />
+          <Volume2 color={colors.text} size={22} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.endCallBtn}>
-          <PhoneOff color='#0F172A' size={24} />
+          <PhoneOff color={colors.text} size={24} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: '#06130D', justifyContent: 'space-between', paddingVertical: 40, paddingHorizontal: 20 },
   backRow: { alignItems: 'flex-start' },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#D1FAE5', justifyContent: 'center', alignItems: 'center' },
@@ -63,3 +67,5 @@ const styles = StyleSheet.create({
   controlBtn: { backgroundColor: '#D1FAE5', padding: 12, borderRadius: 25 },
   endCallBtn: { backgroundColor: '#FF3B30', padding: 14, borderRadius: 30 },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

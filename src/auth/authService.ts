@@ -20,7 +20,45 @@ const KEYS = {
   BIOMETRIC_ENABLED: 'auth.biometricEnabled',
   SESSION: 'auth.session',
   WELCOME_DONE: 'auth.welcomeCompleted',
+  /**
+   * Multi-account registry — every registration appends an account record
+   * here so ALL created accounts persist (fixes "No account found with
+   * this email" caused by the old single-slot storage being overwritten).
+   */
+  USERS: 'auth.users',
 };
+
+/** Shape of one persisted account record in the registry. */
+export interface StoredAccount {
+  uid: string;
+  email: string;
+  displayName: string;
+  createdAt: string;
+  salt: string;
+  pwdHash: string;
+}
+
+/** Read the full account registry (never throws). */
+export async function getRegisteredUsers(): Promise<StoredAccount[]> {
+  try {
+    const raw = await secGet(KEYS.USERS);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+/** Persist the registry (never throws). */
+async function saveRegisteredUsers(list: StoredAccount[]): Promise<void> {
+  await secSet(KEYS.USERS, JSON.stringify(list));
+}
+
+/** True when a record for this email already exists in the registry. */
+async function findRegisteredUser(email: string): Promise<StoredAccount | null> {
+  const list = await getRegisteredUsers();
+  return list.find((u) => u.email === email) || null;
+}
 
 async function secGet(key: string): Promise<string | null> {
   try {
@@ -120,21 +158,39 @@ export interface RegisterResult {
 export async function registerAccount(email: string, password: string): Promise<RegisterResult> {
   try {
     const normalized = email.trim().toLowerCase();
-    const existing = await secGet(KEYS.EMAIL);
-    if (existing && existing === normalized) {
+
+    // Strict Gmail-only registration policy.
+    if (!/^[^\s@]+@gmail\.com$/.test(normalized)) {
+      return { ok: false, error: 'Please register using a valid Gmail address (@gmail.com)' };
+    }
+
+    // Duplicate check against the multi-account registry (and legacy slot).
+    const existingInRegistry = await findRegisteredUser(normalized);
+    const legacyEmail = await secGet(KEYS.EMAIL);
+    if (existingInRegistry || (legacyEmail && legacyEmail === normalized)) {
       return { ok: false, error: 'An account with this email already exists' };
     }
 
     const salt = randomSalt();
     const hash = await hashValue(password, salt);
+    const uid = `u_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    const displayName = deriveDisplayName(normalized);
+    const createdAt = new Date().toISOString();
 
+    // Append to the persistent multi-account registry.
+    const list = await getRegisteredUsers();
+    list.push({ uid, email: normalized, displayName, createdAt, salt, pwdHash: hash });
+    await saveRegisteredUsers(list);
+
+    // Legacy single-slot mirrors the newest account (back-compat with the
+    // passcode/biometric and older code paths that read KEYS.EMAIL).
     await secSet(KEYS.EMAIL, normalized);
     await secSet(KEYS.SALT, salt);
     await secSet(KEYS.PWD_HASH, hash);
     console.log('[auth] account created for', normalized);
 
     // Persist the account record (uid, email, displayName, createdAt).
-    await syncUserRecord(normalized, normalized);
+    await syncUserRecord(uid, normalized);
 
     await createSession(normalized);
     return { ok: true };
@@ -148,35 +204,74 @@ export interface LoginResult {
   error?: string;
 }
 
-/** Verify email + password against stored credentials. */
+/** Verify email + password against the multi-account registry. */
 export async function loginWithPassword(email: string, password: string): Promise<LoginResult> {
   try {
     const normalized = email.trim().toLowerCase();
+    const record = await findRegisteredUser(normalized);
+
+    if (record) {
+      const attemptHash = await hashValue(password, record.salt);
+      if (attemptHash !== record.pwdHash) {
+        console.log('[auth] login failed: wrong password');
+        return { ok: false, error: 'Wrong password' };
+      }
+      // Mirror credentials into the legacy slots so passcode/biometric and
+      // other single-account code paths operate on the signed-in account.
+      await secSet(KEYS.EMAIL, normalized);
+      await secSet(KEYS.SALT, record.salt);
+      await secSet(KEYS.PWD_HASH, record.pwdHash);
+      console.log('[auth] login success for', normalized);
+      await createSession(normalized);
+      return { ok: true };
+    }
+
+    // Legacy fallback: the pre-registry account (single-slot storage).
     const storedEmail = await secGet(KEYS.EMAIL);
     const salt = await secGet(KEYS.SALT);
     const storedHash = await secGet(KEYS.PWD_HASH);
-
-    if (!storedEmail || !storedHash || !salt) {
-      console.log('[auth] login failed: no account exists yet');
-      return { ok: false, error: 'No account found. Please create one first.' };
-    }
-    if (normalized !== storedEmail) {
-      console.log('[auth] login failed: email mismatch', normalized, 'vs', storedEmail);
+    if (!storedEmail || !storedHash || !salt || normalized !== storedEmail) {
+      console.log('[auth] login failed: no account for', normalized);
       return { ok: false, error: 'No account found with this email' };
     }
-
     const attemptHash = await hashValue(password, salt);
     if (attemptHash !== storedHash) {
       console.log('[auth] login failed: wrong password');
       return { ok: false, error: 'Wrong password' };
     }
-
     console.log('[auth] login success for', normalized);
-
     await createSession(normalized);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: 'Sign in failed. Please try again.' };
+  }
+}
+
+/**
+ * Remove an account from the registry (Admin account-management action).
+ * Mirrors the deletion into the legacy slots when the removed account was
+ * the currently mirrored one. Never throws.
+ */
+export async function deleteRegisteredUser(email: string): Promise<void> {
+  try {
+    const normalized = email.trim().toLowerCase();
+    const list = (await getRegisteredUsers()).filter((u) => u.email !== normalized);
+    await saveRegisteredUsers(list);
+    const legacyEmail = await secGet(KEYS.EMAIL);
+    if (legacyEmail === normalized) {
+      const next = list[list.length - 1];
+      if (next) {
+        await secSet(KEYS.EMAIL, next.email);
+        await secSet(KEYS.SALT, next.salt);
+        await secSet(KEYS.PWD_HASH, next.pwdHash);
+      } else {
+        await secDel(KEYS.EMAIL);
+        await secDel(KEYS.SALT);
+        await secDel(KEYS.PWD_HASH);
+      }
+    }
+  } catch (e) {
+    console.warn('[auth] deleteRegisteredUser failed:', e);
   }
 }
 

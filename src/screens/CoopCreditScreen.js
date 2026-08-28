@@ -8,6 +8,7 @@ import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { useTransactions } from '../context/TransactionsContext';
 import { getAllSettings } from '../lib/supabase';
 import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 
 const fmt = n =>
   Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -15,9 +16,9 @@ const fmt = n =>
 /** Co-op Credit */
 export default function CoopCreditScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
-  const { totalSavings, loanOutstanding, totalPaid } = useTransactions();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const styles = makeStyles(colors);
+  const { totalSavings, loanOutstanding, totalPaid } = useTransactions();
 
   // Admin-controlled limit (Admin Settings → Loan Eligibility).
   const [limitMode, setLimitMode] = useState('percent');

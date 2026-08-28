@@ -3,14 +3,19 @@ import {
   StyleSheet, Text, View, ScrollView, TouchableOpacity, SafeAreaView,
   StatusBar, ActivityIndicator, Alert, TextInput,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { Users, Search, RefreshCcw, Trash2, ShieldAlert, KeyRound } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { supabase } from '../lib/supabase';
 import { getAllSettings, getSetting } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { getRegisteredUsers } from '../auth/authService';
 
 /** Admin User Management — monitor members, reset passwords, suspend accounts. */
 export default function AdminUserManagementScreen({ navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = rawNav;
   const { userEmail } = useAuth();
   const [users, setUsers] = useState([]);
@@ -77,6 +82,30 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
         );
       }
     }
+    // Always merge the local persistent account registry so every account
+    // created on this device appears in Admin management — even when
+    // Supabase is unreachable or the remote list is empty.
+    try {
+      const registered = await getRegisteredUsers();
+      const known = new Set(list.map((u) => (u.email || '').toLowerCase()));
+      const localRows = registered
+        .filter((r) => !known.has((r.email || '').toLowerCase()))
+        .map((r) => ({
+          id: r.uid,
+          uid: r.uid,
+          displayName: r.displayName || 'Member',
+          email: r.email,
+          phone: null,
+          status: 'active',
+          createdAt: r.createdAt,
+          balance: 0,
+          loanOutstanding: 0,
+          source: 'local-registry',
+        }));
+      list = [...localRows, ...list];
+    } catch (e3) {
+      console.log('[usermgmt] local registry merge failed:', e3?.message);
+    }
     setUsers(list);
     setLoading(false);
   };
@@ -130,7 +159,7 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
       <ScreenHeader title="User Management" subtitle="Monitor and manage cooperative members" onBack={() => navigation?.goBack()} />
 
       <View style={styles.searchRow}>
-        <Search size={18} color='#8EA89D' />
+        <Search size={18} color={colors.textSecondary} />
         <TextInput
           style={styles.searchInput}
           value={query}
@@ -142,13 +171,13 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
       </View>
 
       {loading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color="#10B981" /></View>
+        <View style={styles.center}><ActivityIndicator size="large" color={colors.success} /></View>
       ) : filtered.length === 0 ? (
         <View style={styles.center}>
-          <Users size={40} color="#9CB8A6" />
+          <Users size={40} color={colors.textSecondary} />
           <Text style={styles.empty}>{loadError || 'No members found yet.'}</Text>
           <TouchableOpacity style={styles.retryBtn} onPress={loadUsers}>
-            <RefreshCcw size={15} color='#0F172A' />
+            <RefreshCcw size={15} color={colors.text} />
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -182,7 +211,7 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
                   onPress={() => sendPasswordReset(u)}
                   disabled={!u.email || resettingEmail === u.email}
                 >
-                  <KeyRound size={14} color='#0F172A' />
+                  <KeyRound size={14} color={colors.text} />
                   <Text style={styles.resetEmailText}>
                     {resettingEmail === u.email ? 'Sending…' : 'Send Password Reset Email'}
                   </Text>
@@ -190,7 +219,7 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
               </View>
               <View style={styles.actions}>
                 <TouchableOpacity style={[styles.actionBtn, styles.suspendBtn]} onPress={() => suspendUser(u)}>
-                  <ShieldAlert size={16} color='#0F172A' />
+                  <ShieldAlert size={16} color={colors.text} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -201,7 +230,7 @@ export default function AdminUserManagementScreen({ navigation: rawNav }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F7F5' },
   scroll: { flex: 1 },
   searchRow: {
@@ -240,3 +269,5 @@ const styles = StyleSheet.create({
   resetBtn: { backgroundColor: '#2563EB' },
   suspendBtn: { backgroundColor: '#C0392B' },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

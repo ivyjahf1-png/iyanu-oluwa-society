@@ -4,16 +4,14 @@ import * as Clipboard from "expo-clipboard";
 import { Copy, Check, Building2 } from "lucide-react-native";
 import { toast } from "../lib/safe";
 import { getAllSettings } from "../lib/supabase";
-
-interface BankDetails {
-  bankName: string;
-  accountNumber: string;
-  accountName: string;
-}
+import { useTheme } from "../theme/ThemeContext";
+import { themes } from "../theme/colors";
 
 export default function FreeBankTransfer() {
-  const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
+  const [bankDetails, setBankDetails] = useState(null);
+  const [copiedField, setCopiedField] = useState(null);
 
   // Load cooperative bank details set by admin (local cache first,
   // then best-effort Supabase sync — never throws on network failure).
@@ -37,7 +35,7 @@ export default function FreeBankTransfer() {
     fetchBankDetails();
   }, []);
 
-  const copyToClipboard = async (text: string, field: string) => {
+  const copyToClipboard = async (text, field) => {
     if (!text) return;
 
     try {
@@ -63,7 +61,7 @@ export default function FreeBankTransfer() {
     );
   }
 
-  const renderField = (label: string, value: string, fieldKey: string) => (
+  const renderField = (label, value, fieldKey) => (
     <View style={styles.fieldContainer}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.valueRow}>
@@ -99,7 +97,7 @@ export default function FreeBankTransfer() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: {
     gap: 20,
   },
@@ -155,3 +153,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

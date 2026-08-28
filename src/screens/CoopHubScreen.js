@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import {
   Megaphone,
@@ -23,6 +25,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function CoopHubScreen({ navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   return (
     <SafeAreaView style={styles.container}>
@@ -45,7 +49,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
               end={{ x: 1, y: 1 }}
               style={styles.actionIcon}
             >
-              <ShoppingBag color='#0F172A' size={24} />
+              <ShoppingBag color={colors.text} size={24} />
             </LinearGradient>
             <Text style={styles.actionTitle}>Marketplace</Text>
             <Text style={styles.actionDesc}>Land, cars & items</Text>
@@ -58,7 +62,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
               end={{ x: 1, y: 1 }}
               style={styles.actionIcon}
             >
-              <ShieldCheck color='#0F172A' size={24} />
+              <ShieldCheck color={colors.text} size={24} />
             </LinearGradient>
             <Text style={styles.actionTitle}>Admin Group</Text>
             <Text style={styles.actionDesc}>Restricted access</Text>
@@ -71,7 +75,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
               end={{ x: 1, y: 1 }}
               style={styles.actionIcon}
             >
-              <Users color='#0F172A' size={24} />
+              <Users color={colors.text} size={24} />
             </LinearGradient>
             <Text style={styles.actionTitle}>Member Directory</Text>
             <Text style={styles.actionDesc}>Browse all members</Text>
@@ -86,7 +90,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
               end={{ x: 1, y: 1 }}
               style={styles.actionIcon}
             >
-              <Megaphone color='#0F172A' size={24} />
+              <Megaphone color={colors.text} size={24} />
             </LinearGradient>
             <Text style={styles.actionTitle}>Announcements</Text>
             <Text style={styles.actionDesc}>Society updates</Text>
@@ -103,7 +107,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
             onPress={() => navigation.navigate('Marketplace', { category: 'land_and_property' })}
           >
             <View style={[styles.hubRowIcon, { backgroundColor: '#10B981' }]}>
-              <Home color='#0F172A' size={24} />
+              <Home color={colors.text} size={24} />
             </View>
             <View style={styles.hubRowText}>
               <Text style={styles.hubRowTitle}>Land & Property</Text>
@@ -111,9 +115,9 @@ export default function CoopHubScreen({ navigation: rawNav }) {
             </View>
             <View style={styles.hubRowBadges}>
               <View style={styles.hubBadge}>
-                <MapPin color="#047857" size={18} />
+                <MapPin color={colors.primaryDark} size={18} />
               </View>
-              <ChevronRight color="#047857" size={20} />
+              <ChevronRight color={colors.primaryDark} size={20} />
             </View>
           </TouchableOpacity>
 
@@ -124,7 +128,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
             onPress={() => navigation.navigate('Marketplace', { category: 'vehicles_and_appliances' })}
           >
             <View style={[styles.hubRowIcon, { backgroundColor: '#3B82F6' }]}>
-              <Car color='#0F172A' size={24} />
+              <Car color={colors.text} size={24} />
             </View>
             <View style={styles.hubRowText}>
               <Text style={styles.hubRowTitle}>Vehicles & Home Appliances</Text>
@@ -134,7 +138,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
               <View style={[styles.hubBadge, { backgroundColor: '#1D2433' }]}>
                 <Car color="#93C5FD" size={18} />
               </View>
-              <ChevronRight color="#047857" size={20} />
+              <ChevronRight color={colors.primaryDark} size={20} />
             </View>
           </TouchableOpacity>
 
@@ -145,13 +149,13 @@ export default function CoopHubScreen({ navigation: rawNav }) {
             onPress={() => navigation.navigate('MeetingChat')}
           >
             <View style={[styles.hubRowIcon, { backgroundColor: '#8B5CF6' }]}>
-              <MessageSquare color='#0F172A' size={24} />
+              <MessageSquare color={colors.text} size={24} />
             </View>
             <View style={styles.hubRowText}>
               <Text style={styles.hubRowTitle}>Meeting Chat</Text>
               <Text style={styles.hubRowSub}>Discuss & decide with members</Text>
             </View>
-            <ChevronRight color="#047857" size={20} />
+            <ChevronRight color={colors.primaryDark} size={20} />
           </TouchableOpacity>
         </View>
 
@@ -160,10 +164,10 @@ export default function CoopHubScreen({ navigation: rawNav }) {
         <View style={styles.listContainer}>
           <TouchableOpacity style={styles.listItem}>
             <View style={styles.listLeft}>
-              <Users color="#047857" size={20} />
+              <Users color={colors.primaryDark} size={20} />
               <Text style={styles.listTitle}>Member Directory</Text>
             </View>
-            <ChevronRight color="#9CB8A6" size={18} />
+            <ChevronRight color={colors.textSecondary} size={18} />
           </TouchableOpacity>
 
         </View>
@@ -173,7 +177,7 @@ export default function CoopHubScreen({ navigation: rawNav }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
 container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -222,3 +226,5 @@ container: { flex: 1, backgroundColor: '#F4F7F5' },
   listTitle: { color: '#0F172A', fontSize: 13, fontWeight: '600' },
   listSub: { color: '#9CB8A6', fontSize: 11, marginTop: 2 },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

@@ -11,6 +11,8 @@ import {
   Switch,
   Alert,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { Bell, CalendarClock, Volume2, Music } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
@@ -20,6 +22,8 @@ import { useUser } from '../context/UserContext';
 const SOUNDS = ['Chime', 'Ping', 'Marimba', 'Coop Drum'];
 
 export default function NotificationsScreen({ navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   const { user, updateUser } = useUser();
   const [remindersEnabled, setRemindersEnabled] = useState(user.remindersEnabled);
@@ -166,7 +170,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
                 style={styles.deviceAudioBtn}
                 onPress={() => pickDeviceAudio()}
               >
-                <Music size={16} color='#0F172A' />
+                <Music size={16} color={colors.text} />
                 <Text style={styles.deviceAudioText}>
                   {alertSoundUri
                     ? `Custom: ${alertSoundName}`
@@ -188,7 +192,7 @@ export default function NotificationsScreen({ navigation: rawNav }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -321,3 +325,6 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
 });
+
+
+const styles = makeStyles(themes.darkEmerald, true);

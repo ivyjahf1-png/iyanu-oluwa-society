@@ -9,6 +9,8 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { X, ArrowRight } from 'lucide-react-native';
 import SafeImage from './SafeImage';
 import { useBanners } from '../context/BannerContext';
@@ -26,6 +28,8 @@ import { useBanners } from '../context/BannerContext';
  * banner's display window expires).
  */
 export default function BroadcastModal() {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const { visibleBanners, dismissBanner } = useBanners();
   const [hasShown, setHasShown] = useState(false);
 
@@ -60,7 +64,7 @@ export default function BroadcastModal() {
               onPress={() => dismissBanner(current.id)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <X size={16} color='#0F172A' />
+              <X size={16} color={colors.text} />
             </TouchableOpacity>
           </View>
         </View>
@@ -106,7 +110,7 @@ export default function BroadcastModal() {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.closeBtn} onPress={() => dismissBanner(current.id)}>
-              <X size={16} color="#047857" />
+              <X size={16} color={colors.primaryDark} />
               <Text style={styles.closeText}>Close</Text>
             </TouchableOpacity>
           </View>
@@ -118,7 +122,7 @@ export default function BroadcastModal() {
 
 const { width } = Dimensions.get('window');
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(4,10,8,0.82)',
@@ -206,3 +210,6 @@ const styles = StyleSheet.create({
   },
   closeText: { color: '#047857', fontSize: 13, fontWeight: '600' },
 });
+
+
+const styles = makeStyles(themes.darkEmerald, true);

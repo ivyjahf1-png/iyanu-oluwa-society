@@ -10,6 +10,8 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { Zap, Landmark, Upload, Send, Copy } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
@@ -19,6 +21,8 @@ import { supabase } from '../lib/supabase';
 import { useBankDetails } from '../context/BankContext';
 
 export default function FundWalletScreen({ navigation: rawNav, route }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
 
   // Route params from the Method of Payment screen (contribution metadata).
@@ -210,7 +214,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
                 <Text style={[styles.detailValue, styles.accountNumber]}>
                   {flwAccountNumber || '—'}
                 </Text>
-                {flwAccountNumber ? <Copy size={15} color="#10B981" /> : null}
+                {flwAccountNumber ? <Copy size={15} color={colors.success} /> : null}
               </View>
             </TouchableOpacity>
 
@@ -241,7 +245,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
               <Text style={styles.detailLabel}>Account Number</Text>
               <View style={styles.copyRow}>
                 <Text style={[styles.detailValue, styles.accountNumber]}>{coopAccountNumber || "Not configured"}</Text>
-                <Copy size={15} color="#10B981" />
+                <Copy size={15} color={colors.success} />
               </View>
             </TouchableOpacity>
             <View style={styles.detailRow}>
@@ -272,7 +276,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
             />
 
             <TouchableOpacity style={styles.uploadBtn} onPress={pickReceipt}>
-              <Upload size={20} color="#10B981" />
+              <Upload size={20} color={colors.success} />
               <View style={styles.uploadTextGroup}>
                 <Text style={styles.uploadTitle} numberOfLines={1}>
                   {receipt ? receipt.name : 'Upload Transfer Receipt'}
@@ -286,7 +290,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
               onPress={submitManualDeposit}
               disabled={submitting}
             >
-              <Send size={18} color='#0F172A' />
+              <Send size={18} color={colors.text} />
               <Text style={styles.submitBtnText}>
                 {submitting ? 'Submitting…' : 'Submit Deposit for Approval'}
               </Text>
@@ -297,7 +301,7 @@ export default function FundWalletScreen({ navigation: rawNav, route }) {
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -486,3 +490,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
+
+
+const styles = makeStyles(themes.darkEmerald, true);

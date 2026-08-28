@@ -24,6 +24,8 @@ const DEFAULTS = {
   soundAlertsEnabled: true,
   alertSound: 'Chime',
   alertSoundUri: null,
+  // Feature icon size preference: 'small' | 'medium' | 'large'
+  iconSize: 'medium',
 };
 
 const UserContext = createContext(null);

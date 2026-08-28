@@ -16,6 +16,9 @@ import {
   ResolvableThemeName,
   AppColors,
 } from './colors';
+// Static-layer bridge: keeps the legacy COLORS object in sync so every
+// screen referencing it (inline reads) follows the active theme.
+import { syncStaticTheme } from '../constants/theme';
 
 const STORAGE_KEY = '@ius_theme_name';
 
@@ -72,6 +75,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const resolvedName: ResolvableThemeName = resolveThemeName(themeName, systemScheme);
   const colors: AppColors = themes[resolvedName];
   const isDark = resolvedName !== 'designerLight';
+
+  // Push the resolved theme into the static palette layer so screens
+  // referencing COLORS (constants/theme) follow the active theme too.
+  syncStaticTheme(isDark, colors);
 
   const value = useMemo(
     () => ({

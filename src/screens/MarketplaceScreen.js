@@ -10,6 +10,8 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import SafeImage from '../components/SafeImage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import {
@@ -46,6 +48,8 @@ const CATEGORY_PARAM_MAP = {
 };
 
 export default function MarketplaceScreen({ navigation: rawNav, route }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   const { items: adminItems } = useMarketItems();
   const [category, setCategory] = useState(
@@ -76,14 +80,14 @@ export default function MarketplaceScreen({ navigation: rawNav, route }) {
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeft size={24} color="#047857" />
+          <ChevronLeft size={24} color={colors.primaryDark} />
         </TouchableOpacity>
         <Text style={styles.topBarTitle}>Member Marketplace</Text>
       </View>
 
       {/* Search */}
       <View style={styles.searchBar}>
-        <Search size={20} color="#9CB8A6" />
+        <Search size={20} color={colors.textSecondary} />
         <TextInput
           style={styles.searchInput}
           value={query}
@@ -134,9 +138,9 @@ export default function MarketplaceScreen({ navigation: rawNav, route }) {
                   {item.imageUri ? (
                     <SafeImage source={{ uri: item.imageUri }} style={styles.cardMediaImage} />
                   ) : Icon ? (
-                    <Icon size={34} color="#047857" />
+                    <Icon size={34} color={colors.primaryDark} />
                   ) : (
-                    <ShoppingBag size={34} color="#047857" />
+                    <ShoppingBag size={34} color={colors.primaryDark} />
                   )}
                   <TouchableOpacity onPress={() => toggleFavorite(item.id)} style={styles.favBtn}>
                     <Heart size={18} color={fav ? '#C0392B' : '#9CB8A6'} fill={fav ? '#C0392B' : 'transparent'} />
@@ -146,7 +150,7 @@ export default function MarketplaceScreen({ navigation: rawNav, route }) {
                   <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
                   <Text style={styles.cardPrice}>{item.price}</Text>
                   <View style={styles.cardLocRow}>
-                    <MapPin size={12} color="#9CB8A6" />
+                    <MapPin size={12} color={colors.textSecondary} />
                     <Text style={styles.cardLoc} numberOfLines={1}>{item.location}</Text>
                   </View>
                 </View>
@@ -157,7 +161,7 @@ export default function MarketplaceScreen({ navigation: rawNav, route }) {
 
         {filtered.length === 0 && (
           <View style={styles.empty}>
-            <ShoppingBag size={40} color="#9CB8A6" />
+            <ShoppingBag size={40} color={colors.textSecondary} />
             <Text style={styles.emptyText}>No listings match your search.</Text>
           </View>
         )}
@@ -166,7 +170,7 @@ export default function MarketplaceScreen({ navigation: rawNav, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: '#06130D' 
@@ -313,3 +317,5 @@ const styles = StyleSheet.create({
     marginTop: 10 
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

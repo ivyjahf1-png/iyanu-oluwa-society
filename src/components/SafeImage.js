@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Image } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 
 /**
  * Drop-in replacement for <Image /> with built-in failure resilience:
@@ -9,6 +11,8 @@ import { StyleSheet, View, Image } from 'react-native';
  * All props are passed straight through to the underlying Image.
  */
 export default function SafeImage({ style, ...rest }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const [status, setStatus] = useState('loading'); // 'loading' | 'loaded' | 'error'
 
   // Re-validate whenever the source changes.
@@ -30,10 +34,12 @@ export default function SafeImage({ style, ...rest }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   placeholder: {
     backgroundColor: '#132620',
     justifyContent: 'center',
     alignItems: 'center',
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

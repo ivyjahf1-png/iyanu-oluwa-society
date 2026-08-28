@@ -3,6 +3,8 @@ import {
   StyleSheet, Text, View, ScrollView, TouchableOpacity, SafeAreaView,
   StatusBar, TextInput, Alert, Switch,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import * as DocumentPicker from 'expo-document-picker';
 import { Plus, Upload, Trash2, ImageIcon, Megaphone } from 'lucide-react-native';
 import SafeImage from '../components/SafeImage';
@@ -15,6 +17,8 @@ const CATEGORIES = [
 ];
 
 export default function BannerManagerScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const { banners, addBanner, updateBanner, removeBanner } = useBanners();
   const [tab, setTab] = useState('full');
   const [title, setTitle] = useState('');
@@ -97,7 +101,7 @@ export default function BannerManagerScreen({ navigation }) {
           <View style={styles.card}>
             <TouchableOpacity style={styles.uploadBox} onPress={() => pickImage(setFullImage)}>
               {fullImage ? <SafeImage source={{ uri: fullImage }} style={styles.preview} />
-                : (<View style={styles.uploadInner}><Upload size={26} color="#10B981" /><Text style={styles.uploadText}>Tap to upload banner photo</Text></View>)}
+                : (<View style={styles.uploadInner}><Upload size={26} color={colors.success} /><Text style={styles.uploadText}>Tap to upload banner photo</Text></View>)}
             </TouchableOpacity>
             <Text style={styles.label}>Title</Text>
             <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="e.g. New Land Listing" placeholderTextColor="#526E63" />
@@ -117,7 +121,7 @@ export default function BannerManagerScreen({ navigation }) {
               <Switch value={fullActive} onValueChange={setFullActive} trackColor={{ false: '#D1FAE5', true: '#10B981' }} thumbColor='#FFFFFF' />
             </View>
             <TouchableOpacity style={styles.publishBtn} onPress={publishFull}>
-              <Plus size={18} color='#0F172A' />
+              <Plus size={18} color={colors.text} />
               <Text style={styles.publishText}>Publish Full Banner</Text>
             </TouchableOpacity>
           </View>
@@ -125,7 +129,7 @@ export default function BannerManagerScreen({ navigation }) {
           <View style={styles.card}>
             <TouchableOpacity style={styles.uploadBox} onPress={() => pickImage(setPhotoUri)}>
               {photoUri ? <SafeImage source={{ uri: photoUri }} style={styles.preview} />
-                : (<View style={styles.uploadInner}><Upload size={26} color="#10B981" /><Text style={styles.uploadText}>Tap to upload photo only</Text></View>)}
+                : (<View style={styles.uploadInner}><Upload size={26} color={colors.success} /><Text style={styles.uploadText}>Tap to upload photo only</Text></View>)}
             </TouchableOpacity>
             {durationField}
             <View style={styles.switchRow}>
@@ -133,7 +137,7 @@ export default function BannerManagerScreen({ navigation }) {
               <Switch value={photoActive} onValueChange={setPhotoActive} trackColor={{ false: '#D1FAE5', true: '#10B981' }} thumbColor='#FFFFFF' />
             </View>
             <TouchableOpacity style={styles.publishBtn} onPress={publishPhoto}>
-              <Plus size={18} color='#0F172A' />
+              <Plus size={18} color={colors.text} />
               <Text style={styles.publishText}>Publish Photo Banner</Text>
             </TouchableOpacity>
           </View>
@@ -163,7 +167,7 @@ export default function BannerManagerScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F7F5' },
   scroll: { flex: 1 },
   tabs: { flexDirection: 'row', backgroundColor: '#132620', borderRadius: 12, marginHorizontal: 16, marginVertical: 12, padding: 4 },
@@ -203,3 +207,5 @@ const styles = StyleSheet.create({
   rowMeta: { color: '#4B6358', fontSize: 11, marginTop: 2 },
   rowActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

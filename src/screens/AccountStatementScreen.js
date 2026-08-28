@@ -24,6 +24,8 @@ import ScreenHeader from '../components/ScreenHeader';
 import { useTransactions } from '../context/TransactionsContext';
 import { fetchReceiptByReference, generateReceiptPdf } from '../lib/receipt';
 import { isServerConfigured } from '../lib/ledger';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 
 // ---------------------------------------------------------------------------
 // Transaction ledger engine — built ENTIRELY from the real audit-trail
@@ -46,7 +48,35 @@ const fmt = n =>
   Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function AccountStatementScreen({ navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
+
+  // Theme-aware overrides so every surface follows the active theme.
+  const t = {
+    container: [styles.container, { backgroundColor: colors.background }],
+    actionBtn: [styles.actionBtn, { backgroundColor: colors.card }],
+    shareBtn: [styles.shareBtn, { backgroundColor: colors.primaryDark }],
+    generateBtn: [styles.generateBtn, { backgroundColor: colors.primary }],
+    actionBtnText: [styles.actionBtnText, { color: isDark ? colors.text : '#FFFFFF' }],
+    summaryCard: [styles.summaryCard, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }],
+    summaryLabel: [styles.summaryLabel, { color: colors.primary }],
+    summaryValue: [styles.summaryValue, { color: colors.text }],
+    summaryMeta: [styles.summaryMeta, { color: colors.textSecondary }],
+    debitText: [styles.debitText, { color: colors.danger }],
+    ledgerTitle: [styles.ledgerTitle, { color: colors.text }],
+    ledgerRow: [styles.ledgerRow, { backgroundColor: colors.card, borderColor: colors.border }],
+    creditIcon: [styles.creditIcon, { backgroundColor: colors.surface }],
+    debitIcon: [styles.debitIcon, { backgroundColor: colors.surface }],
+    ledgerLabel: [styles.ledgerLabel, { color: colors.text }],
+    ledgerDate: [styles.ledgerDate, { color: colors.textSecondary }],
+    creditAmount: [styles.creditAmount, { color: colors.success }],
+    debitAmount: [styles.debitAmount, { color: colors.danger }],
+    runningBalance: [styles.runningBalance, { color: colors.textSecondary }],
+    receiptRowBtn: [styles.receiptRowBtn, { backgroundColor: colors.surface }],
+    pdfReadyCard: [styles.pdfReadyCard, { backgroundColor: colors.card, borderColor: colors.primary }],
+    pdfReadyText: [styles.pdfReadyText, { color: colors.text }],
+  };
   const { transactions } = useTransactions();
 
   const ledger = useMemo(() => buildLedger(transactions), [transactions]);
@@ -184,8 +214,8 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor='#F4F7F5' />
+    <SafeAreaView style={t.container}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <ScreenHeader
         title="Account Statement"
         subtitle="Transaction ledger & downloadable report"
@@ -194,53 +224,53 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
 
       {/* Print & Share actions */}
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.actionBtn} onPress={printStatement}>
-          <Printer size={17} color='#0F172A' />
-          <Text style={styles.actionBtnText}>Print</Text>
+        <TouchableOpacity style={t.actionBtn} onPress={printStatement}>
+          <Printer size={17} color={colors.text} />
+          <Text style={t.actionBtnText}>Print</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionBtn, styles.shareBtn]} onPress={sharePdf}>
-          <Share2 size={17} color='#0F172A' />
-          <Text style={styles.actionBtnText}>Share PDF</Text>
+        <TouchableOpacity style={[t.actionBtn, t.shareBtn]} onPress={sharePdf}>
+          <Share2 size={17} color={t.actionBtnText[1].color} />
+          <Text style={t.actionBtnText}>Share PDF</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.actionBtn, styles.generateBtn]}
+          style={[t.actionBtn, t.generateBtn]}
           onPress={generatePdf}
           disabled={generating}
         >
           {generating ? (
-            <ActivityIndicator size="small" color='#0F172A' />
+            <ActivityIndicator size="small" color={t.actionBtnText[1].color} />
           ) : (
-            <FileText size={17} color='#0F172A' />
+            <FileText size={17} color={t.actionBtnText[1].color} />
           )}
-          <Text style={styles.actionBtnText}>{generating ? '…' : 'Generate'}</Text>
+          <Text style={t.actionBtnText}>{generating ? '…' : 'Generate'}</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={[styles.content, styles.grow]} showsVerticalScrollIndicator={true}>
         {/* Summary card */}
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Closing Balance</Text>
-          <Text style={styles.summaryValue}>₦{fmt(totals.closing)}</Text>
+        <View style={t.summaryCard}>
+          <Text style={t.summaryLabel}>Closing Balance</Text>
+          <Text style={t.summaryValue}>₦{fmt(totals.closing)}</Text>
           <View style={styles.summaryMetaRow}>
-            <Text style={styles.summaryMeta}>Credits: ₦{fmt(totals.credits)}</Text>
-            <Text style={[styles.summaryMeta, styles.debitText]}>Debits: ₦{fmt(totals.debits)}</Text>
+            <Text style={t.summaryMeta}>Credits: ₦{fmt(totals.credits)}</Text>
+            <Text style={[t.summaryMeta, t.debitText]}>Debits: ₦{fmt(totals.debits)}</Text>
           </View>
         </View>
 
         {/* Ledger */}
-        <Text style={styles.ledgerTitle}>Transaction Ledger</Text>
+        <Text style={t.ledgerTitle}>Transaction Ledger</Text>
         {ledger.map(entry => (
-          <View key={entry.id} style={styles.ledgerRow}>
-            <View style={[styles.ledgerIcon, entry.type === 'credit' ? styles.creditIcon : styles.debitIcon]}>
+          <View key={entry.id} style={t.ledgerRow}>
+            <View style={[styles.ledgerIcon, entry.type === 'credit' ? t.creditIcon : t.debitIcon]}>
               {entry.type === 'credit' ? (
-                <ArrowDownLeft size={16} color="#10B981" />
+                <ArrowDownLeft size={16} color={colors.success} />
               ) : (
-                <ArrowUpRight size={16} color="#C0392B" />
+                <ArrowUpRight size={16} color={colors.danger} />
               )}
             </View>
             <View style={styles.ledgerInfo}>
-              <Text style={styles.ledgerLabel}>{entry.label}</Text>
-              <Text style={styles.ledgerDate}>
+              <Text style={t.ledgerLabel}>{entry.label}</Text>
+              <Text style={t.ledgerDate}>
                 {new Date(entry.date).toLocaleDateString('en-GB', {
                   day: '2-digit',
                   month: 'short',
@@ -249,27 +279,27 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
               </Text>
             </View>
             <View style={styles.ledgerAmounts}>
-              <Text style={entry.type === 'credit' ? styles.creditAmount : styles.debitAmount}>
+              <Text style={entry.type === 'credit' ? t.creditAmount : t.debitAmount}>
                 {entry.type === 'credit' ? '+' : '-'}₦{fmt(entry.amount)}
               </Text>
-              <Text style={styles.runningBalance}>Bal ₦{fmt(entry.running)}</Text>
+              <Text style={t.runningBalance}>Bal ₦{fmt(entry.running)}</Text>
             </View>
             {entry.reference && isServerConfigured() ? (
               <TouchableOpacity
-                style={styles.receiptRowBtn}
+                style={t.receiptRowBtn}
                 onPress={() => viewReceipt(entry)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <FileText size={14} color="#10B981" />
+                <FileText size={14} color={colors.primary} />
               </TouchableOpacity>
             ) : null}
           </View>
         ))}
 
         {pdfUri ? (
-          <View style={styles.pdfReadyCard}>
-            <FileText size={16} color="#10B981" />
-            <Text style={styles.pdfReadyText}>PDF statement generated and ready to share.</Text>
+          <View style={t.pdfReadyCard}>
+            <FileText size={16} color={colors.primary} />
+            <Text style={t.pdfReadyText}>PDF statement generated and ready to share.</Text>
           </View>
         ) : null}
       </ScrollView>
@@ -277,7 +307,7 @@ export default function AccountStatementScreen({ navigation: rawNav }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -384,3 +414,5 @@ const styles = StyleSheet.create({
   },
   pdfReadyText: { color: '#0F172A', fontSize: 12 },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

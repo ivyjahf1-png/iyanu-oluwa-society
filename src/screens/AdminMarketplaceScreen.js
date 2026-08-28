@@ -12,6 +12,8 @@ import {
   Image,
   Modal,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import SafeImage from '../components/SafeImage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import {
@@ -29,6 +31,8 @@ import ScreenHeader from '../components/ScreenHeader';
 import { useMarketItems } from '../context/MarketItemsContext';
 
 export default function AdminMarketplaceScreen({ navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   const { items, addItem, removeItem, updateItem } = useMarketItems();
 
@@ -148,7 +152,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 <SafeImage source={{ uri: imageUri }} style={styles.imagePreview} />
               ) : (
                 <>
-                  <Upload size={26} color="#10B981" />
+                  <Upload size={26} color={colors.success} />
                   <Text style={styles.imagePickerText}>Tap to upload item photo</Text>
                 </>
               )}
@@ -187,7 +191,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
             />
 
             <TouchableOpacity style={styles.submitBtn} onPress={submitItem}>
-              <Plus size={17} color='#0F172A' />
+              <Plus size={17} color={colors.text} />
               <Text style={styles.submitBtnText}>Publish Item</Text>
             </TouchableOpacity>
           </View>
@@ -195,7 +199,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
 
         {/* Real-time search */}
         <View style={styles.searchBar}>
-          <Search size={18} color='#8EA89D' />
+          <Search size={18} color={colors.textSecondary} />
           <TextInput
             style={styles.searchInput}
             value={query}
@@ -209,7 +213,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
         {/* Inventory results */}
         {filtered.length === 0 ? (
           <View style={styles.emptyState}>
-            <PackageOpen size={40} color="#9CB8A6" />
+            <PackageOpen size={40} color={colors.textSecondary} />
             <Text style={styles.emptyTitle}>No results found</Text>
             <Text style={styles.emptySub}>
               {items.length === 0
@@ -224,7 +228,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                 <SafeImage source={{ uri: item.imageUri }} style={styles.itemThumb} />
               ) : (
                 <View style={[styles.itemThumb, styles.itemThumbPlaceholder]}>
-                  <PackageOpen size={20} color="#10B981" />
+                  <PackageOpen size={20} color={colors.success} />
                 </View>
               )}
               <View style={styles.itemInfo}>
@@ -237,16 +241,16 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
                   onPress={() => setViewItem(item)}
                   style={[styles.actionBtn, styles.viewBtn]}
                 >
-                  <Eye size={16} color='#0F172A' />
+                  <Eye size={16} color={colors.text} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => openEdit(item)}
                   style={[styles.actionBtn, styles.editBtn]}
                 >
-                  <Pencil size={16} color='#0F172A' />
+                  <Pencil size={16} color={colors.text} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => removeItem(item.id)} style={styles.deleteBtn}>
-                  <Trash2 size={17} color="#C0392B" />
+                  <Trash2 size={17} color={colors.danger} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -329,7 +333,7 @@ export default function AdminMarketplaceScreen({ navigation: rawNav }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   // View / Edit / Delete action buttons
   actionsRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   actionBtn: {
@@ -556,3 +560,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+
+const styles = makeStyles(themes.darkEmerald, true);

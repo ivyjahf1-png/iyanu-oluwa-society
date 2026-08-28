@@ -11,6 +11,8 @@ import {
   Linking,
   RefreshControl,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { CheckCircle2, XCircle, RefreshCw, FileText } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
@@ -18,6 +20,8 @@ import { supabase } from '../lib/supabase';
 import { reconcileWallets, fetchPendingPayments, approvePayment } from '../lib/ledger';
 
 export default function AdminDepositsScreen({ navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   const [deposits, setDeposits] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -182,7 +186,7 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
 
       {item.receipt_url ? (
         <TouchableOpacity style={styles.receiptBtn} onPress={() => openReceipt(item.receipt_url)}>
-          <FileText size={16} color="#10B981" />
+          <FileText size={16} color={colors.success} />
           <Text style={styles.receiptBtnText}>View uploaded receipt</Text>
         </TouchableOpacity>
       ) : (
@@ -195,7 +199,7 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
           onPress={() => approve(item)}
           disabled={processing === item.id}
         >
-          <CheckCircle2 size={16} color='#0F172A' />
+          <CheckCircle2 size={16} color={colors.text} />
           <Text style={styles.approveText}>
             {processing === item.id ? 'Working…' : 'Approve'}
           </Text>
@@ -205,7 +209,7 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
           onPress={() => reject(item)}
           disabled={processing === item.id}
         >
-          <XCircle size={16} color='#0F172A' />
+          <XCircle size={16} color={colors.text} />
           <Text style={styles.rejectText}>Reject</Text>
         </TouchableOpacity>
       </View>
@@ -235,7 +239,7 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
         refreshControl={<RefreshControl refreshing={loading} onRefresh={loadPending} />}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <RefreshCw size={34} color="#9CB8A6" />
+            <RefreshCw size={34} color={colors.textSecondary} />
             <Text style={styles.emptyText}>No pending deposits right now.</Text>
           </View>
         }
@@ -243,7 +247,7 @@ export default function AdminDepositsScreen({ navigation: rawNav }) {
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F7F5' },
   reconcileBtn: {
     flexDirection: 'row',
@@ -346,3 +350,5 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

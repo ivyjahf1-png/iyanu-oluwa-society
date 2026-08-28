@@ -38,6 +38,8 @@ import {
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import ScreenHeader from '../components/ScreenHeader';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { getAllSettings, saveSettings, supabase, isServerConfigured } from '../lib/supabase';
 import { fetchPendingPayments } from '../lib/ledger';
 import { useBankDetails } from '../context/BankContext';
@@ -61,9 +63,10 @@ const naira = n =>
   '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function AdminSettingsScreen({ navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   const { setBankDetails } = useBankDetails();
-  const { colors, isDark } = useAppTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -473,13 +476,13 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         {/* Control Panel â€” full admin menu */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
-            <ShieldCheck size={18} color="#10B981" />
+            <ShieldCheck size={18} color={colors.success} />
             <Text style={styles.sectionTitle}>Admin Dashboard</Text>
           </View>
 
           <TouchableOpacity style={styles.controlRow} onPress={() => {}}>
             <View style={[styles.controlIcon, { backgroundColor: '#0F4C38' }]}>
-              <Landmark size={18} color="#10B981" />
+              <Landmark size={18} color={colors.success} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.controlTitle}>Admin Settings</Text>
@@ -496,7 +499,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               <Text style={styles.controlTitle}>Verify Deposits</Text>
               <Text style={styles.controlSub}>Review pending manual funding proofs</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminMarketplace')}>
@@ -507,7 +510,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               <Text style={styles.controlTitle}>Marketplace Dashboard</Text>
               <Text style={styles.controlSub}>Upload & manage marketplace inventory</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('Announcements')}>
@@ -518,7 +521,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               <Text style={styles.controlTitle}>Channels & Announcements</Text>
               <Text style={styles.controlSub}>Broadcast announcements to members</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('SocietyHub')}>
@@ -529,7 +532,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               <Text style={styles.controlTitle}>Society Hub</Text>
               <Text style={styles.controlSub}>Membership status & community activities</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminUserManagement')}>
@@ -540,25 +543,25 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               <Text style={styles.controlTitle}>User Management</Text>
               <Text style={styles.controlSub}>Monitor members, reset passwords & suspend accounts</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlRow} onPress={handleClearAllData}>
             <View style={[styles.controlIcon, { backgroundColor: '#4A1D24' }]}>
-              <Trash2 size={18} color="#F87171" />
+              <Trash2 size={18} color={colors.danger} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.controlTitle, { color: '#F87171' }]}>Clear All Data (Dev)</Text>
               <Text style={styles.controlSub}>Developer reset â€” wipes local accounts</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* ADMIN OVERVIEW — figures read live from the backend tables */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
-            <Landmark size={18} color="#10B981" />
+            <Landmark size={18} color={colors.success} />
             <Text style={styles.sectionTitle}>Admin Overview</Text>
             <TouchableOpacity
               style={{ marginLeft: 'auto' }}
@@ -571,7 +574,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 
           {metricsLoading && !metrics ? (
             <View style={styles.metricsLoading}>
-              <ActivityIndicator size="small" color="#10B981" />
+              <ActivityIndicator size="small" color={colors.success} />
               <Text style={styles.sectionHint}>Loading cooperative figures…</Text>
             </View>
           ) : !metrics ? (
@@ -632,7 +635,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               style={styles.attentionRow}
               onPress={() => navigation.navigate('AdminLoans')}
             >
-              <HandCoins size={16} color="#10B981" />
+              <HandCoins size={16} color={colors.success} />
               <Text style={styles.attentionText}>Pending loan applications</Text>
               <View style={styles.countBadge}>
                 <Text style={styles.countText}>{metrics.pendingLoans}</Text>
@@ -655,7 +658,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
                 style={styles.attentionRow}
                 onPress={() => navigation.navigate('AdminLoans')}
               >
-                <AlertTriangle size={16} color="#F87171" />
+                <AlertTriangle size={16} color={colors.danger} />
                 <Text style={styles.attentionText}>Overdue loans</Text>
                 <View style={[styles.countBadge, { backgroundColor: '#F87171' }]}>
                   <Text style={styles.countText}>{metrics.overdueLoans}</Text>
@@ -667,12 +670,12 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               style={styles.attentionRow}
               onPress={() => navigation.navigate('AdminDeposits')}
             >
-              <ShieldCheck size={16} color="#10B981" />
+              <ShieldCheck size={16} color={colors.success} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.attentionText}>Reconciliation</Text>
                 <Text style={styles.attentionSub}>Verify wallets against the ledger</Text>
               </View>
-              <ChevronRight size={16} color="#9CB8A6" />
+              <ChevronRight size={16} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
         ) : null}
@@ -680,7 +683,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         {/* QUICK ACTIONS — all point at existing screens */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
-            <ShieldCheck size={18} color="#10B981" />
+            <ShieldCheck size={18} color={colors.success} />
             <Text style={styles.sectionTitle}>Quick Actions</Text>
           </View>
 
@@ -694,7 +697,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               <Text style={styles.qaText}>Verify Payment</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.qaCell} onPress={() => navigation.navigate('AdminLoans')}>
-              <HandCoins size={18} color="#10B981" />
+              <HandCoins size={18} color={colors.success} />
               <Text style={styles.qaText}>Approve Loan</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.qaCell} onPress={() => navigation.navigate('AdminLedger')}>
@@ -715,7 +718,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         {/* FINANCIAL MANAGEMENT — routes into the existing screens/RPCs */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
-            <Wallet size={18} color="#10B981" />
+            <Wallet size={18} color={colors.success} />
             <Text style={styles.sectionTitle}>Financial Management</Text>
           </View>
 
@@ -727,18 +730,18 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               <Text style={styles.controlTitle}>Payments & Withdrawals</Text>
               <Text style={styles.controlSub}>Verify, approve or reject pending submissions</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminLoans')}>
             <View style={[styles.controlIcon, { backgroundColor: '#0F4C38' }]}>
-              <HandCoins size={18} color="#10B981" />
+              <HandCoins size={18} color={colors.success} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.controlTitle}>Loans</Text>
               <Text style={styles.controlSub}>Review, approve, reject, disburse & track repayments</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminLedger')}>
@@ -749,7 +752,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               <Text style={styles.controlTitle}>Transaction Ledger</Text>
               <Text style={styles.controlSub}>Immutable record — every credit & debit</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AccountStatement')}>
@@ -760,14 +763,14 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               <Text style={styles.controlTitle}>Statements & Reports</Text>
               <Text style={styles.controlSub}>Statement periods with PDF / share export</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
                 {/* AI Config — edge-function auth with direct Gemini fallback */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
-            <Bot size={18} color="#10B981" />
+            <Bot size={18} color={colors.success} />
             <Text style={styles.sectionTitle}>AI Config</Text>
           </View>
           <Text style={styles.sectionHint}>
@@ -780,12 +783,12 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             style={styles.bannerLink}
             onPress={() => navigation.navigate('AIAssistant')}
           >
-            <Bot size={16} color="#10B981" />
+            <Bot size={16} color={colors.success} />
             <View style={{ flex: 1 }}>
               <Text style={styles.bannerLinkTitle}>Open AI Assistant</Text>
               <Text style={styles.bannerLinkSub}>Talk to the cooperative AI agent</Text>
             </View>
-            <ChevronRight size={18} color="#9CB8A6" />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -796,7 +799,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         {/* Flutterwave credentials */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
-            <Key size={18} color="#10B981" />
+            <Key size={18} color={colors.success} />
             <Text style={styles.sectionTitle}>Flutterwave Gateway</Text>
           </View>
 
@@ -849,7 +852,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         {/* Cooperative bank details */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
-            <Landmark size={18} color="#10B981" />
+            <Landmark size={18} color={colors.success} />
             <Text style={styles.sectionTitle}>Cooperative Bank Account</Text>
           </View>
           <Text style={styles.sectionHint}>
@@ -889,7 +892,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         {/* Loan Eligibility â€” admin-controlled limit (Nigerian coop rule) */}
         <View style={styles.loanSection}>
           <View style={styles.loanHeader}>
-            <Landmark size={18} color="#10B981" />
+            <Landmark size={18} color={colors.success} />
             <Text style={styles.sectionTitle}>Loan Eligibility</Text>
           </View>
           <Text style={styles.sectionHint}>
@@ -946,18 +949,18 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           style={styles.bannerLink}
           onPress={() => navigation.navigate('PromotionalBanners')}
         >
-          <Megaphone size={18} color="#10B981" />
+          <Megaphone size={18} color={colors.success} />
           <View style={{ flex: 1 }}>
             <Text style={styles.bannerLinkTitle}>Promotional Banners</Text>
             <Text style={styles.bannerLinkSub}>Create photo-only or full advert banner popups</Text>
           </View>
-          <ChevronRight size={18} color="#9CB8A6" />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
         {/* Security & Access Control */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
-            <ShieldCheck size={18} color="#10B981" />
+            <ShieldCheck size={18} color={colors.success} />
             <Text style={styles.sectionTitle}>Security &amp; Access Control</Text>
           </View>
           <Text style={styles.sectionHint}>
@@ -977,7 +980,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               maxLength={6}
             />
             <TouchableOpacity style={styles.eyeToggleBtn} onPress={() => setShowAdminPasscode(!showAdminPasscode)}>
-              {showAdminPasscode ? <EyeOff size={18} color="#8EA89D" /> : <Eye size={18} color="#8EA89D" />}
+              {showAdminPasscode ? <EyeOff size={18} color={colors.textSecondary} /> : <Eye size={18} color={colors.textSecondary} />}
             </TouchableOpacity>
           </View>
 
@@ -1008,7 +1011,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           </View>
 
           <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.primary }]} onPress={handleSavePasscode}>
-            <CheckCircle2 size={16} color='#0F172A' />
+            <CheckCircle2 size={16} color={colors.text} />
             <Text style={styles.saveBtnText}>Save Passcode</Text>
           </TouchableOpacity>
         </View>
@@ -1018,7 +1021,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           onPress={saveSettingsHandler}
           disabled={loading || saving}
         >
-          <CheckCircle2 size={18} color='#0F172A' />
+          <CheckCircle2 size={18} color={colors.text} />
           <Text style={styles.saveBtnText}>{saving ? 'Saving\u2026' : 'Save Settings'}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -1026,7 +1029,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: '#06130D' 
@@ -1320,3 +1323,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);
+

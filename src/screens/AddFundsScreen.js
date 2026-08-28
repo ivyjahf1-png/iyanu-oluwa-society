@@ -9,12 +9,16 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { CreditCard, Landmark, ChevronRight, Clock } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { useUser } from '../context/UserContext';
 
 export default function AddFundsScreen({ navigation: rawNav, route }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   const { user } = useUser();
   const [showComingSoon, setShowComingSoon] = useState(false);
@@ -55,13 +59,13 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
           onPress={() => setShowComingSoon(true)}
         >
           <View style={[styles.optionIcon, { backgroundColor: '#D1FAE5' }]}>
-            <CreditCard size={22} color="#10B981" />
+            <CreditCard size={22} color={colors.success} />
           </View>
           <View style={styles.optionTextGroup}>
             <Text style={styles.optionTitle}>Card Payment</Text>
             <Text style={styles.optionSub}>Pay instantly with your debit card</Text>
           </View>
-          <ChevronRight size={18} color="#9CB8A6" />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
         {/* Bank Transfer — opens the Admin Account Details view with metadata */}
@@ -77,7 +81,7 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
           }
         >
           <View style={[styles.optionIcon, { backgroundColor: '#D1FAE5' }]}>
-            <Landmark size={22} color="#10B981" />
+            <Landmark size={22} color={colors.success} />
           </View>
           <View style={styles.optionTextGroup}>
             <Text style={styles.optionTitle}>Bank Transfer</Text>
@@ -85,12 +89,12 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
               Transfer to the official cooperative account
             </Text>
           </View>
-          <ChevronRight size={18} color="#9CB8A6" />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
         {/* Info note */}
         <View style={styles.noteCard}>
-          <Clock size={16} color="#10B981" />
+          <Clock size={16} color={colors.success} />
           <Text style={styles.noteText}>
             Manual cooperative transfers are also available under "Free Bank Transfer" on the Fund
             Wallet screen.
@@ -102,7 +106,7 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
       <Modal visible={showComingSoon} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <CreditCard size={40} color="#10B981" />
+            <CreditCard size={40} color={colors.success} />
             <Text style={styles.modalTitle}>Card Payment Coming Soon</Text>
             <Text style={styles.modalSub}>
               Debit card funding will be available in a future update. Use bank transfer for now.
@@ -120,7 +124,7 @@ export default function AddFundsScreen({ navigation: rawNav, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -233,3 +237,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

@@ -28,8 +28,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AUTH_COLORS, AUTH_GRADIENTS } from '../constants/theme';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 
 export default function SignUpScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const { registerAccount } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -63,6 +67,14 @@ export default function SignUpScreen({ navigation }) {
     }
     if (!emailRegex.test(email)) {
       Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      return false;
+    }
+    // Strict Gmail-only registration policy.
+    if (!/^[^\s@]+@gmail\.com$/.test(email.trim().toLowerCase())) {
+      Alert.alert(
+        'Gmail Required',
+        'Please register using a valid Gmail address (@gmail.com)',
+      );
       return false;
     }
     if (!phone || phone.replace(/\D/g, '').length < 10) {
@@ -224,7 +236,7 @@ export default function SignUpScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: AUTH_COLORS.background },
   gradient: { flex: 1 },
   scrollContent: { paddingHorizontal: 24, paddingVertical: 24 },
@@ -319,3 +331,6 @@ const styles = StyleSheet.create({
   footerTxt: { color: AUTH_COLORS.textSecondary, fontSize: 13 },
   link: { color: AUTH_COLORS.primary, fontSize: 13, fontWeight: '600' },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);
+

@@ -6,15 +6,17 @@ import ScreenWrapper from '../components/ScreenWrapper';
 import { GRADIENTS } from '../constants/theme';
 import { useTransactions } from '../context/TransactionsContext';
 import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 
 const fmt = n =>
   Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function SavingsHubScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   // Total Accumulated Savings derives from the real transaction ledger
   // (contributions + deposits - withdrawals). Starts at ₦0.00.
   const { totalSavings } = useTransactions();
-  const { colors } = useTheme();
 
   return (
     <ScreenWrapper>
@@ -75,7 +77,7 @@ export default function SavingsHubScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 90 },
   headerTitle: { fontSize: 24, fontWeight: '700' },
   headerSub: { fontSize: 13, marginBottom: 16 },
@@ -127,3 +129,5 @@ const styles = StyleSheet.create({
   },
   progressBar: { height: '100%' },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

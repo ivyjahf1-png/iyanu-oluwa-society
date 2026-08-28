@@ -1,11 +1,15 @@
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, SafeAreaView, StatusBar, TouchableOpacity } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { Menu, Settings, ChevronRight, CheckCircle2, PackageOpen, Megaphone, Users, Trash2, Award } from 'lucide-react-native';
 import { Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
 export default function MoreScreen({ navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   const { resetAllAccounts } = useAuth();
 
@@ -32,7 +36,7 @@ export default function MoreScreen({ navigation: rawNav }) {
       <StatusBar barStyle="light-content" backgroundColor="#0B2211" />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={true} contentContainerStyle={[styles.scrollContent, styles.grow]}>
         <View style={styles.headerCard}>
-          <Menu size={40} color="#047857" />
+          <Menu size={40} color={colors.primaryDark} />
           <Text style={styles.title}>More</Text>
           <Text style={styles.subtitle}>Settings, support, and additional services will appear here.</Text>
         </View>
@@ -43,13 +47,13 @@ export default function MoreScreen({ navigation: rawNav }) {
           onPress={() => navigation.navigate('AdminSettings')}
         >
           <View style={[styles.adminIcon, { backgroundColor: '#8B5CF6' }]}>
-            <Settings size={20} color='#0F172A' />
+            <Settings size={20} color={colors.text} />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Admin Settings</Text>
             <Text style={styles.adminSub}>Configure the cooperative bank account</Text>
           </View>
-          <ChevronRight size={18} color="#9CB8A6" />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -57,13 +61,13 @@ export default function MoreScreen({ navigation: rawNav }) {
           onPress={() => navigation.navigate('AdminDeposits')}
         >
           <View style={[styles.adminIcon, { backgroundColor: '#2563EB' }]}>
-            <CheckCircle2 size={20} color='#0F172A' />
+            <CheckCircle2 size={20} color={colors.text} />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Verify Deposits</Text>
             <Text style={styles.adminSub}>Review pending manual funding proofs</Text>
           </View>
-          <ChevronRight size={18} color="#9CB8A6" />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
                 <TouchableOpacity
@@ -71,13 +75,13 @@ export default function MoreScreen({ navigation: rawNav }) {
           onPress={() => navigation.navigate('AdminMarketplace')}
         >
           <View style={[styles.adminIcon, { backgroundColor: '#F59E0B' }]}>
-            <PackageOpen size={20} color='#0F172A' />
+            <PackageOpen size={20} color={colors.text} />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Marketplace Dashboard</Text>
             <Text style={styles.adminSub}>Upload & manage marketplace inventory</Text>
           </View>
-          <ChevronRight size={18} color="#9CB8A6" />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
         {/* Admin exclusive: Channels & Announcements broadcast */}
@@ -86,25 +90,25 @@ export default function MoreScreen({ navigation: rawNav }) {
           onPress={() => navigation.navigate('Announcements')}
         >
           <View style={[styles.adminIcon, { backgroundColor: '#10B981' }]}>
-            <Megaphone size={20} color='#0F172A' />
+            <Megaphone size={20} color={colors.text} />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Channels & Announcements</Text>
             <Text style={styles.adminSub}>Broadcast announcements to members</Text>
           </View>
-          <ChevronRight size={18} color="#9CB8A6" />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
         
         <TouchableOpacity style={styles.adminRow} onPress={() => navigation.navigate('AdminUserManagement')}>
           <View style={[styles.adminIcon, { backgroundColor: '#2563EB' }]}>
-            <Users size={20} color='#0F172A' />
+            <Users size={20} color={colors.text} />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>User Management</Text>
             <Text style={styles.adminSub}>Monitor members, reset passwords & suspend accounts</Text>
           </View>
-          <ChevronRight size={18} color="#9CB8A6" />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
         {/* Member: Society Hub */}
@@ -113,32 +117,32 @@ export default function MoreScreen({ navigation: rawNav }) {
           onPress={() => navigation.navigate('SocietyHub')}
         >
           <View style={[styles.adminIcon, { backgroundColor: '#10B981' }]}>
-            <Award size={20} color='#0F172A' />
+            <Award size={20} color={colors.text} />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Society Hub</Text>
             <Text style={styles.adminSub}>Membership status & community activities</Text>
           </View>
-          <ChevronRight size={18} color="#9CB8A6" />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
 
         {/* Developer: clear all local data */}
         <TouchableOpacity style={styles.adminRow} onPress={confirmClearAllData}>
           <View style={[styles.adminIcon, { backgroundColor: '#C0392B' }]}>
-            <Trash2 size={20} color='#0F172A' />
+            <Trash2 size={20} color={colors.text} />
           </View>
           <View style={styles.adminTextGroup}>
             <Text style={styles.adminTitle}>Clear All Data (Dev)</Text>
             <Text style={styles.adminSub}>Developer reset — wipes local accounts</Text>
           </View>
-          <ChevronRight size={18} color="#9CB8A6" />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: {
@@ -201,3 +205,5 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

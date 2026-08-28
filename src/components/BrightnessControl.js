@@ -1,5 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { Minus, Plus } from 'lucide-react-native';
 
 /**
@@ -8,6 +10,8 @@ import { Minus, Plus } from 'lucide-react-native';
  * Works in steps of 10 so it is easy to hit on any screen size.
  */
 export default function BrightnessControl({ label, hint, value, onChange }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const segments = Array.from({ length: 10 }, (_, i) => (i + 1) * 10);
   const pct = typeof value === 'number' ? value : 100;
 
@@ -25,7 +29,7 @@ export default function BrightnessControl({ label, hint, value, onChange }) {
 
       <View style={styles.barRow}>
         <TouchableOpacity style={styles.stepBtn} onPress={() => step(-10)}>
-          <Minus size={14} color='#0F172A' />
+          <Minus size={14} color={colors.text} />
         </TouchableOpacity>
 
         {/* Segmented bar */}
@@ -46,7 +50,7 @@ export default function BrightnessControl({ label, hint, value, onChange }) {
         </View>
 
         <TouchableOpacity style={styles.stepBtn} onPress={() => step(10)}>
-          <Plus size={14} color='#0F172A' />
+          <Plus size={14} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -55,7 +59,7 @@ export default function BrightnessControl({ label, hint, value, onChange }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   wrap: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
@@ -115,3 +119,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

@@ -9,6 +9,8 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import SafeImage from '../components/SafeImage';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import {
@@ -33,6 +35,8 @@ const CATALOG = [
 ];
 
 export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   // Dynamic admin-uploaded items arrive as a full object; catalog items by id.
   const paramItem = route.params && route.params.item;
@@ -59,7 +63,7 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeft size={24} color="#047857" />
+          <ChevronLeft size={24} color={colors.primaryDark} />
         </TouchableOpacity>
         <Text style={styles.topBarTitle}>Listing Details</Text>
         <TouchableOpacity onPress={() => setFav(!fav)} style={styles.favBtn}>
@@ -73,7 +77,7 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
           {item.imageUri ? (
             <SafeImage source={{ uri: item.imageUri }} style={styles.mediaImage} />
           ) : (
-            <MapPin size={64} color="#047857" />
+            <MapPin size={64} color={colors.primaryDark} />
           )}
         </View>
 
@@ -81,10 +85,10 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
         <Text style={styles.title}>{item.title}</Text>
         <Text style={styles.price}>{item.price}</Text>
         <View style={styles.locationRow}>
-          <MapPin size={14} color="#9CB8A6" />
+          <MapPin size={14} color={colors.textSecondary} />
           <Text style={styles.location}>{item.location}</Text>
           <View style={styles.verifiedBadge}>
-            <CheckCircle2 size={14} color="#10B981" />
+            <CheckCircle2 size={14} color={colors.success} />
             <Text style={styles.verifiedText}>Member Verified</Text>
           </View>
         </View>
@@ -95,7 +99,7 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
 
         {/* Trust card */}
         <View style={styles.trustCard}>
-          <ShieldCheck color="#10B981" size={20} />
+          <ShieldCheck color={colors.success} size={20} />
           <View style={styles.trustTextGroup}>
             <Text style={styles.trustTitle}>Co-op Buyer Protection</Text>
             <Text style={styles.trustSub}>Inspection & escrow available for all member transactions.</Text>
@@ -110,7 +114,7 @@ export default function MarketplaceDetailScreen({ navigation: rawNav, route }) {
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -137,3 +141,5 @@ const styles = StyleSheet.create({
   contactedBtn: { backgroundColor: '#D1FAE5' },
   contactText: { color: '#0F172A', fontWeight: 'bold', fontSize: 14 },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

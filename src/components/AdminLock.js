@@ -17,6 +17,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Fingerprint, Delete, ShieldCheck, KeyRound } from 'lucide-react-native';
 import {
@@ -39,6 +41,10 @@ export function useAdminLock() {
 }
 
 export function AdminLockProvider({ children }) {
+  // Theme colors — with a hard fallback so `colors` can never be undefined
+  // even if this provider renders outside the ThemeProvider.
+  const themeCtx = useTheme();
+  const colors = themeCtx?.colors || themes.darkEmerald;
   const [visible, setVisible] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
@@ -227,7 +233,7 @@ export function AdminLockProvider({ children }) {
 
             {biometricEnabled && biometricAvailable && (
               <TouchableOpacity style={styles.bioBtn} onPress={tryBiometric} disabled={busy}>
-                <Fingerprint size={26} color="#10B981" />
+                <Fingerprint size={26} color={colors.success} />
                 <Text style={styles.bioBtnText}>Use Fingerprint / Face ID</Text>
               </TouchableOpacity>
             )}
@@ -254,11 +260,11 @@ export function AdminLockProvider({ children }) {
                 style={styles.key}
                 onPress={() => !busy && setPin((p) => p.slice(0, -1))}
               >
-                <Delete size={24} color="#8EA89D" />
+                <Delete size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            {busy && <ActivityIndicator color="#10B981" style={{ marginTop: 4 }} />}
+            {busy && <ActivityIndicator color={colors.success} style={{ marginTop: 4 }} />}
 
             <TouchableOpacity style={styles.cancelBtn} onPress={() => complete(false)}>
               <Text style={styles.cancelText}>Cancel</Text>
@@ -277,7 +283,7 @@ export function AdminLockProvider({ children }) {
         <View style={styles.overlay}>
           <View style={styles.recoveryCard}>
             <View style={styles.recoveryHeader}>
-              <KeyRound size={20} color="#10B981" />
+              <KeyRound size={20} color={colors.success} />
               <Text style={styles.recoveryTitle}>Emergency Recovery</Text>
             </View>
             <Text style={styles.recoverySub}>
@@ -289,12 +295,12 @@ export function AdminLockProvider({ children }) {
               value={recoveryKey}
               onChangeText={setRecoveryKey}
               placeholder="Master recovery key"
-              placeholderTextColor="#9CB8A6"
+              placeholderTextColor={colors.textSecondary}
               autoCapitalize="none"
               secureTextEntry
             />
             <TouchableOpacity style={styles.recoveryBtn} onPress={submitRecovery}>
-              <ShieldCheck size={18} color='#0F172A' />
+              <ShieldCheck size={18} color={colors.text} />
               <Text style={styles.recoveryBtnText}>Reset Admin Security</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -312,7 +318,7 @@ export function AdminLockProvider({ children }) {
 
 export default AdminLockProvider;
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(4,10,8,0.92)',
@@ -425,3 +431,6 @@ const styles = StyleSheet.create({
   recoveryBtnText: { color: '#0F172A', fontWeight: 'bold', fontSize: 14 },
   recoveryCancel: { marginTop: 14, alignItems: 'center', padding: 6 },
 });
+
+
+const styles = makeStyles(themes.darkEmerald, true);

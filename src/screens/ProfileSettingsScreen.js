@@ -28,9 +28,12 @@ import ScreenHeader from '../components/ScreenHeader';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import ThemeSelector from '../theme/ThemeSelector';
 
 export default function ProfileSettingsScreen({ navigation: rawNav }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const navigation = useSafeNavigation(rawNav);
   const { user, updateUser } = useUser();
   const {
@@ -44,7 +47,6 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
     displayName: authDisplayName,
   } = useAuth();
   const isInitialRender = useRef(true);
-  const { colors, isDark } = useTheme();
 
   // Factory placeholder that must never mask the real email-derived identity
   // (same rule as the dashboard header, so both screens always agree).
@@ -243,10 +245,10 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
             {user?.avatarUri ? (
               <SafeImage source={{ uri: user.avatarUri }} style={styles.avatarImage} />
             ) : (
-              <User size={40} color="#10B981" />
+              <User size={40} color={colors.success} />
             )}
             <View style={styles.cameraBadge}>
-              <Camera size={13} color='#0F172A' />
+              <Camera size={13} color={colors.text} />
             </View>
           </TouchableOpacity>
           <Text style={[styles.avatarHint, { color: colors.textSecondary }]}>Tap to upload a profile photo</Text>
@@ -428,7 +430,7 @@ export default function ProfileSettingsScreen({ navigation: rawNav }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollView: { flex: 1 },
   grow: { flexGrow: 1 },
   container: { flex: 1, backgroundColor: '#F4F7F5' },
@@ -542,3 +544,6 @@ const styles = StyleSheet.create({
   },
   saveBtnText: { fontWeight: 'bold', fontSize: 14 },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);
+

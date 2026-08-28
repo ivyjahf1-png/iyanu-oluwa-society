@@ -33,6 +33,8 @@ import AdminUserManagementScreen from '../screens/AdminUserManagementScreen';
 import BannerManagerScreen from '../screens/BannerManagerScreen';
 import CoopCreditScreen from '../screens/CoopCreditScreen';
 import SocietyScreen from '../screens/SocietyScreen';
+import MonthlyGeneralMeetingScreen from '../screens/MonthlyGeneralMeetingScreen';
+import DividendDistributionScreen from '../screens/DividendDistributionScreen';
 import ProfileSettingsScreen from '../screens/ProfileSettingsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import SignInScreen from '../screens/SignInScreen';
@@ -46,6 +48,8 @@ import LoanScheduleScreen from '../screens/LoanScheduleScreen';
 import SupportScreen from '../screens/SupportScreen';
 import { useAuth } from '../context/AuthContext';
 import { useAppTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
+import { getIconScale } from '../lib/iconScale';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -56,6 +60,9 @@ const fullScreenOptions = {
 
 function BottomTabs() {
   const { colors } = useAppTheme();
+  // Feature icon size preference (Small / Medium / Large) from the profile.
+  const { user } = useUser();
+  const tabIconScale = getIconScale(user?.iconSize);
   const tabBarOptions = {
     headerShown: false,
     tabBarActiveTintColor: colors.primary,
@@ -80,7 +87,7 @@ function BottomTabs() {
         component={HomeScreen}
         options={{
           title: 'Dashboard',
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Home size={Math.round(size * tabIconScale)} color={color} />,
         }}
       />
       <Tab.Screen
@@ -88,7 +95,7 @@ function BottomTabs() {
         component={SavingsHubScreen}
         options={{
           title: 'Savings Hub',
-          tabBarIcon: ({ color, size }) => <PiggyBank size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <PiggyBank size={Math.round(size * tabIconScale)} color={color} />,
         }}
       />
       <Tab.Screen
@@ -96,7 +103,7 @@ function BottomTabs() {
         component={CoopCreditScreen}
         options={{
           title: 'Co-op Credit',
-          tabBarIcon: ({ color, size }) => <Wallet size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Wallet size={Math.round(size * tabIconScale)} color={color} />,
         }}
       />
       <Tab.Screen
@@ -104,7 +111,7 @@ function BottomTabs() {
         component={SocietyScreen}
         options={{
           title: 'Society',
-          tabBarIcon: ({ color, size }) => <Users size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Users size={Math.round(size * tabIconScale)} color={color} />,
         }}
       />
     </Tab.Navigator>
@@ -155,6 +162,8 @@ export default function AppNavigator() {
           <Stack.Screen name="PromotionalBanners" component={BannerManagerScreen} />
           <Stack.Screen name="CoopCredit" component={CoopCreditScreen} />
           <Stack.Screen name="Society" component={SocietyScreen} />
+          <Stack.Screen name="MonthlyGeneralMeeting" component={MonthlyGeneralMeetingScreen} />
+          <Stack.Screen name="DividendDistribution" component={DividendDistributionScreen} />
           <Stack.Screen name="SocietyHub" component={SocietyScreen} />
           <Stack.Screen name="More" component={MoreScreen} />
           <Stack.Screen name="Co-op Hub" component={CoopHubScreen} />

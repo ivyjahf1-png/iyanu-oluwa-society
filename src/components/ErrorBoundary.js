@@ -1,5 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, StatusBar } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 
 /**
  * Global crash shield. Any unhandled render/runtime error inside the wrapped
@@ -42,7 +44,7 @@ export default class ErrorBoundary extends React.Component {
   }
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#06130D',
@@ -68,3 +70,5 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: '#0F172A', fontWeight: 'bold', fontSize: 14 },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

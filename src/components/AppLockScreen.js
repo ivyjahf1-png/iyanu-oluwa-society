@@ -9,6 +9,8 @@ import {
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Fingerprint, Lock, Delete } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +20,8 @@ import { useAuth } from '../context/AuthContext';
  * Priority: Biometric prompt → Passcode input → full Sign-In fallback.
  */
 export default function AppLockScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
   const { methods, loginWithPasscode, loginWithBiometric } = useAuth();
 
   const [mode, setMode] = useState('biometric');
@@ -80,14 +84,14 @@ export default function AppLockScreen() {
       <LinearGradient colors={['#06130D', '#0A1C14']} style={styles.gradient}>
         <View style={styles.body}>
           <View style={styles.logoRow}>
-            <Lock size={22} color="#10B981" />
+            <Lock size={22} color={colors.success} />
             <Text style={styles.logoText}>Standard Mutual Savings</Text>
           </View>
 
           {mode === 'biometric' && (
             <>
               <TouchableOpacity style={styles.bioBtn} onPress={tryBiometric} activeOpacity={0.8}>
-                <Fingerprint size={64} color="#10B981" />
+                <Fingerprint size={64} color={colors.success} />
               </TouchableOpacity>
               <Text style={styles.title}>Unlock with Biometrics</Text>
               <Text style={styles.subtitle}>Use fingerprint or Face ID to continue</Text>
@@ -126,7 +130,7 @@ export default function AppLockScreen() {
                   <Delete size={22} color="#A7F3D0" />
                 </TouchableOpacity>
               </View>
-              {checking && <ActivityIndicator color="#10B981" style={{ marginTop: 10 }} />}
+              {checking && <ActivityIndicator color={colors.success} style={{ marginTop: 10 }} />}
               <TouchableOpacity onPress={() => setMode('password')}>
                 <Text style={styles.link}>Use password instead</Text>
               </TouchableOpacity>
@@ -205,7 +209,7 @@ function PasswordFallback() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors, isDark) => StyleSheet.create({
   container: { flex: 1, backgroundColor: '#06130D' },
   gradient: { flex: 1 },
   body: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
@@ -270,3 +274,5 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);

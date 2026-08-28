@@ -2,52 +2,81 @@ import React from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { Users, Shield, Award, ChevronRight } from 'lucide-react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../theme/ThemeContext';
+import { themes } from '../theme/colors';
 
-export default function SocietyScreen() {
+export default function SocietyScreen({ navigation }) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors, isDark);
+
+  // Dynamic styles so every surface follows the active theme.
+  const s = {
+    scrollContent: styles.scrollContent,
+    headerTitle: [styles.headerTitle, { color: colors.text }],
+    headerSub: [styles.headerSub, { color: colors.textSecondary }],
+    card: [
+      styles.card,
+      { backgroundColor: colors.card, borderColor: colors.border },
+    ],
+    row: styles.row,
+    iconCircle: [styles.iconCircle, { backgroundColor: colors.surface }],
+    textGroup: styles.textGroup,
+    title: [styles.title, { color: colors.text }],
+    sub: [styles.sub, { color: colors.textSecondary }],
+    sectionTitle: [styles.sectionTitle, { color: colors.text }],
+  };
+
   return (
     <ScreenWrapper>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.headerTitle}>Society Hub</Text>
-        <Text style={styles.headerSub}>Standard Mutual Cooperative Community</Text>
+      <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+        <Text style={s.headerTitle}>Society Hub</Text>
+        <Text style={s.headerSub}>Standard Mutual Cooperative Community</Text>
 
-        <View style={styles.card}>
-          <View style={styles.row}>
-            <View style={styles.iconCircle}>
-              <Shield size={22} color={COLORS.emeraldAccent} />
+        <View style={s.card}>
+          <View style={s.row}>
+            <View style={s.iconCircle}>
+              <Shield size={22} color={colors.primary} />
             </View>
-            <View style={styles.textGroup}>
-              <Text style={styles.title}>Membership Status</Text>
-              <Text style={styles.sub}>Verified Member • ID: #IOS-8842</Text>
+            <View style={s.textGroup}>
+              <Text style={s.title}>Membership Status</Text>
+              <Text style={s.sub}>Verified Member • ID: #IOS-8842</Text>
             </View>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Community Activities</Text>
+        <Text style={s.sectionTitle}>Community Activities</Text>
 
-        <TouchableOpacity style={styles.card}>
-          <View style={styles.row}>
-            <View style={styles.iconCircle}>
-              <Users size={20} color={COLORS.textPrimary} />
+        <TouchableOpacity
+          style={s.card}
+          activeOpacity={0.8}
+          onPress={() => navigation?.navigate?.('MonthlyGeneralMeeting', { date: '1st Sunday of next month' })}
+        >
+          <View style={s.row}>
+            <View style={s.iconCircle}>
+              <Users size={20} color={colors.text} />
             </View>
-            <View style={styles.textGroup}>
-              <Text style={styles.title}>Monthly General Meeting</Text>
-              <Text style={styles.sub}>Scheduled for 1st Sunday of next month</Text>
+            <View style={s.textGroup}>
+              <Text style={s.title}>Monthly General Meeting</Text>
+              <Text style={s.sub}>Scheduled for 1st Sunday of next month</Text>
             </View>
-            <ChevronRight size={18} color={COLORS.textSecondary} />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.card}>
-          <View style={styles.row}>
-            <View style={styles.iconCircle}>
-              <Award size={20} color={COLORS.textPrimary} />
+        <TouchableOpacity
+          style={s.card}
+          activeOpacity={0.8}
+          onPress={() => navigation?.navigate?.('DividendDistribution', { year: '2026' })}
+        >
+          <View style={s.row}>
+            <View style={s.iconCircle}>
+              <Award size={20} color={colors.text} />
             </View>
-            <View style={styles.textGroup}>
-              <Text style={styles.title}>Dividend Distribution</Text>
-              <Text style={styles.sub}>Annual financial ledger report</Text>
+            <View style={s.textGroup}>
+              <Text style={s.title}>Dividend Distribution</Text>
+              <Text style={s.sub}>Annual financial ledger report</Text>
             </View>
-            <ChevronRight size={18} color={COLORS.textSecondary} />
+            <ChevronRight size={18} color={colors.textSecondary} />
           </View>
         </TouchableOpacity>
       </ScrollView>
@@ -55,16 +84,15 @@ export default function SocietyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+// Static layout-only styles; all colors are applied dynamically above.
+const makeStyles = (colors, isDark) => StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 90 },
-  headerTitle: { color: COLORS.textPrimary, fontSize: 24, fontWeight: '700' },
-  headerSub: { color: COLORS.textSecondary, fontSize: 13, marginBottom: 16 },
+  headerTitle: { fontSize: 24, fontWeight: '700' },
+  headerSub: { fontSize: 13, marginBottom: 16 },
   card: {
-    backgroundColor: COLORS.cardBg,
     borderRadius: 16,
     padding: 14,
     borderWidth: 1,
-    borderColor: COLORS.cardBorder,
     marginBottom: 12,
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -72,12 +100,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.iconBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   textGroup: { flex: 1 },
-  title: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '600' },
-  sub: { color: COLORS.textSecondary, fontSize: 11, marginTop: 2 },
-  sectionTitle: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '600', marginVertical: 12 },
+  title: { fontSize: 14, fontWeight: '600' },
+  sub: { fontSize: 11, marginTop: 2 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', marginVertical: 12 },
 });
+
+const styles = makeStyles(themes.darkEmerald, true);
