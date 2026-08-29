@@ -9,14 +9,32 @@ import {
   StatusBar,
   ScrollView,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   FlatList,
   ActivityIndicator,
   Modal,
   Alert,
+  Image,
 } from 'react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
-import { Bot, Sparkles, MoreVertical, Trash2, Pencil, Check, X, Mic, Send, Copy } from 'lucide-react-native';
+import {
+  Bot,
+  Sparkles,
+  MoreVertical,
+  Trash2,
+  Pencil,
+  Check,
+  X,
+  Mic,
+  Send,
+  Copy,
+  Smile,
+  Paperclip,
+  Camera,
+} from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import EmojiPicker from '../components/EmojiPicker';
 import ScreenHeader from '../components/ScreenHeader';
 import { askAI } from '../lib/aiChat';
 import { toast } from '../lib/safe';
@@ -48,7 +66,30 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  // Saved sticker shelf: long-press a sticker in the picker to save it here.
+  // Declared so the EmojiPicker's required prop never reads an undefined var.
+  const [savedStickers, setSavedStickers] = useState([]);
+  // Quick-filter category for the sticker grid ('All' | 'Hi' | 'Haha' | ...).
+  // Declared so the EmojiPicker's required props never read an undefined var.
+  const [activeStickerCategory, setActiveStickerCategory] = useState('All');
+  // Keyboard visibility drives the safe-area bottom padding on the input dock:
+  // insets.bottom only applies while the keyboard is hidden (home-gesture bar).
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const insets = useSafeAreaInsets();
   const scrollRef = useRef(null);
+
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
+  /** Append a picked emoji to the composer text (WhatsApp-style emoji tray). */
+  const appendEmoji = (e) => setInputText((prev) => prev + e);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -179,7 +220,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
           bottom input column locked in place while only messages scroll. */}
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
         <ScreenHeader
@@ -289,7 +330,11 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
                 </View>
               ) : (
                 <>
-                  <Text selectable style={item.sender === 'me' ? styles.bubbleTextMine : styles.bubbleText}>{item.text}</Text>
+                  {item.mediaUrl ? (
+                    <Image source={{ uri: item.mediaUrl }} style={styles.stickerImage} resizeMode="contain" />
+                  ) : (
+                    <Text selectable style={item.sender === 'me' ? styles.bubbleTextMine : styles.bubbleText}>{item.text}</Text>
+                  )}
                   {item.sender === 'ai' ? (
                     <View style={styles.aiCopyRow}>
                       <TouchableOpacity
@@ -321,32 +366,93 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
           }
         />
 
-        {/* FIXED BOTTOM INPUT BAR — sticky footer pinned to the bottom of the
-            KeyboardAvoidingView root. It stays in place while the message list
-            (FlatList, flex:1 above) scrolls vertically underneath it. */}
-        <View style={styles.inputBar}>
-          <TextInput
-            style={styles.textInput}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Ask me anything..."
-            placeholderTextColor={colors.textSecondary}
-            multiline
-          />
-          <TouchableOpacity
-            style={styles.micBtn}
-            onPress={() => Alert.alert('Voice Input', 'Voice dictation is coming soon.')}
-            disabled={loading}
-          >
-            <Mic size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.sendBtn, !inputText.trim() && styles.sendBtnDisabled]}
-            onPress={() => handleAskAI()}
-            disabled={!inputText.trim() || loading}
-          >
-            <Send size={18} color={colors.background} />
-          </TouchableOpacity>
+        {/* WhatsApp-style emoji / sticker tray (bottom sheet) */}
+        <EmojiPicker
+          inline
+          visible={showEmojiPicker}
+          onClose={() => setShowEmojiPicker(false)}
+          onSelectEmoji={appendEmoji}
+          savedStickers={savedStickers}
+          activeStickerCategory={activeStickerCategory || 'All'}
+          onStickerCategoryChange={setActiveStickerCategory || (() => {})}
+          onSelectSticker={(url) => {
+            const msgId = `stk-${Date.now()}`;
+            setMessages((prev) => [...prev, {
+              id: msgId, sender: 'me', text: '', mediaUrl: url,
+            }]);
+            setShowEmojiPicker(false);
+          }}
+          onLongPressSticker={(url) => {
+            if (savedStickers.some((s) => s.url === url)) return;
+            setSavedStickers((prev) => [...prev, { id: `saved-${Date.now()}`, url, pack: 'Saved' }]);
+            toast('Sticker saved', 'Added to your saved stickers.');
+          }}
+          onRemoveSavedSticker={(id) => setSavedStickers((prev) => prev.filter((s) => s.id !== id))}
+          onAddStickerHint={() => Alert.alert('Add Sticker', 'Sticker saving is available in Meeting Chat.')}
+        />
+
+        {/* Bottom input dock — safe-area padding only while the keyboard is
+            hidden so the bar stays elevated above home gestures. */}
+        <View style={[styles.inputDock, { paddingBottom: keyboardVisible ? 8 : Math.max(insets.bottom, 8) }]}>
+          {/* WhatsApp-style composer: rounded text bar on the left (emoji,
+              input, attachment, camera) + standalone circular action button. */}
+          <View style={styles.inputBar}>
+            <View style={styles.inputFieldRow}>
+              <TouchableOpacity
+                style={styles.iconBtn}
+                onPress={() => {
+                  // WhatsApp behavior: keyboard collapses, docked picker appears
+                  // directly above the composer — it never covers the input bar.
+                  Keyboard.dismiss();
+                  setShowEmojiPicker((v) => !v);
+                }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Smile size={22} color={colors.primary} />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.textInput}
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Ask me anything..."
+                placeholderTextColor={colors.textSecondary}
+                multiline
+              />
+              <TouchableOpacity
+                style={styles.iconBtn}
+                onPress={() => toast('Attachments', 'File attachments are coming soon to AI chat.')}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Paperclip size={20} color={colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconBtn}
+                onPress={() => toast('Camera', 'Photo capture is coming soon to AI chat.')}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Camera size={22} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Standalone circular action button: mic (empty) / send */}
+            {inputText.trim() && !loading ? (
+              <TouchableOpacity
+                style={styles.sendBtn}
+                onPress={() => handleAskAI()}
+                disabled={!inputText.trim() || loading}
+              >
+                <Send size={18} color={colors.background} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.micBtn}
+                onPress={() => Alert.alert('Voice Input', 'Voice dictation is coming soon.')}
+                disabled={loading}
+              >
+                <Mic size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </KeyboardAvoidingView>
 
@@ -457,12 +563,29 @@ const makeStyles = (colors) =>
     fontSize: 13,
     lineHeight: 19,
   },
+  stickerImage: {
+    width: 96,
+    height: 96,
+    borderRadius: 8,
+  },
   bubbleTextMine: {
     color: colors.text,
     fontSize: 13,
     lineHeight: 19,
   },
+  inputDock: {
+    flexShrink: 0,
+    paddingHorizontal: 0,
+  },
   inputBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+    marginHorizontal: 12,
+    flexShrink: 0,
+  },
+  inputFieldRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-end',
     backgroundColor: colors.surface,
@@ -470,13 +593,11 @@ const makeStyles = (colors) =>
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginHorizontal: 12,
-    marginBottom: 10,
-    gap: 8,
-    flexShrink: 0,
+    paddingVertical: 6,
+    gap: 4,
   },
-  textInput: { flex: 1, color: colors.text, fontSize: 14, maxHeight: 120, paddingVertical: 8, paddingHorizontal: 6 },
+  iconBtn: { padding: 4 },
+  textInput: { flex: 1, color: colors.text, fontSize: 14, maxHeight: 120, paddingVertical: 8, paddingHorizontal: 4 },
   micBtn: {
     width: 38,
     height: 38,

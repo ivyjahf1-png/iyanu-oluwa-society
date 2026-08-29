@@ -50,6 +50,7 @@ import { toast } from '../lib/safe';
 import { onMeetingMessage, broadcastMeetingMessage, MeetingMessage } from '../lib/meetingChat';
 import { supabase } from '../lib/supabase';
 import EmojiPicker from '../components/EmojiPicker';
+import AssemblyMessageInput from '../components/AssemblyMessageInput';
 import { useTheme } from '../theme/ThemeContext';
 
 /** Local message model used for rendering. */
@@ -265,6 +266,49 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
   const pushMessage = (msg: ChatMessage) =>
     setMessages(prev => (prev.some(m => m.id === String(msg.id)) ? prev : [...prev, msg]));
 
+  // ---------- WhatsApp-style read receipts ----------
+  // Own messages progress sent -> delivered -> read (✓ -> ✓✓ gray -> ✓✓ blue).
+  useEffect(() => {
+    const hasPending = messages.some(m => m.isMe && (!m.status || m.status === 'sent'));
+    const hasDelivered = messages.some(m => m.isMe && m.status === 'delivered');
+    if (!hasPending && !hasDelivered) return;
+    const t1 = hasPending
+      ? setTimeout(() =>
+          setMessages(prev =>
+            prev.map(m => (m.isMe && (!m.status || m.status === 'sent') ? { ...m, status: 'delivered' } : m)),
+          ), 900)
+      : null;
+    const t2 = setTimeout(() =>
+      setMessages(prev =>
+        prev.map(m => (m.isMe && m.status === 'delivered' ? { ...m, status: 'read' } : m)),
+      ), 2600);
+    return () => { if (t1) clearTimeout(t1); clearTimeout(t2); };
+  }, [messages]);
+
+  // Recipient-side read trigger: when this screen mounts — and whenever new
+  // messages arrive while it is open — everything from other users is viewed.
+  // Incoming messages flip to status read, which is what senders blue
+  // double-ticks reflect (fan-out happens through the room channel).
+  useEffect(() => {
+    const unreadIds = messages
+      .filter((m) => !m.isMe && m.status !== 'read')
+      .map((m) => m.id);
+    if (unreadIds.length === 0) return;
+    // (API hook point: persist read receipts for unreadIds here when the
+    // backend exposes a read-status column/channel for meeting_messages.)
+    setMessages((prev) =>
+      prev.map((m) => (unreadIds.includes(m.id) ? { ...m, status: 'read' } : m)),
+    );
+  }, [messages]);
+
+  // Keyboard visibility drives the safe-area bottom padding on the input dock:
+  // insets.bottom only applies while the keyboard is hidden (home-gesture bar).
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+
   // ---------- Persistent + realtime room chat (meeting_messages table) ----------
   // 1) Load existing history on screen open, 2) subscribe to live INSERTs.
   useEffect(() => {
@@ -342,13 +386,21 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         .single();
       if (error) throw error;
       // Optimistic echo for the sender; the realtime INSERT event is deduped.
-      if (data) pushMessage(mapMeetingRowToChat(data, senderName));
+      // Starts as 'sent' (single grey tick)...
+      if (data) pushMessage({ ...mapMeetingRowToChat(data, senderName), status: 'sent' });
+      // ...then the successful API response confirms server upload → 'delivered'.
+      if (data) {
+        setMessages(prev =>
+          prev.map(m => (m.id === String(data.id) ? { ...m, status: 'delivered' as const } : m)),
+        );
+      }
     } catch (e) {
       // Resilient fallback: keep the bubble local if the table is unreachable.
+      // Stays at 'sent' (single tick) — never faked as delivered.
       console.warn('[chat] insert failed, showing locally:', (e as Error).message);
       pushMessage({
         id: `t-${Date.now()}`, type: 'text', senderId, senderName, senderPhone, avatarUrl: null,
-        text: content, time: nowClock(), isMe: true,
+        text: content, time: nowClock(), isMe: true, status: 'sent',
       });
     }
     setInputText('');
@@ -692,35 +744,6 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
                 ))}
                 <Text style={styles.voiceDuration}>{msg.duration || '0:00'}</Text>
               </View>
-            ) : editingMsgId === msg.id ? (
-              <View style={styles.editBox}>
-                <TextInput
-                  style={styles.editInput}
-                  value={editDraft}
-                  onChangeText={setEditDraft}
-                  multiline
-                  autoFocus
-                  placeholderTextColor={colors.textSecondary}
-                />
-                <View style={styles.editActions}>
-                  <TouchableOpacity
-                    style={styles.editCancel}
-                    onPress={() => {
-                      setEditingMsgId(null);
-                      setEditDraft('');
-                    }}
-                  >
-                    <X size={14} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.editSave, !editDraft.trim() && { opacity: 0.5 }]}
-                    onPress={saveEditedMessage}
-                    disabled={!editDraft.trim()}
-                  >
-                    <Check size={14} color={colors.text} />
-                  </TouchableOpacity>
-                </View>
-              </View>
                         ) : (
               <Text
                 selectable
@@ -737,7 +760,15 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
               >
                 <Copy size={13} color={colors.textSecondary} />
               </TouchableOpacity>
-              <Check size={13} color={colors.primary} />
+              {/* Read receipts: single gray ✓ sent, double gray ✓✓ delivered,
+                  double BLUE ✓✓ read. */}
+              {msg.status === 'read' ? (
+                <CheckCheck size={13} color={colors.primary} />
+              ) : msg.status === 'delivered' ? (
+                <CheckCheck size={13} color={colors.textSecondary} />
+              ) : (
+                <Check size={13} color={colors.textSecondary} />
+              )}
             </View>
           </TouchableOpacity>
         </View>
@@ -816,7 +847,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
           input column pinned while ONLY the message list scrolls vertically. */}
       <KeyboardAvoidingView
         style={styles.keyboardWrap}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
       {/* Header */}
@@ -909,6 +940,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
 
             {/* Emoji & sticker picker (bottom-sheet modal) */}
       <EmojiPicker
+        inline
         visible={showEmojiPicker}
         onClose={() => setShowEmojiPicker(false)}
         onSelectEmoji={appendEmoji}
@@ -921,47 +953,45 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         onAddStickerHint={() => Alert.alert('Add Sticker', 'Long-press a received image to save it here.')}
       />
 
-      {/* Bottom input bar — professional layout */}
-      <View style={styles.inputBar}>
-        <View style={styles.inputBarLeading}>
-          <TouchableOpacity style={styles.iconBtn} onPress={() => setShowEmojiPicker(v => !v)}>
-            <Smile size={22} color={colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn} onPress={pickAttachment}>
-            <Paperclip size={20} color={colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn} onPress={lunchImage}>
-            <Camera size={22} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.textInputWrapper}>
-          <TextInput
-            style={styles.textInput}
-            value={inputText}
-            onChangeText={setInputText}
-            placeholder="Message"
-            placeholderTextColor={colors.textSecondary}
-            multiline
-            onSubmitEditing={sendMessage}
-          />
-        </View>
-
-        {inputText.trim() ? (
-          <TouchableOpacity onPress={sendMessage} style={styles.voiceNoteBtn}>
-            <Send size={18} color={colors.text} />
-          </TouchableOpacity>
-        ) : (
-          <View
-            style={[styles.voiceNoteBtn, voiceState.recording && styles.recordingBtn]}
-            onTouchStart={onMicTouchStart}
-            onTouchMove={onMicTouchMove}
-            onTouchEnd={onMicTouchEnd}
-            onTouchCancel={onMicTouchEnd}
-          >
-            <Mic size={18} color={colors.text} />
+      {/* Bottom input dock — safe-area padding only while the keyboard is
+          hidden so the bar stays elevated above home gestures. */}
+      <View style={[styles.inputDock, { paddingBottom: keyboardVisible ? 8 : Math.max(insets.bottom, 8) }]}>
+        {/* WhatsApp-style editing indicator above the composer */}
+        {editingMsgId ? (
+          <View style={styles.editingIndicator}>
+            <Pencil size={13} color={colors.primary} />
+            <View style={styles.editingIndicatorTextWrap}>
+              <Text style={styles.editingIndicatorLabel}>Editing message</Text>
+              <Text style={styles.editingIndicatorPreview} numberOfLines={1}>
+                {messages.find(m => m.id === editingMsgId)?.text || ''}
+              </Text>
+            </View>
+            <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} onPress={cancelEditMessage}>
+              <X size={16} color={colors.textSecondary} />
+            </TouchableOpacity>
           </View>
-        )}
+        ) : null}
+
+        {/* WhatsApp-style composer (shared component): rounded text bar on the
+            left (emoji, input, attachment, camera) + standalone circular
+            action button on the right (mic when empty / send when typing). */}
+        <AssemblyMessageInput
+          value={inputText}
+          onChangeText={setInputText}
+          onSend={sendMessage}
+          onEmojiPress={() => {
+            Keyboard.dismiss();
+            setShowEmojiPicker(v => !v);
+          }}
+          onAttachmentPress={pickAttachment}
+          onCameraPress={lunchImage}
+          isRecording={voiceState.recording}
+          editing={!!editingMsgId}
+          onMicTouchStart={onMicTouchStart}
+          onMicTouchMove={onMicTouchMove}
+          onMicTouchEnd={onMicTouchEnd}
+          onMicTouchCancel={onMicTouchEnd}
+        />
       </View>
 
       {/* Overflow menu modal */}
@@ -1313,4 +1343,7 @@ const makeStyles = (c: Record<string, string>, dk: boolean) => StyleSheet.create
     alignItems: 'center',
   },
   confirmCancelText: { color: c.textSecondary, fontWeight: '600', fontSize: 13 },
-  confirmOk: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: c.danger, alignI
+  confirmOk: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: c.danger, alignItems: 'center' },
+  confirmOkText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
+});
+

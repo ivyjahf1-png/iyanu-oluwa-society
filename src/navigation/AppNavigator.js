@@ -48,6 +48,7 @@ import GuarantorRequestScreen from '../screens/GuarantorRequestScreen';
 import GuarantorApprovalScreen from '../screens/GuarantorApprovalScreen';
 import LoanScheduleScreen from '../screens/LoanScheduleScreen';
 import SupportScreen from '../screens/SupportScreen';
+import FinancialServicesScreen from '../screens/FinancialServicesScreen';
 import AuditScreen from '../screens/AuditScreen';
 import AddGoalScreen from '../screens/AddGoalScreen';
 import AuditDashboardScreen from '../screens/AuditDashboardScreen';
@@ -196,6 +197,7 @@ export default function AppNavigator() {
             component={AuditScreen}
             initialParams={{ auditorId: undefined }}
           />
+          <Stack.Screen name="FinancialServices" component={FinancialServicesScreen} />
           <Stack.Screen name="AddGoal" component={AddGoalScreen} />
           <Stack.Screen
             name="AuditDashboard"

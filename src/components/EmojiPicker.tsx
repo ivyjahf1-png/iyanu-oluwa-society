@@ -50,6 +50,8 @@ interface StickerItem {
 
 export interface EmojiPickerProps {
   visible: boolean;
+  /** Docked inline panel (no Modal) that sits ABOVE the input bar. */
+  inline?: boolean;
   onClose: () => void;
   onSelectEmoji: (emoji: string) => void;
   // ---- Stickers tab (preserved from MeetingChatScreen) ----
@@ -155,11 +157,12 @@ const EMOJI_CATEGORIES: EmojiCategory[] = [
 ];
 export default function EmojiPicker({
   visible,
+  inline,
   onClose,
   onSelectEmoji,
   savedStickers,
-  activeStickerCategory,
-  onStickerCategoryChange,
+  activeStickerCategory = 'All',
+  onStickerCategoryChange = () => {},
   onSelectSticker,
   onLongPressSticker,
   onRemoveSavedSticker,
@@ -197,14 +200,8 @@ export default function EmojiPicker({
     sectionOffsets.current[index] = evt.nativeEvent.layout.y;
   };
 
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.overlay}>
-        {/* Invisible backdrop — tap to dismiss */}
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-
-        {/* Sheet */}
-        <View style={styles.sheet}>
+  const sheetContent = (
+    <>
           <View style={styles.grabber} />
 
           {/* Emojis / Stickers + close */}
@@ -331,7 +328,18 @@ export default function EmojiPicker({
               </TouchableOpacity>
             </ScrollView>
           )}
-        </View>
+    </>
+  );
+
+  if (!visible) return null;
+  if (inline) {
+    return <View style={[styles.sheet, styles.inlineSheet]}>{sheetContent}</View>;
+  }
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+        {sheetContent}
       </View>
     </Modal>
   );
@@ -355,6 +363,12 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     borderColor: '#26313E',
     borderWidth: StyleSheet.hairlineWidth,
+  },
+  inlineSheet: {
+    height: 300,
+    marginHorizontal: 8,
+    marginBottom: 6,
+    borderRadius: 18,
   },
   grabber: {
     alignSelf: 'center',
