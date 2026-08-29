@@ -1,7 +1,7 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Animated, LayoutAnimation, UIManager, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { PiggyBank, Plus, ArrowUpRight, ShieldCheck, Lock } from 'lucide-react-native';
+import { PiggyBank, Plus, ArrowUpRight, ShieldCheck, Lock, ChevronDown } from 'lucide-react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
 import { GRADIENTS } from '../constants/theme';
 import { useTransactions } from '../context/TransactionsContext';
@@ -13,6 +13,12 @@ import { useSafeNavigation } from '../hooks/useSafeNavigation';
 const fmt = n =>
   Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+// Enable LayoutAnimation on Android so the collapsible Cooperative Targets
+// section animates smoothly when expanding / collapsing.
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export default function SavingsHubScreen({ navigation: rawNav }) {
   const navigation = useSafeNavigation(rawNav);
   const { colors, isDark } = useTheme();
@@ -23,6 +29,23 @@ export default function SavingsHubScreen({ navigation: rawNav }) {
   // Cooperative targets (weekly / monthly / annual) plus any custom member goals.
   const targetPlans = plans.filter(p =>
     p.frequency === 'weekly' || p.frequency === 'monthly' || p.frequency === 'annual');
+
+  // Accordion state for the Cooperative Targets section.
+  const [targetsExpanded, setTargetsExpanded] = useState(false);
+  const chevronRotation = useRef(new Animated.Value(0)).current;
+
+  // The primary weekly cooperative target is shown in the collapsed summary card.
+  const summaryPlan = targetPlans.find(p => p.frequency === 'weekly') || targetPlans[0];
+
+  const toggleTargets = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setTargetsExpanded(!targetsExpanded);
+    Animated.timing(chevronRotation, {
+      toValue: targetsExpanded ? 0 : 1,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
 
   const openTarget = (plan) => {
     navigation.navigate('CoopTargetDetails', {
@@ -77,15 +100,15 @@ return (
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Cooperative Targets</Text>
         </View>
 
-        {targetPlans.map(plan => {
-          const meta = FREQUENCY_META[plan.frequency] || FREQUENCY_META.monthly;
-          const pct = Math.min(100, plan.targetAmount ? (plan.currentProgress / plan.targetAmount) * 100 : 0);
+        {/* Collapsible summary card — compact overview that toggles the full breakdown */}
+        {summaryPlan && (() => {
+          const meta = FREQUENCY_META[summaryPlan.frequency] || FREQUENCY_META.monthly;
+          const pct = Math.min(100, summaryPlan.targetAmount ? (summaryPlan.currentProgress / summaryPlan.targetAmount) * 100 : 0);
           const pctRounded = Math.round(pct);
           return (
             <TouchableOpacity
-              key={plan.planId || plan.id}
-              style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
-              onPress={() => openTarget(plan)}
+              style={[styles.card, styles.summaryCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={toggleTargets}
               activeOpacity={0.85}
             >
               <View style={styles.cardRow}>
@@ -94,29 +117,91 @@ return (
                 </View>
                 <View style={styles.cardTextGroup}>
                   <View style={styles.titleRow}>
-                    <Text style={[styles.planTitle, { color: colors.text }]} numberOfLines={1}>{plan.title}</Text>
+                    <Text style={[styles.planTitle, { color: colors.text }]} numberOfLines={1}>{summaryPlan.title}</Text>
                     <View style={[styles.freqBadge, { backgroundColor: colors.primary }]}>
                       <Text style={[styles.freqBadgeText, { color: colors.background }]}>{meta.badge}</Text>
                     </View>
                   </View>
                   <Text style={[styles.planSub, { color: colors.textSecondary }]}>
-                    {plan.totalCycles ? `Cycle ${plan.currentCycle} of ${plan.totalCycles} • ₦${fmt(plan.contributionPerCycle)}${meta.cycle}` : `Locked until ${plan.lockUntil || 'maturity'}`}
+                    {summaryPlan.totalCycles ? `Cycle ${summaryPlan.currentCycle} of ${summaryPlan.totalCycles} • ₦${fmt(summaryPlan.contributionPerCycle)}${meta.cycle}` : `Locked until ${summaryPlan.lockUntil || 'maturity'}`}
                   </Text>
                 </View>
-                <ArrowUpRight size={20} color={colors.textSecondary} />
+                <Animated.View style={{ transform: [{ rotate: chevronRotation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] }) }] }}>
+                  <ChevronDown size={20} color={colors.textSecondary} />
+                </Animated.View>
               </View>
               <View style={[styles.progressTrack, { backgroundColor: colors.surface }]}>
                 <View style={[styles.progressBar, { backgroundColor: colors.primary, width: `${pct}%` }]} />
               </View>
               <View style={styles.progressMetaRow}>
                 <Text style={[styles.progressAmount, { color: colors.text }]}>
-                  ₦{fmt(plan.currentProgress)} / ₦{fmt(plan.targetAmount)}
+                  ₦{fmt(summaryPlan.currentProgress)} / ₦{fmt(summaryPlan.targetAmount)}
                 </Text>
                 <Text style={[styles.progressPct, { color: colors.textSecondary }]}>{pctRounded}%</Text>
               </View>
             </TouchableOpacity>
           );
-        })}
+        })()}
+
+        {/* Expanded breakdown — revealed on press: frequency buttons + full target cards */}
+        {targetsExpanded && (
+          <View style={styles.expandedContent}>
+            {/* Frequency action buttons (+ Weekly, + Monthly, + Annual) */}
+            <View style={styles.shortcutRow}>
+              {(['weekly', 'monthly', 'annual']).map(f => (
+                <TouchableOpacity
+                  key={f}
+                  style={[styles.shortcutChip, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  onPress={() => openNewGoal(f)}
+                >
+                  <Text style={[styles.shortcutChipText, { color: colors.text }]}>+ {FREQUENCY_META[f].label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Individual target cards — Weekly, Monthly, Annual, Fixed Emergency Reserve */}
+            {targetPlans.map(plan => {
+              const meta = FREQUENCY_META[plan.frequency] || FREQUENCY_META.monthly;
+              const pct = Math.min(100, plan.targetAmount ? (plan.currentProgress / plan.targetAmount) * 100 : 0);
+              const pctRounded = Math.round(pct);
+              return (
+                <TouchableOpacity
+                  key={plan.planId || plan.id}
+                  style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
+                  onPress={() => openTarget(plan)}
+                  activeOpacity={0.85}
+                >
+                  <View style={styles.cardRow}>
+                    <View style={[styles.iconBox, { backgroundColor: colors.surface }]}>
+                      <PiggyBank size={20} color={colors.primary} />
+                    </View>
+                    <View style={styles.cardTextGroup}>
+                      <View style={styles.titleRow}>
+                        <Text style={[styles.planTitle, { color: colors.text }]} numberOfLines={1}>{plan.title}</Text>
+                        <View style={[styles.freqBadge, { backgroundColor: colors.primary }]}>
+                          <Text style={[styles.freqBadgeText, { color: colors.background }]}>{meta.badge}</Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.planSub, { color: colors.textSecondary }]}>
+                        {plan.totalCycles ? `Cycle ${plan.currentCycle} of ${plan.totalCycles} • ₦${fmt(plan.contributionPerCycle)}${meta.cycle}` : `Locked until ${plan.lockUntil || 'maturity'}`}
+                      </Text>
+                    </View>
+                    <ArrowUpRight size={20} color={colors.textSecondary} />
+                  </View>
+                  <View style={[styles.progressTrack, { backgroundColor: colors.surface }]}>
+                    <View style={[styles.progressBar, { backgroundColor: colors.primary, width: `${pct}%` }]} />
+                  </View>
+                  <View style={styles.progressMetaRow}>
+                    <Text style={[styles.progressAmount, { color: colors.text }]}>
+                      ₦{fmt(plan.currentProgress)} / ₦{fmt(plan.targetAmount)}
+                    </Text>
+                    <Text style={[styles.progressPct, { color: colors.textSecondary }]}>{pctRounded}%</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
 
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Locked Reserves</Text>
@@ -217,6 +302,12 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 6,
+  },
+  summaryCard: {
+    marginBottom: 4,
+  },
+  expandedContent: {
+    marginBottom: 8,
   },
   progressAmount: { fontSize: 11, fontWeight: '600' },
   progressPct: { fontSize: 11, fontWeight: '700' },

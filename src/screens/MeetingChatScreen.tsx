@@ -13,9 +13,11 @@ import {
   Image,
   Alert,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   GestureResponderEvent,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ChevronLeft,
   Phone,
@@ -34,6 +36,7 @@ import {
   X,
   FileText,
   Check,
+  CheckCheck,
   Pencil,
   Trash2,
   Plus,
@@ -65,6 +68,9 @@ interface ChatMessage {
   time: string; // "HH:MM"
   isMe: boolean;
   edited?: boolean;
+  /** WhatsApp-style receipt: sent -> delivered -> read. */
+  status?: 'sent' | 'delivered' | 'read';
+  editedAt?: number;
 }
 
 /** Connected member profile used for member/array state. */
@@ -147,6 +153,8 @@ function mapMeetingRowToChat(row: any, selfName: string): ChatMessage {
       ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       : nowClock(),
     isMe: String(row.sender_name || '') === selfName,
+    // History rows were already rendered by the room, so they count as read.
+    status: 'read',
   };
 }
 
@@ -166,7 +174,7 @@ const SEED_MESSAGES: ChatMessage[] = [
   {
     id: 's3', type: 'text', senderId: 'me', senderName: 'Me',
     senderPhone: '+234 803 000 0000', avatarUrl: null,
-    text: 'Received. Will review shortly.', time: nowClock(), isMe: true,
+    text: 'Received. Will review shortly.', time: nowClock(), isMe: true, status: 'read',
   },
   {
     id: 's4', type: 'system', senderId: 'sys', senderName: 'System',
@@ -191,7 +199,8 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
   const [confirmClear, setConfirmClear] = useState<boolean>(false);
   const [actionMsgId, setActionMsgId] = useState<string | null>(null);
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState<string>('');
+  const [keyboardVisible, setKeyboardVisible] = useState<boolean>(false);
+  const insets = useSafeAreaInsets();
 
   const [voiceState, setVoiceState] = useState({
     pressing: false, recording: false, locked: false, seconds: 0,
@@ -320,6 +329,8 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
 
   /** Send text by inserting into meeting_messages — realtime fans it out to every device. */
   const sendMessage = async (): Promise<void> => {
+    // While an edit session is active the send button commits the edit instead.
+    if (editingMsgId) { saveEditedMessage(); return; }
     const content = inputText.trim();
     if (!content) return;
     try {
@@ -452,22 +463,35 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     setMessages(prev => prev.filter(m => m.id !== id));
   };
 
-  /** Enter inline editing mode for one of my own messages. */
+  /** Enter edit mode: the message text is populated into the BOTTOM INPUT BAR
+   * with an active editing indicator above it (WhatsApp-style), NOT inline. */
   const beginEditMessage = (msg: ChatMessage): void => {
     setActionMsgId(null);
     setEditingMsgId(msg.id);
-    setEditDraft(msg.text || '');
+    setInputText(msg.text || '');
+    Keyboard.dismiss();
   };
 
-  /** Commit the edited text and flag the bubble with an "(edited)" tag. */
+  /** Cancel edit mode: restore the empty composer. */
+  const cancelEditMessage = (): void => {
+    setEditingMsgId(null);
+    setInputText('');
+  };
+
+  /** Commit the edited text (isEdited + editedAt) and flag the bubble with an
+   * "(edited)" sub-tag next to the timestamp. */
   const saveEditedMessage = (): void => {
-    const text = editDraft.trim();
+    const text = inputText.trim();
     if (!text || !editingMsgId) return;
     setMessages(prev =>
-      prev.map(m => (m.id === editingMsgId ? { ...m, text, edited: true } : m)),
+      prev.map(m =>
+        m.id === editingMsgId
+          ? { ...m, text, edited: true, editedAt: Date.now() }
+          : m,
+      ),
     );
     setEditingMsgId(null);
-    setEditDraft('');
+    setInputText('');
   };
 
   // ---------- Voice note (WhatsApp-style press-and-hold recording) ----------
@@ -1289,7 +1313,4 @@ const makeStyles = (c: Record<string, string>, dk: boolean) => StyleSheet.create
     alignItems: 'center',
   },
   confirmCancelText: { color: c.textSecondary, fontWeight: '600', fontSize: 13 },
-  confirmOk: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: c.danger, alignItems: 'center' },
-  confirmOkText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
-});
-
+  confirmOk: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: c.danger, alignI

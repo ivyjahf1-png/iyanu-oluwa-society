@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -65,6 +67,17 @@ export default function HomeScreen({ navigation }) {
   // Auditor access: a user whose profile role is 'auditor' gets the dedicated
   // financial AuditScreen instead of the standard user menu.
   const isAuditor = user?.role === 'auditor';
+  // Dual-role popup: auditors who are ALSO admins choose their destination.
+  const [roleMenuVisible, setRoleMenuVisible] = useState(false);
+  const handleTopMenuPress = () => {
+    if (isAuditor && isAdminVisible) {
+      setRoleMenuVisible(true);
+    } else if (isAuditor) {
+      navigateTo('AuditDashboard');
+    } else {
+      navigateTo('ProfileSettings');
+    }
+  };
 
   // Global admin verification: biometric prompt ? PIN keypad fallback.
   // Navigation to AdminSettings happens ONLY when access is granted.
@@ -108,6 +121,43 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle="light-content" backgroundColor='#06130D' />
 
+      {/* Dual-role destination picker (admin + auditor accounts only) */}
+      <Modal
+        visible={roleMenuVisible}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setRoleMenuVisible(false)}
+      >
+        <Pressable
+          style={styles.roleMenuOverlay}
+          onPress={() => setRoleMenuVisible(false)}
+        >
+          <View style={styles.roleMenuCard}>
+            <Text style={styles.roleMenuTitle}>Open Dashboard</Text>
+            <TouchableOpacity
+              style={styles.roleMenuItem}
+              onPress={() => {
+                setRoleMenuVisible(false);
+                navigateTo('AdminSettings');
+              }}
+            >
+              <Ionicons name='settings-outline' size={18} color={colors.primary} />
+              <Text style={styles.roleMenuText}>Admin Dashboard</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.roleMenuItem}
+              onPress={() => {
+                setRoleMenuVisible(false);
+                navigateTo('AuditDashboard');
+              }}
+            >
+              <Ionicons name='clipboard-outline' size={18} color={colors.primary} />
+              <Text style={styles.roleMenuText}>Audit Dashboard</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
       {/* FIXED TOP — Header + Available Balance Card stay static on screen */}
       <View style={styles.fixedTop}>
         {/* TOP HEADER */}
@@ -139,7 +189,7 @@ export default function HomeScreen({ navigation }) {
 
             <TouchableOpacity
               style={styles.iconCircle}
-              onPress={() => (isAuditor ? navigateTo('AuditScreen') : navigateTo('ProfileSettings'))}
+              onPress={handleTopMenuPress}
             >
               <Ionicons name="ellipsis-horizontal" size={20} color='#FFFFFF' />
             </TouchableOpacity>
@@ -646,6 +696,42 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
     padding: 6,
     borderRadius: 8,
     marginRight: 8,
+  },
+  roleMenuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-start',
+    paddingTop: 90,
+    paddingRight: 20,
+  },
+  roleMenuCard: {
+    backgroundColor: colors.card,
+    borderRadius: 14,
+    paddingVertical: 8,
+    minWidth: 200,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  roleMenuTitle: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    textTransform: 'uppercase',
+  },
+  roleMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    gap: 10,
+  },
+  roleMenuText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 
