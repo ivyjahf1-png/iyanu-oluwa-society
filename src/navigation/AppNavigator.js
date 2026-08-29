@@ -34,6 +34,8 @@ import BannerManagerScreen from '../screens/BannerManagerScreen';
 import CoopCreditScreen from '../screens/CoopCreditScreen';
 import SocietyScreen from '../screens/SocietyScreen';
 import MonthlyGeneralMeetingScreen from '../screens/MonthlyGeneralMeetingScreen';
+import MeetingMinutesDetailScreen from '../screens/MeetingMinutesDetailScreen';
+import VirtualMeetingRoomScreen from '../screens/VirtualMeetingRoomScreen';
 import DividendDistributionScreen from '../screens/DividendDistributionScreen';
 import ProfileSettingsScreen from '../screens/ProfileSettingsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
@@ -165,7 +167,17 @@ export default function AppNavigator() {
           <Stack.Screen name="PromotionalBanners" component={BannerManagerScreen} />
           <Stack.Screen name="CoopCredit" component={CoopCreditScreen} />
           <Stack.Screen name="Society" component={SocietyScreen} />
-          <Stack.Screen name="MonthlyGeneralMeeting" component={MonthlyGeneralMeetingScreen} />
+                    <Stack.Screen name="MonthlyGeneralMeeting" component={MonthlyGeneralMeetingScreen} />
+          <Stack.Screen
+            name="MeetingMinutesDetail"
+            component={MeetingMinutesDetailScreen}
+            initialParams={{ meetingId: undefined }}
+          />
+          <Stack.Screen
+            name="VirtualMeetingRoom"
+            component={VirtualMeetingRoomScreen}
+            initialParams={{ roomId: undefined, roomTitle: undefined, hostName: undefined, isVideoEnabled: true, isAudioEnabled: true }}
+          />
           <Stack.Screen name="DividendDistribution" component={DividendDistributionScreen} />
           <Stack.Screen name="SocietyHub" component={SocietyScreen} />
           <Stack.Screen name="More" component={MoreScreen} />

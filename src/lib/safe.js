@@ -42,9 +42,12 @@ export const KNOWN_ROUTES = new Set([
   'CoopCredit',
   'Society',
   'SocietyHub',
-  'AuditScreen',
+    'AuditScreen',
   'AddGoal',
   'CoopTargetDetails',
+  'MonthlyGeneralMeeting',
+  'MeetingMinutesDetail',
+  'VirtualMeetingRoom',
 ]);
 
 /**

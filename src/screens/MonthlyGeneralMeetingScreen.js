@@ -9,6 +9,7 @@ import {
   ListChecks,
 } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
+import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { useTheme } from '../theme/ThemeContext';
 import { themes } from '../theme/colors';
 
@@ -17,7 +18,8 @@ import { themes } from '../theme/colors';
 // Presentational only: agenda, schedule, join link and past minutes.
 // Params: { meetingId?: string, date?: string } via route.params.
 // ---------------------------------------------------------------------------
-export default function MonthlyGeneralMeetingScreen({ navigation, route }) {
+export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route }) {
+  const navigation = useSafeNavigation(rawNav);
   const { colors, isDark } = useTheme();
   const styles = makeStyles(colors, isDark);
 
@@ -34,10 +36,50 @@ export default function MonthlyGeneralMeetingScreen({ navigation, route }) {
   ];
 
   const pastMinutes = [
-    { title: 'December General Meeting', date: 'Sun, 7 Dec 2025' },
-    { title: 'November General Meeting', date: 'Sun, 2 Nov 2025' },
-    { title: 'October General Meeting', date: 'Sun, 5 Oct 2025' },
+    {
+      id: 'mtg-dec-2025',
+      title: 'December General Meeting',
+      date: 'Sun, 7 Dec 2025',
+      agendaItems: ['Opening prayer & welcome address', "Reading of last meeting minutes", "Treasurer's report", 'Dividend approval'],
+      attendanceCount: 142,
+      documentUrl: null,
+    },
+    {
+      id: 'mtg-nov-2025',
+      title: 'November General Meeting',
+      date: 'Sun, 2 Nov 2025',
+      agendaItems: ['Reading of last meeting minutes', 'Election of welfare commitee', 'Loan disbursement review', 'Closing remarks'],
+      attendanceCount: 138,
+      documentUrl: null,
+    },
+    {
+      id: 'mtg-oct-2025',
+      title: 'October General Meeting',
+      date: 'Sun, 5 Oct 2025',
+      agendaItems: ['Opening prayer', "Treasurer's report", 'Dividend declaration', 'Member welfare discussions'],
+      attendanceCount: 127,
+      documentUrl: null,
+    },
   ];
+
+  const goToMinutes = m =>
+    navigation.navigate('MeetingMinutesDetail', {
+      meetingId: m.id,
+      title: m.title,
+      date: m.date,
+      agendaItems: m.agendaItems,
+      attendanceCount: m.attendanceCount,
+      documentUrl: m.documentUrl ?? undefined,
+    });
+
+  const startMeeting = () =>
+    navigation.navigate('VirtualMeetingRoom', {
+      roomId: 'mgm-' + (params.meetingId || schedule),
+      roomTitle: 'Monthly General Meeting',
+      hostName: params.hostName || 'Meeting Host',
+      isVideoEnabled: true,
+      isAudioEnabled: true,
+    });
 
   // Theme-aware style overrides so every surface follows the active theme.
   const s = {
@@ -90,16 +132,16 @@ export default function MonthlyGeneralMeetingScreen({ navigation, route }) {
           ))}
         </View>
 
-        {/* Join button */}
-        <TouchableOpacity style={s.joinBtn} activeOpacity={0.85}>
+                {/* Join button */}
+        <TouchableOpacity style={s.joinBtn} activeOpacity={0.85} onPress={startMeeting}>
           <Video size={17} color={s.joinBtnText[1].color} />
           <Text style={s.joinBtnText}>Join Virtual Meeting</Text>
         </TouchableOpacity>
 
         {/* Past minutes */}
         <Text style={s.sectionTitle}>Past Meeting Minutes</Text>
-        {pastMinutes.map((m) => (
-          <TouchableOpacity key={m.title} style={s.card} activeOpacity={0.8}>
+        {pastMinutes.map(m => (
+          <TouchableOpacity key={m.id} style={s.card} activeOpacity={0.8} onPress={() => goToMinutes(m)}>
             <View style={s.iconCircle}>
               <FileText size={18} color={colors.primary} />
             </View>
