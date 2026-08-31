@@ -37,6 +37,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import EmojiPicker from '../components/EmojiPicker';
 import ScreenHeader from '../components/ScreenHeader';
 import { askAI } from '../lib/aiChat';
+import {
+  ensureAiSession,
+  saveAiMessage,
+  fetchAiHistory,
+  deleteAiSession,
+} from '../lib/aiHistory';
 import { toast } from '../lib/safe';
 import { useTheme } from '../theme/ThemeContext';
 import * as Clipboard from 'expo-clipboard';
@@ -78,6 +84,37 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const scrollRef = useRef(null);
+  // Active DB session (persists per user); hydrated flags history loaded.
+  const [sessionId, setSessionId] = useState(null);
+
+  // Load persisted AI history from the database on mount (re-login resumes chat).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const session = await ensureAiSession('New chat');
+        if (cancelled || !session?.id) return;
+        setSessionId(session.id);
+        const history = await fetchAiHistory(session.id);
+        if (cancelled || history.length === 0) return;
+        const turns = history.map((t) => ({
+          id: t.id,
+          sender: t.role === 'assistant' ? 'ai' : 'me',
+          text: t.content,
+        }));
+        setMessages((prev) => {
+          const seen = new Set(prev.map((m) => String(m.id)));
+          const fresh = turns.filter((t) => !seen.has(String(t.id)));
+          return [...prev, ...fresh];
+        });
+      } catch (e) {
+        // History unavailable — start with the welcome bubble only.
+        console.warn('[ai] history load failed:', e?.message);
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
@@ -116,12 +153,32 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
     setInputText('');
     setLoading(true);
 
+    // Persist the user's turn immediately (fire-and-forget). Lazily ensure a
+    // session so history is saved even after "Clear Chat" reset the id.
+    let activeSession = sessionId;
+    if (!activeSession) {
+      try {
+        const session = await ensureAiSession('New chat');
+        activeSession = session?.id || null;
+        if (activeSession) setSessionId(activeSession);
+      } catch {
+        activeSession = null;
+      }
+    }
+    if (activeSession) {
+      saveAiMessage(activeSession, 'user', userMessage).catch(() => {});
+    }
+
     try {
       const reply = await askAI(userMessage, chatHistory);
       setMessages(prev => [
         ...prev,
         { id: `a-${Date.now()}`, sender: 'ai', text: reply },
       ]);
+      // Persist the assistant's reply once available.
+      if (activeSession) {
+        saveAiMessage(activeSession, 'assistant', reply).catch(() => {});
+      }
     } catch (e) {
       setMessages(prev => [
         ...prev,
@@ -137,7 +194,9 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
   };
 
   /** Wipe the local conversation (keeps only a fresh welcome bubble). */
-  const clearChat = () => {
+  /** Clear the chat — explicitly deletes the persisted session too. History is
+   *  kept only until the user chooses this action (persists otherwise). */
+  const clearChat = async () => {
     setConfirmClear(false);
     setShowMenu(false);
     setEditingId(null);
@@ -149,6 +208,14 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
           "Hi! I'm your Coop AI Assistant. Ask me anything — savings, loans, repayments, or any general question at all.",
       },
     ]);
+    // Explicit delete: remove the DB session (messages cascade) and reset so a
+    // fresh session is created on the next message.
+    try {
+      if (sessionId) await deleteAiSession(sessionId);
+    } catch (e) {
+      console.warn('[ai] delete session failed:', e?.message);
+    }
+    setSessionId(null);
   };
 
   /**

@@ -51,6 +51,7 @@ import { onMeetingMessage, broadcastMeetingMessage, MeetingMessage } from '../li
 import { supabase } from '../lib/supabase';
 import EmojiPicker from '../components/EmojiPicker';
 import AssemblyMessageInput from '../components/AssemblyMessageInput';
+import ChatBubble from '../components/ChatBubble';
 import { useTheme } from '../theme/ThemeContext';
 
 /** Local message model used for rendering. */
@@ -139,21 +140,23 @@ function nowClock(): string {
   return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-/** Room key this screen syncs to in the `meeting_messages` table. */
+/** Room key this screen syncs to in the `messages` table. */
 const MEETING_ROOM_ID = 'general-meeting';
 
-/** Map a `meeting_messages` row into the renderable in-room ChatMessage. */
-function mapMeetingRowToChat(row: any, selfName: string): ChatMessage {
+/** Map a `messages` row (id, created_at, content, room_id, sender_id) into the renderable in-room ChatMessage. */
+function mapMeetingRowToChat(row: any, selfId: string): ChatMessage {
+  const rawSenderId = String(row.sender_id ?? '');
+  const isMe = rawSenderId === selfId;
   return {
     id: String(row.id),
     type: 'text',
-    senderId: String(row.sender_name || 'member'),
-    senderName: row.sender_name || 'Member',
+    senderId: rawSenderId || 'member',
+    senderName: isMe ? 'Me' : (row.sender_name || 'Member'),
     text: row.content || '',
     time: row.created_at
       ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       : nowClock(),
-    isMe: String(row.sender_name || '') === selfName,
+    isMe,
     // History rows were already rendered by the room, so they count as read.
     status: 'read',
   };
@@ -216,9 +219,23 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
-  const senderId = 'me';
   const senderName = 'Me';
   const senderPhone = '+234 803 000 0000';
+
+  // Resolve the authenticated member's real id once (used as `sender_id` when
+  // writing to the `messages` table, and to mark incoming rows as "mine").
+  const [selfId, setSelfId] = useState<string>('me');
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (!cancelled && !error && user?.id) setSelfId(user.id);
+      } catch { /* keep fallback */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  const senderId = selfId;
 
   // Auto-scroll to the newest message.
   useEffect(() => {
@@ -295,7 +312,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
       .map((m) => m.id);
     if (unreadIds.length === 0) return;
     // (API hook point: persist read receipts for unreadIds here when the
-    // backend exposes a read-status column/channel for meeting_messages.)
+    // backend exposes a read-status column/channel for messages.)
     setMessages((prev) =>
       prev.map((m) => (unreadIds.includes(m.id) ? { ...m, status: 'read' } : m)),
     );
@@ -309,7 +326,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     return () => { show.remove(); hide.remove(); };
   }, []);
 
-  // ---------- Persistent + realtime room chat (meeting_messages table) ----------
+  // ---------- Persistent + realtime room chat (messages table) ----------
   // 1) Load existing history on screen open, 2) subscribe to live INSERTs.
   useEffect(() => {
     if (!supabase) return;
@@ -318,14 +335,25 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     // A. Fetch the current room's messages once.
     (async () => {
       try {
-        const { data, error } = await supabase
-          .from('meeting_messages')
-          .select('*')
-          .eq('room_id', MEETING_ROOM_ID)
-          .order('created_at', { ascending: true });
-        if (error) { console.warn('[chat] meeting_messages fetch failed:', error.message); return; }
+        let data: any = null;
+        let error: any = null;
+        const rpc = await supabase.rpc('fetch_room_messages', {
+          p_room_id: MEETING_ROOM_ID,
+        });
+        if (rpc.error) {
+          const direct = await supabase
+            .from('messages')
+            .select('*')
+            .eq('room_id', MEETING_ROOM_ID)
+            .order('created_at', { ascending: true });
+          data = direct.data;
+          error = direct.error;
+        } else {
+          data = rpc.data;
+        }
+        if (error) { console.warn('[chat] messages fetch failed:', error.message); return; }
         if (data && !cancelled) {
-          const remote = data.map((r: any) => mapMeetingRowToChat(r, senderName));
+          const remote = data.map((r: any) => mapMeetingRowToChat(r, selfId));
           setMessages(prev => {
             const seen = new Set(prev.map(m => m.id));
             return [...prev, ...remote.filter(m => !seen.has(m.id))];
@@ -339,10 +367,10 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
       .channel(`room:${MEETING_ROOM_ID}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'meeting_messages', filter: `room_id=eq.${MEETING_ROOM_ID}` },
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${MEETING_ROOM_ID}` },
         (payload) => {
           if (cancelled || !payload?.new) return;
-          pushMessage(mapMeetingRowToChat(payload.new as any, senderName));
+          pushMessage(mapMeetingRowToChat(payload.new as any, selfId));
         },
       )
       .subscribe();
@@ -352,7 +380,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
       try { supabase.removeChannel(channel); } catch { /* noop */ }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selfId]);
 
   const clock = nowClock();
 
@@ -371,7 +399,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     }).catch(() => {});
   };
 
-  /** Send text by inserting into meeting_messages — realtime fans it out to every device. */
+  /** Send text by inserting into the `messages` table — realtime fans it out to every device. */
   const sendMessage = async (): Promise<void> => {
     // While an edit session is active the send button commits the edit instead.
     if (editingMsgId) { saveEditedMessage(); return; }
@@ -379,15 +407,29 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     if (!content) return;
     try {
       if (!supabase) throw new Error('Supabase client unavailable');
-      const { data, error } = await supabase
-        .from('meeting_messages')
-        .insert({ room_id: MEETING_ROOM_ID, sender_name: senderName, content })
-        .select()
-        .single();
+      // Prefer the backend route (save_room_message) which writes with the
+      // authenticated sender_id; fall back to a direct insert if RPC is absent.
+      let data: any = null;
+      let error: any = null;
+      const rpcResult = await supabase.rpc('save_room_message', {
+        p_room_id: MEETING_ROOM_ID,
+        p_content: content,
+      });
+      if (rpcResult.error) {
+        const direct = await supabase
+          .from('messages')
+          .insert({ room_id: MEETING_ROOM_ID, sender_id: senderId, content })
+          .select()
+          .single();
+        data = direct.data;
+        error = direct.error;
+      } else {
+        data = rpcResult.data;
+      }
       if (error) throw error;
       // Optimistic echo for the sender; the realtime INSERT event is deduped.
       // Starts as 'sent' (single grey tick)...
-      if (data) pushMessage({ ...mapMeetingRowToChat(data, senderName), status: 'sent' });
+      if (data) pushMessage({ ...mapMeetingRowToChat(data, selfId), status: 'sent' });
       // ...then the successful API response confirms server upload → 'delivered'.
       if (data) {
         setMessages(prev =>
@@ -701,76 +743,52 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     if (msg.isMe) {
       return (
         <View key={msg.id} style={styles.outRow}>
-          <TouchableOpacity
-            style={styles.outBubble}
-            activeOpacity={0.85}
-            delayLongPress={350}
-            onLongPress={
-              msg.type === 'text' && !voiceState.recording
-                ? () => setActionMsgId(msg.id)
-                : undefined
-            }
-          >
-            {msg.type === 'image' && msg.mediaUrl ? (
-              <TouchableOpacity
-                onPress={() => setViewerUri(msg.mediaUrl as string)}
-                onLongPress={() => {
-                  saveSticker(msg.mediaUrl as string, 'My Uploads');
-                  Alert.alert('Sticker saved', 'This image was added to My Stickers.');
-                }}
-              >
-                <Image source={{ uri: msg.mediaUrl }} style={styles.outImage} />
-                {msg.fileSize ? (
-                  <View style={styles.downloadBadge}>
-                    <Download size={12} color={colors.text} />
-                    <Text style={styles.downloadBadgeText}>{msg.fileSize}</Text>
-                  </View>
-                ) : null}
-              </TouchableOpacity>
-            ) : msg.type === 'file' ? (
-              <TouchableOpacity style={styles.fileCard} onPress={() => downloadMedia(msg.mediaUrl || '', msg.fileName)}>
-                <FileText size={18} color={colors.primary} />
-                <View style={{ flex: 1, marginLeft: 8 }}>
-                  <Text style={styles.outText} numberOfLines={1}>{msg.fileName || 'Attachment'}</Text>
-                  <Text style={styles.outSubtext}>{msg.fileSize || ''}</Text>
+          {msg.type === 'image' && msg.mediaUrl ? (
+            <TouchableOpacity
+              style={styles.outBubble}
+              onPress={() => setViewerUri(msg.mediaUrl as string)}
+              onLongPress={() => {
+                saveSticker(msg.mediaUrl as string, 'My Uploads');
+                Alert.alert('Sticker saved', 'This image was added to My Stickers.');
+              }}
+            >
+              <Image source={{ uri: msg.mediaUrl }} style={styles.outImage} />
+              {msg.fileSize ? (
+                <View style={styles.downloadBadge}>
+                  <Download size={12} color={colors.text} />
+                  <Text style={styles.downloadBadgeText}>{msg.fileSize}</Text>
                 </View>
-                <Download size={16} color={colors.primary} />
-              </TouchableOpacity>
-            ) : msg.type === 'voice' ? (
-              <View style={styles.voiceRow}>
-                <Play size={18} color={colors.primary} />
-                {[4, 9, 6, 11, 7, 10, 5].map((h, i) => (
-                  <View key={i} style={[styles.waveBar, { height: h }]} />
-                ))}
-                <Text style={styles.voiceDuration}>{msg.duration || '0:00'}</Text>
+              ) : null}
+            </TouchableOpacity>
+          ) : msg.type === 'file' ? (
+            <TouchableOpacity style={[styles.outBubble, styles.fileCard]} onPress={() => downloadMedia(msg.mediaUrl || '', msg.fileName)}>
+              <FileText size={18} color={colors.primary} />
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                <Text style={styles.outText} numberOfLines={1}>{msg.fileName || 'Attachment'}</Text>
+                <Text style={styles.outSubtext}>{msg.fileSize || ''}</Text>
               </View>
-                        ) : (
-              <Text
-                selectable
-                style={styles.outText}
-              >{msg.text || ''}</Text>
-            )}
-            <View style={styles.outMetaRow}>
-              {msg.edited ? <Text style={styles.editedTag}>(edited)</Text> : null}
-              <Text style={styles.outTime}>{msg.time}</Text>
-              <TouchableOpacity
-                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                onPress={() => handleCopyMessage(msg.text || '')}
-                style={{ paddingHorizontal: 4 }}
-              >
-                <Copy size={13} color={colors.textSecondary} />
-              </TouchableOpacity>
-              {/* Read receipts: single gray ✓ sent, double gray ✓✓ delivered,
-                  double BLUE ✓✓ read. */}
-              {msg.status === 'read' ? (
-                <CheckCheck size={13} color={colors.primary} />
-              ) : msg.status === 'delivered' ? (
-                <CheckCheck size={13} color={colors.textSecondary} />
-              ) : (
-                <Check size={13} color={colors.textSecondary} />
-              )}
+              <Download size={16} color={colors.primary} />
+            </TouchableOpacity>
+          ) : msg.type === 'voice' ? (
+            <View style={[styles.outBubble, styles.voiceRow]}>
+              <Play size={18} color={colors.primary} />
+              {[4, 9, 6, 11, 7, 10, 5].map((h, i) => (
+                <View key={i} style={[styles.waveBar, { height: h }]} />
+              ))}
+              <Text style={styles.voiceDuration}>{msg.duration || '0:00'}</Text>
             </View>
-          </TouchableOpacity>
+          ) : (
+            <ChatBubble
+              id={msg.id}
+              text={msg.text || ''}
+              isMine
+              status={msg.status}
+              timestamp={msg.time}
+              edited={msg.edited}
+              onLongPress={!voiceState.recording ? () => setActionMsgId(msg.id) : undefined}
+              onCopied={(t) => handleCopyMessage(t)}
+            />
+          )}
         </View>
       );
     }
@@ -816,19 +834,23 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
               </View>
               <Download size={16} color={colors.primary} />
             </TouchableOpacity>
-                    ) : (
-            <Text selectable style={styles.inText}>{msg.text || ''}</Text>
+          ) : msg.type === 'voice' ? (
+            <View style={styles.voiceRow}>
+              <Play size={18} color={colors.primary} />
+              {[4, 9, 6, 11, 7, 10, 5].map((h, i) => (
+                <View key={i} style={[styles.waveBar, { height: h }]} />
+              ))}
+              <Text style={styles.voiceDuration}>{msg.duration || '0:00'}</Text>
+            </View>
+          ) : (
+            <ChatBubble
+              id={msg.id}
+              text={msg.text || ''}
+              isMine={false}
+              timestamp={msg.time}
+              onCopied={(t) => handleCopyMessage(t)}
+            />
           )}
-          <View style={styles.inMetaRow}>
-            <Text style={styles.inTime}>{msg.time}</Text>
-            <TouchableOpacity
-              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-              onPress={() => handleCopyMessage(msg.text || '')}
-              style={{ paddingHorizontal: 4 }}
-            >
-              <Copy size={13} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
         </View>
       </View>
     );

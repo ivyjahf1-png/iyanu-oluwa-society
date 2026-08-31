@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Platform, SafeAreaView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, PiggyBank, Wallet, Users, Menu } from 'lucide-react-native';
@@ -71,6 +72,9 @@ function BottomTabs() {
   // Feature icon size preference (Small / Medium / Large) from the profile.
   const { user } = useUser();
   const tabIconScale = getIconScale(user?.iconSize);
+  // Bottom safe-area inset: the home-gesture bar / mobile browser chrome that
+  // overlaps the bottom of the screen. Icons/labels get clipped without this.
+  const insets = useSafeAreaInsets();
   const tabBarOptions = {
     headerShown: false,
     tabBarActiveTintColor: colors.primary,
@@ -83,9 +87,11 @@ function BottomTabs() {
       backgroundColor: colors.tabBar,
       borderTopColor: colors.border,
       borderTopWidth: 1,
-      height: 65,
+      // Tall enough that labels + icons sit above the system chrome.
+      height: 65 + Math.max(insets.bottom, 12),
       paddingTop: 11,
-      paddingBottom: 8,
+      // Respect the home-gesture bar: max(1rem ≈ 16px, safe-area inset).
+      paddingBottom: Math.max(insets.bottom, 16),
     },
   };
   return (
@@ -219,7 +225,13 @@ const styles = StyleSheet.create({
   },
   webWrapper: {
     flex: 1,
-    height: Platform.OS === 'web' ? '100vh' : '100%',
+    // Dynamic viewport height: on mobile web, 100vh doesn't account for the
+    // address bar / home gesture chrome, which clips the bottom tab bar.
+    // 100dvh tracks the *visible* viewport so nothing gets cut off.
+    height: Platform.OS === 'web' ? '100dvh' : '100%',
     overflow: Platform.OS === 'web' ? 'auto' : 'hidden',
+    // Buffer below the fixed tab bar so it never hugs the screen edge and the
+    // nav icons/labels stay fully visible above system chrome.
+    paddingBottom: Platform.OS === 'web' ? 8 : 0,
   },
 });

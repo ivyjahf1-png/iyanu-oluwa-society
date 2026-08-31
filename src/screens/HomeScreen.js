@@ -28,6 +28,15 @@ import { COLORS, GRADIENTS } from '../constants/theme';
 import { useTheme } from '../theme/ThemeContext';
 import { themes } from '../theme/colors';
 
+/**
+ * FIXED gradient for the "Available Balance" hero card on the Dashboard.
+ * This card intentionally does NOT follow the theme: it always keeps its
+ * dark-green metallic appearance in both light and dark mode. We hardcode the
+ * colours here so syncStaticTheme() (which swaps GRADIENTS.metallicDashboard
+ * between modes) can never change this card's look.
+ */
+const AVAILABLE_BALANCE_GRADIENT = ['#1A3327', '#132A20', '#0E211A', '#0A1A13'];
+
 export default function HomeScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const styles = makeStyles(colors, isDark);
@@ -196,9 +205,11 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* METALLIC MAIN BALANCE CARD */}
+        {/* METALLIC MAIN BALANCE CARD — intentionally theme-independent (see
+            AVAILABLE_BALANCE_GRADIENT above): always dark-green, never swapped
+            to the light palette by syncStaticTheme(). */}
         <LinearGradient
-          colors={GRADIENTS.metallicDashboard}
+          colors={AVAILABLE_BALANCE_GRADIENT}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.metallicCard}

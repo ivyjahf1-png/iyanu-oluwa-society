@@ -14,13 +14,18 @@ const AnnouncementsContext = createContext(null);
 const STORAGE_KEY = '@ius_announcements';
 const SEEN_KEY = '@ius_announcements_dismissed';
 
-/** Map a Supabase row into the app's announcement shape. */
+/** Map a Supabase row into the app's announcement shape.
+ *  Mirrors the banner shape (title, message, imageUrl, isActive, createdAt)
+ *  so announcements and banners are consumed identically by the dashboard. */
 function mapRow(row) {
   return {
     id: String(row.id),
     title: row.title || '',
     message: row.message || '',
     author: row.author || 'Admin',
+    imageUrl: row.image_url || row.imageUrl || null,
+    // NULL is treated as active so legacy rows without the column still surface.
+    active: row.is_active === undefined ? true : Boolean(row.is_active),
     createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
   };
 }
@@ -80,6 +85,22 @@ export function AnnouncementsProvider({ children }) {
             );
           },
         )
+        // UPDATE: admin toggles is_active or edits an announcement after it has
+        // already been delivered — the row is replaced in place so the
+        // activeAnnouncements filter recomputes live on every device.
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'announcements' },
+          (payload) => {
+            if (!payload?.new || cancelled) return;
+            const entry = mapRow(payload.new);
+            setAnnouncements((prev) =>
+              prev.some((a) => a.id === entry.id)
+                ? prev.map((a) => (a.id === entry.id ? entry : a))
+                : [entry, ...prev],
+            );
+          },
+        )
         .on(
           'postgres_changes',
           { event: 'DELETE', schema: 'public', table: 'announcements' },
@@ -116,6 +137,8 @@ export function AnnouncementsProvider({ children }) {
       title: announcement.title,
       message: announcement.message,
       author: announcement.author || 'Admin',
+      imageUrl: announcement.imageUrl || announcement.image_uri || null,
+      active: announcement.active !== false,
       createdAt: Date.now(),
     };
     persist([entry, ...announcements]);
@@ -125,7 +148,14 @@ export function AnnouncementsProvider({ children }) {
       try {
         const { data, error } = await supabase
           .from('announcements')
-          .insert({ title: entry.title, message: entry.message, author: entry.author })
+          .insert({
+            title: entry.title,
+            message: entry.message,
+            author: entry.author,
+            image_url: entry.imageUrl,
+            is_active: entry.active,
+            created_at: new Date(entry.createdAt).toISOString(),
+          })
           .select()
           .single();
         if (!error && data) {
@@ -160,13 +190,35 @@ export function AnnouncementsProvider({ children }) {
   /** Announcements the member has not dismissed yet (newest first). */
   const unreadAnnouncements = announcements.filter(a => !dismissedIds.includes(a.id));
 
+  /** Admins can toggle whether an announcement is live to members. */
+  const updateAnnouncement = (id, updates) => {
+    persist(announcements.map((a) => (a.id === id ? { ...a, ...updates } : a)));
+    if (updates.active !== undefined) {
+      supabase
+        .from('announcements')
+        .update({ is_active: Boolean(updates.active) })
+        .eq('id', id)
+        .then(({ error }) => { if (error) console.warn('[announcements] update failed:', error.message); })
+        .catch(() => {});
+    }
+  };
+
+  /** Active = switched on AND not dismissed by this member (newest first).
+   *  This is the is_active == true feed consumed by the dashboard + notification
+   *  screens — kept in sync realtime via the INSERT/UPDATE/DELETE channels above. */
+  const activeAnnouncements = announcements
+    .filter((a) => a.active)
+    .filter((a) => !dismissedIds.includes(a.id));
+
   return (
     <AnnouncementsContext.Provider
       value={{
         announcements,
         unreadAnnouncements,
+        activeAnnouncements,
         dismissAnnouncement,
         addAnnouncement,
+        updateAnnouncement,
         removeAnnouncement,
         hydrated,
       }}
