@@ -8,9 +8,9 @@ import { storage } from './storage';
  * constants below. The anon key is safe to ship in the client — all
  * privileged operations are protected by Row Level Security.
  */
-const SUPABASE_URL =
+export const SUPABASE_URL =
   process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://kvvodpeewrbdbdtlvzuc.supabase.co';
-const SUPABASE_ANON_KEY =
+export const SUPABASE_ANON_KEY =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_IYYIjXd6jKg1JSeFEiUwhA_b492WoLD';
 
 /** True when the anon key placeholder has not been replaced yet. */

@@ -321,7 +321,11 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
   // Keyboard visibility drives the safe-area bottom padding on the input dock:
   // insets.bottom only applies while the keyboard is hidden (home-gesture bar).
   useEffect(() => {
-    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const show = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+      // Keep the latest message pinned above the input bar when the keyboard opens.
+      if (scrollRef.current) scrollRef.current.scrollToEnd({ animated: true });
+    });
     const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
     return () => { show.remove(); hide.remove(); };
   }, []);

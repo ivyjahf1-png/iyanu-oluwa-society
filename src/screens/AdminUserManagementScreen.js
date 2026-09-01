@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, Text, View, ScrollView, TouchableOpacity, SafeAreaView,
-  StatusBar, ActivityIndicator, Alert, TextInput,
+  StatusBar, ActivityIndicator, Alert, TextInput, Modal, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { themes } from '../theme/colors';
-import { Users, Search, RefreshCcw, Trash2, ShieldAlert, KeyRound } from 'lucide-react-native';
+import { Users, Search, RefreshCcw, Trash2, ShieldAlert, KeyRound, UserPlus, X } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { supabase } from '../lib/supabase';
 import { getAllSettings, getSetting } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { getRegisteredUsers } from '../auth/authService';
+import { toast } from '../lib/safe';
 
 /** Admin User Management — monitor members, reset passwords, suspend accounts. */
 export default function AdminUserManagementScreen({ navigation: rawNav }) {

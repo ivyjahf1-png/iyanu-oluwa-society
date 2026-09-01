@@ -105,30 +105,40 @@ Deno.serve(async (req: Request) => {
         // streamGenerateContent + SSE gives token-by-token latency (~instant).
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: {
-              parts: [{ text: SYSTEM_PROMPT }]
-            },
-            contents: contents
-          })
-        });
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              system_instruction: {
+                parts: [{ text: SYSTEM_PROMPT }]
+              },
+              contents: contents
+            })
+          });
 
-        if (response.ok && response.body) {
-          stream = response.body;
+          if (response.ok && response.body) {
+            stream = response.body;
+            break;
+          }
+
+          lastDetail = await response.json().catch(() => null);
+          lastModel = model;
+          if (retryStatuses.includes(response.status) && attempt < 2) {
+            console.error(`Gemini ${model} ${response.status}, retrying (${attempt + 1}/2)`);
+            await delay(600 * (attempt + 1));
+            continue;
+          }
+          break; // non-retryable error for this model
+        } catch (fetchErr: any) {
+          // Network failure (DNS, timeout, offline) — capture the specific
+          // message so it surfaces in the 502 response instead of a generic
+          // "fetch failed". Don't waste retries on a dead network.
+          lastDetail = { error: fetchErr?.message || 'Network error contacting Gemini' };
+          lastModel = model;
+          console.error(`Gemini ${model} fetch error:`, fetchErr?.message);
           break;
         }
-
-        lastDetail = await response.json().catch(() => null);
-        lastModel = model;
-        if (retryStatuses.includes(response.status) && attempt < 2) {
-          console.error(`Gemini ${model} ${response.status}, retrying (${attempt + 1}/2)`);
-          await delay(600 * (attempt + 1));
-          continue;
-        }
-        break; // non-retryable error for this model
       }
 
       if (stream) break;

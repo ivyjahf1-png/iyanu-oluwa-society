@@ -23,7 +23,6 @@ import {
   Sparkles,
   MoreVertical,
   Trash2,
-  Pencil,
   Check,
   X,
   Mic,
@@ -36,7 +35,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import EmojiPicker from '../components/EmojiPicker';
 import ScreenHeader from '../components/ScreenHeader';
-import { askAI } from '../lib/aiChat';
+import { askAI, AI_CONFIG_ERROR_MESSAGE } from '../lib/aiChat';
 import {
   ensureAiSession,
   saveAiMessage,
@@ -117,7 +116,11 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
   }, []);
 
   useEffect(() => {
-    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const show = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+      // Keep the latest message pinned above the input bar when the keyboard opens.
+      if (scrollRef.current) scrollRef.current.scrollToEnd({ animated: true });
+    });
     const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
     return () => {
       show.remove();
@@ -170,7 +173,10 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
     }
 
     try {
+      // Single production path: Supabase Edge Function coop-ai.
+      // The Gemini API key stays server-side — the client never calls Gemini directly.
       const reply = await askAI(userMessage, chatHistory);
+
       setMessages(prev => [
         ...prev,
         { id: `a-${Date.now()}`, sender: 'ai', text: reply },
@@ -355,7 +361,6 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
             <TouchableOpacity
               activeOpacity={0.85}
               style={[styles.bubble, item.sender === 'me' ? styles.bubbleMine : styles.bubbleAi]}
-              onLongPress={() => startEdit(item)}
               delayLongPress={300}
               disabled={loading}
             >
@@ -414,12 +419,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
                       </TouchableOpacity>
                     </View>
                   ) : null}
-                  {item.sender === 'me' && !loading ? (
-                    <View style={styles.editHintRow}>
-                      <Pencil size={10} color={colors.textSecondary} />
-                      <Text style={styles.editHint}>hold to edit</Text>
-                    </View>
-                  ) : null}
+
                 </>
               )}
             </TouchableOpacity>
