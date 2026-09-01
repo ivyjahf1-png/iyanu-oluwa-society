@@ -52,6 +52,7 @@ import { supabase } from '../lib/supabase';
 import EmojiPicker from '../components/EmojiPicker';
 import AssemblyMessageInput from '../components/AssemblyMessageInput';
 import ChatBubble from '../components/ChatBubble';
+import AudioBubble from '../components/AudioBubble';
 import { useTheme } from '../theme/ThemeContext';
 
 /** Local message model used for rendering. */
@@ -318,15 +319,22 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     );
   }, [messages]);
 
-  // Keyboard visibility drives the safe-area bottom padding on the input dock:
-  // insets.bottom only applies while the keyboard is hidden (home-gesture bar).
+  // Keyboard height drives the bottom padding on the input dock so the bar
+  // tracks the soft keyboard precisely. insets.bottom only applies while the
+  // keyboard is hidden (home-gesture bar).
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   useEffect(() => {
-    const show = Keyboard.addListener('keyboardDidShow', () => {
+    const show = Keyboard.addListener('keyboardDidShow', (e) => {
       setKeyboardVisible(true);
+      // Capture the real keyboard height so the dock translates up exactly.
+      setKeyboardHeight(e.endCoordinates.height);
       // Keep the latest message pinned above the input bar when the keyboard opens.
       if (scrollRef.current) scrollRef.current.scrollToEnd({ animated: true });
     });
-    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    const hide = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+      setKeyboardHeight(0);
+    });
     return () => { show.remove(); hide.remove(); };
   }, []);
 
@@ -774,12 +782,13 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
               <Download size={16} color={colors.primary} />
             </TouchableOpacity>
           ) : msg.type === 'voice' ? (
-            <View style={[styles.outBubble, styles.voiceRow]}>
-              <Play size={18} color={colors.primary} />
-              {[4, 9, 6, 11, 7, 10, 5].map((h, i) => (
-                <View key={i} style={[styles.waveBar, { height: h }]} />
-              ))}
-              <Text style={styles.voiceDuration}>{msg.duration || '0:00'}</Text>
+            <View style={styles.outBubble}>
+              <AudioBubble
+                uri={msg.mediaUrl || ''}
+                durationLabel={msg.duration || '0:00'}
+                isMine
+                primaryColor={colors.primary}
+              />
             </View>
           ) : (
             <ChatBubble
@@ -838,13 +847,12 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
               <Download size={16} color={colors.primary} />
             </TouchableOpacity>
           ) : msg.type === 'voice' ? (
-            <View style={styles.voiceRow}>
-              <Play size={18} color={colors.primary} />
-              {[4, 9, 6, 11, 7, 10, 5].map((h, i) => (
-                <View key={i} style={[styles.waveBar, { height: h }]} />
-              ))}
-              <Text style={styles.voiceDuration}>{msg.duration || '0:00'}</Text>
-            </View>
+            <AudioBubble
+              uri={msg.mediaUrl || ''}
+              durationLabel={msg.duration || '0:00'}
+              isMine={false}
+              primaryColor={colors.primary}
+            />
           ) : (
             <ChatBubble
               text={msg.text || ''}
@@ -979,7 +987,11 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
 
       {/* Bottom input dock — safe-area padding only while the keyboard is
           hidden so the bar stays elevated above home gestures. */}
-      <View style={[styles.inputDock, { paddingBottom: keyboardVisible ? 8 : Math.max(insets.bottom, 8) }]}>
+      <View style={[styles.inputDock, {
+        paddingBottom: keyboardHeight > 0
+          ? (Platform.OS === 'ios' ? 8 : keyboardHeight)
+          : Math.max(insets.bottom, 8),
+      }]}>
         {/* WhatsApp-style editing indicator above the composer */}
         {editingMsgId ? (
           <View style={styles.editingIndicator}>

@@ -78,9 +78,11 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
   // Quick-filter category for the sticker grid ('All' | 'Hi' | 'Haha' | ...).
   // Declared so the EmojiPicker's required props never read an undefined var.
   const [activeStickerCategory, setActiveStickerCategory] = useState('All');
-  // Keyboard visibility drives the safe-area bottom padding on the input dock:
-  // insets.bottom only applies while the keyboard is hidden (home-gesture bar).
+  // Keyboard height drives the bottom padding on the input dock so the bar
+  // tracks the soft keyboard precisely. insets.bottom only applies while the
+  // keyboard is hidden (home-gesture bar).
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const insets = useSafeAreaInsets();
   const scrollRef = useRef(null);
   // Active DB session (persists per user); hydrated flags history loaded.
@@ -116,12 +118,17 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
   }, []);
 
   useEffect(() => {
-    const show = Keyboard.addListener('keyboardDidShow', () => {
+    const show = Keyboard.addListener('keyboardDidShow', (e) => {
       setKeyboardVisible(true);
+      // Capture the real keyboard height so the dock translates up exactly.
+      setKeyboardHeight(e.endCoordinates.height);
       // Keep the latest message pinned above the input bar when the keyboard opens.
       if (scrollRef.current) scrollRef.current.scrollToEnd({ animated: true });
     });
-    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    const hide = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+      setKeyboardHeight(0);
+    });
     return () => {
       show.remove();
       hide.remove();
@@ -460,7 +467,11 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
 
         {/* Bottom input dock — safe-area padding only while the keyboard is
             hidden so the bar stays elevated above home gestures. */}
-        <View style={[styles.inputDock, { paddingBottom: keyboardVisible ? 8 : Math.max(insets.bottom, 8) }]}>
+        <View style={[styles.inputDock, {
+          paddingBottom: keyboardHeight > 0
+            ? (Platform.OS === 'ios' ? 8 : keyboardHeight)
+            : Math.max(insets.bottom, 8),
+        }]}>
           {/* WhatsApp-style composer: rounded text bar on the left (emoji,
               input, attachment, camera) + standalone circular action button. */}
           <View style={styles.inputBar}>
