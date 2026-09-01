@@ -14,6 +14,7 @@ import { useTheme } from '../theme/ThemeContext';
 import { themes } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 import { useUser } from '../context/UserContext';
+import { WebView } from 'react-native-webview';
 
 /**
  * Virtual Meeting Room screen - powered by a live Jitsi Meet room.
@@ -62,6 +63,84 @@ export default function VirtualMeetingRoomScreen({ navigation: rawNav, route }) 
       saved || authDisplayName || (userEmail ? userEmail.split('@')[0] : hostName) || 'Member'
     );
   }, [user?.fullName, authDisplayName, userEmail, hostName]);
+
+  // Native fallback: an inline HTML page that embeds the Jitsi room in an
+  // iframe with camera + microphone permissions granted to the frame.
+  const roomUrl = `https://${JITSI_DOMAIN}/${roomId}`;
+  const jitsiHtml = useMemo(() => {
+    const hash = `#userInfo.displayName=${encodeURIComponent(memberName)}`;
+    return [
+      '<!DOCTYPE html>',
+      '<html>',
+      '  <head>',
+      '    <meta name="viewport" content="width=device-width, initial-scale=1" />',
+      '    <style>',
+      '      html, body { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; }',
+      '      iframe { width: 100%; height: 100%; border: 0; }',
+      '    </style>',
+      '  </head>',
+      '  <body>',
+      `    <iframe src="${roomUrl}${hash}"`,
+      '      allow="camera; microphone; fullscreen; display-capture; autoplay"',
+      '      allowfullscreen="true"',
+      '      webkitallowfullscreen="true"',
+      '      mozallowfullscreen="true"></iframe>',
+      '  </body>',
+      '</html>',
+    ].join('\\n');
+  }, [roomUrl, memberName]);
+
+  // Native fallback: an inline HTML page that embeds the Jitsi room in an
+  // iframe with camera + microphone permissions granted to the frame.
+  const roomUrl = `https://${JITSI_DOMAIN}/${roomId}`;
+  const jitsiHtml = useMemo(() => {
+    const hash = `#userInfo.displayName=${encodeURIComponent(memberName)}`;
+    return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      html, body { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; }
+      iframe { width: 100%; height: 100%; border: 0; }
+    </style>
+  </head>
+  <body>
+    <iframe
+      src="${roomUrl}${hash}"
+      allow="camera; microphone; fullscreen; display-capture; autoplay"
+      allowfullscreen="true"
+      webkitallowfullscreen="true"
+      mozallowfullscreen="true"
+    ></iframe>
+  </body>
+</html>`;
+  }, [roomUrl, memberName]);
+
+  // Native fallback: an inline HTML page that embeds the Jitsi room in an
+  // iframe with camera + microphone permissions granted to the frame.
+  const roomUrl = `https://${JITSI_DOMAIN}/${roomId}`;
+  const jitsiHtml = useMemo(() => {
+    const hash = `#userInfo.displayName=${encodeURIComponent(memberName)}`;
+    return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      html, body { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; }
+      iframe { width: 100%; height: 100%; border: 0; }
+    </style>
+  </head>
+  <body>
+    <iframe
+      src="${roomUrl}${hash}"
+      allow="camera; microphone; fullscreen; display-capture; autoplay"
+      allowfullscreen="true"
+      webkitallowfullscreen="true"
+      mozallowfullscreen="true"
+    ></iframe>
+  </body>
+</html>`;
+  }, [roomUrl, memberName]);
 
   const toggleVideo = () => {
     setVideoOn((v) => {
@@ -224,7 +303,20 @@ const participants = [
           {/* Full-screen video placeholder area */}
           <View style={styles.videoStage}>
             {videoOn ? (
-              <Text style={s.nameText}>Live conference available in the web build</Text>
+              /* Live Jitsi room embedded via an inline HTML iframe
+                 (camera + microphone granted to the frame). */
+              <WebView
+                source={{ html: jitsiHtml, baseUrl: `https://${JITSI_DOMAIN}` }}
+                style={styles.webStage}
+                javaScriptEnabled
+                domStorageEnabled
+                mediaPlaybackRequiresUserAction={false}
+                allowsFullScreen
+                originWhitelist={['*']}
+                onPermissionRequest={(event) => {
+                  try { event.grant(event.resources); } catch { /* already granted */ }
+                }}
+              />
             ) : (
               <VideoOff size={64} color={colors.textSecondary} />
             )}
@@ -274,7 +366,9 @@ const makeStyles = (colors, isDark) =>
     videoStage: {
       flex: 1, margin: 16, borderRadius: 14,
       alignItems: 'center', justifyContent: 'center',
+      overflow: 'hidden',
     },
+    webStage: { flex: 1, width: '100%', backgroundColor: '#000' },
     controlBar: {
       flexDirection: 'row', alignItems: 'center',
       justifyContent: 'center', gap: 12,
