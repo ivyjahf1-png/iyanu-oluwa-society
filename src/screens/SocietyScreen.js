@@ -4,14 +4,10 @@ import { Users, Shield, Award, ChevronRight, Lock } from 'lucide-react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
 import { useTheme } from '../theme/ThemeContext';
 import { themes } from '../theme/colors';
-import { isAdminAccount } from '../lib/adminSecurity';
-import { useAuth } from '../context/AuthContext';
 
 export default function SocietyScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const styles = makeStyles(colors, isDark);
-  const { userEmail } = useAuth();
-  const isAdmin = isAdminAccount(userEmail);
 
   // Dynamic styles so every surface follows the active theme.
   const s = {
@@ -33,7 +29,7 @@ export default function SocietyScreen({ navigation }) {
       {
         backgroundColor: colors.card,
         borderColor: colors.border,
-        opacity: isAdmin ? 1 : 0.72,
+        opacity: 0.72,
       },
     ],
     lockBadge: {
@@ -54,15 +50,11 @@ export default function SocietyScreen({ navigation }) {
     },
   };
 
-  /** Dividend is gated: admins may open, members see a locked alert. */
+  /** Dividend is not yet available — show a "coming soon" notice. */
   const openDividend = () => {
-    if (isAdmin) {
-      navigation?.navigate?.('DividendDistribution', { year: '2026' });
-      return;
-    }
     Alert.alert(
       'Dividend Distribution',
-      'Dividend distribution is locked until the end of the financial cycle.',
+      'Dividend Distribution feature is coming soon.',
       [{ text: 'OK' }],
     );
   };
@@ -118,7 +110,7 @@ export default function SocietyScreen({ navigation }) {
               <Text style={s.sub}>Annual financial ledger report</Text>
               <View style={s.lockBadge}>
                 <Lock size={11} color={colors.warning} />
-                <Text style={s.lockBadgeText}>{isAdmin ? 'ADMIN ACCESS' : 'LOCKED'}</Text>
+                <Text style={s.lockBadgeText}>LOCKED</Text>
               </View>
             </View>
             <ChevronRight size={18} color={colors.textSecondary} />
