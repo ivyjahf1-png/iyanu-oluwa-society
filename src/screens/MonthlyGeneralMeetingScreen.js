@@ -7,11 +7,14 @@ import {
   FileText,
   ChevronRight,
   ListChecks,
+  ShieldCheck,
 } from 'lucide-react-native';
 import ScreenHeader from '../components/ScreenHeader';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { useTheme } from '../theme/ThemeContext';
 import { themes } from '../theme/colors';
+import { isAdminAccount } from '../lib/adminSecurity';
+import { useAuth } from '../context/AuthContext';
 
 // ---------------------------------------------------------------------------
 // Monthly General Meeting — detail page.
@@ -22,18 +25,29 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
   const navigation = useSafeNavigation(rawNav);
   const { colors, isDark } = useTheme();
   const styles = makeStyles(colors, isDark);
+  const { userEmail } = useAuth();
 
   const params = route?.params ?? {};
   const schedule = params.date || '1st Sunday of next month';
 
+  // Regular members see a clean agenda without admin-only items
   const agenda = [
     'Opening prayer & welcome address',
     "Reading of last meeting minutes",
     "Treasurer's report & savings update",
-    'Loan disbursement review',
     'Member welfare discussions',
     'Closing remarks & next meeting date',
   ];
+
+  // Admin-only agenda includes loan disbursement review
+  const adminAgenda = [
+    ...agenda.slice(0, 3),
+    'Loan disbursement review',
+    ...agenda.slice(3),
+  ];
+
+  const isAdmin = isAdminAccount(userEmail);
+  const displayAgenda = isAdmin ? adminAgenda : agenda;
 
   const pastMinutes = [
     {
@@ -63,24 +77,6 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
   ];
 
   const goToMinutes = m =>
-    navigation.navigate('MeetingMinutesDetail', {
-      meetingId: m.id,
-      title: m.title,
-      date: m.date,
-      agendaItems: m.agendaItems,
-      attendanceCount: m.attendanceCount,
-      documentUrl: m.documentUrl ?? undefined,
-    });
-
-  const startMeeting = () =>
-    navigation.navigate('VirtualMeetingRoom', {
-      roomId: 'mgm-' + (params.meetingId || schedule),
-      roomTitle: 'Monthly General Meeting',
-      hostName: params.hostName || 'Meeting Host',
-      isVideoEnabled: true,
-      isAudioEnabled: true,
-    });
-
   // Theme-aware style overrides so every surface follows the active theme.
   const s = {
     card: [styles.card, { backgroundColor: colors.card, borderColor: colors.border }],
@@ -94,17 +90,26 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
     rowSub: [styles.rowSub, { color: colors.textSecondary }],
     joinBtn: [styles.joinBtn, { backgroundColor: colors.primary }],
     joinBtnText: [styles.joinBtnText, { color: colors.background }],
-    iconCircle: [styles.iconCircle, { backgroundColor: colors.surface }],
+    adminBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: colors.primary + '20',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      marginLeft: 8,
+    },
+    adminBadgeText: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: colors.primary,
+    },
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScreenHeader
-        title="Monthly General Meeting"
-        subtitle="Next meeting details & records"
-        onBack={() => navigation?.goBack?.()}
-      />
-      {/* Next meeting schedule */}
+      <ScreenHeader title="Monthly General Meeting" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={s.card}>
           <Text style={s.label}>Next Meeting</Text>
@@ -122,9 +127,17 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
         </View>
 
         {/* Agenda */}
-        <Text style={s.sectionTitle}>Meeting Agenda</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+          <Text style={s.sectionTitle}>Meeting Agenda</Text>
+          {isAdmin && (
+            <View style={s.adminBadge}>
+              <ShieldCheck size={12} color={colors.primary} />
+              <Text style={s.adminBadgeText}>ADMIN</Text>
+            </View>
+          )}
+        </View>
         <View style={[s.card, { paddingVertical: 6 }]}>
-          {agenda.map((item, i) => (
+          {displayAgenda.map((item, i) => (
             <View key={item} style={s.agendaRow}>
               <ListChecks size={14} color={colors.primary} />
               <Text style={s.agendaText}>{i + 1}. {item}</Text>
@@ -132,7 +145,7 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
           ))}
         </View>
 
-                {/* Join button */}
+        {/* Join button — protected for loan review meetings */}
         <TouchableOpacity style={s.joinBtn} activeOpacity={0.85} onPress={startMeeting}>
           <Video size={17} color={s.joinBtnText[1].color} />
           <Text style={s.joinBtnText}>Join Virtual Meeting</Text>
@@ -144,18 +157,6 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
           <TouchableOpacity key={m.id} style={s.card} activeOpacity={0.8} onPress={() => goToMinutes(m)}>
             <View style={s.iconCircle}>
               <FileText size={18} color={colors.primary} />
-            </View>
-            <View style={styles.textGroup}>
-              <Text style={s.rowTitle}>{m.title}</Text>
-              <Text style={s.rowSub}>{m.date}</Text>
-            </View>
-            <ChevronRight size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
 
 // Layout skeleton; all colors are applied dynamically in the component body.
 const makeStyles = () => StyleSheet.create({
@@ -167,7 +168,7 @@ const makeStyles = () => StyleSheet.create({
     borderWidth: 1,
     marginBottom: 12,
   },
-  sectionTitle: { fontSize: 15, fontWeight: '600', marginBottom: 10, marginTop: 4 },
+  sectionTitle: { fontSize: 15, fontWeight: '600', marginTop: 4 },
   label: { fontSize: 12 },
   value: { fontSize: 18, fontWeight: '700', marginTop: 4 },
   metaRow: { flexDirection: 'row', gap: 16, marginTop: 10 },
@@ -206,3 +207,44 @@ const makeStyles = () => StyleSheet.create({
 });
 
 const styles = makeStyles(themes.darkEmerald, true);
+            </View>
+            <View style={styles.textGroup}>
+              <Text style={s.rowTitle}>{m.title}</Text>
+              <Text style={s.rowSub}>{m.date}</Text>
+            </View>
+            <ChevronRight size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+    navigation.navigate('MeetingMinutesDetail', {
+      meetingId: m.id,
+      title: m.title,
+      date: m.date,
+      agendaItems: m.agendaItems,
+      attendanceCount: m.attendanceCount,
+      documentUrl: m.documentUrl ?? undefined,
+    });
+
+  const startMeeting = () => {
+    // Loan review meetings require admin access
+    if (isAdmin && params.isLoanReview) {
+      navigation.navigate('VirtualMeetingRoom', {
+        roomId: 'loan-review-' + (params.meetingId || schedule),
+        roomTitle: 'Loan Disbursement Review',
+        hostName: params.hostName || 'Admin Host',
+        isVideoEnabled: true,
+        isAudioEnabled: true,
+      });
+      return;
+    }
+    navigation.navigate('VirtualMeetingRoom', {
+      roomId: 'mgm-' + (params.meetingId || schedule),
+      roomTitle: 'Monthly General Meeting',
+      hostName: params.hostName || 'Meeting Host',
+      isVideoEnabled: true,
+      isAudioEnabled: true,
+    });
+  };

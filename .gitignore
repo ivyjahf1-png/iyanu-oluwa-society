@@ -42,3 +42,6 @@ yarn-error.*
 
 # secret env file
 .env
+
+.vercel
+.env*

@@ -55,6 +55,7 @@ import AddGoalScreen from '../screens/AddGoalScreen';
 import AuditDashboardScreen from '../screens/AuditDashboardScreen';
 
 import CoopTargetDetailsScreen from '../screens/CoopTargetDetailsScreen';
+import AdminSavingsControlScreen from '../screens/AdminSavingsControlScreen';
 import { useAuth } from '../context/AuthContext';
 import { useAppTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
@@ -211,6 +212,7 @@ export default function AppNavigator() {
             initialParams={{ auditorId: undefined }}
           />
           <Stack.Screen name="CoopTargetDetails" component={CoopTargetDetailsScreen} />
+          <Stack.Screen name="AdminSavingsControl" component={AdminSavingsControlScreen} />
         </Stack.Navigator>
       </View>
     </SafeAreaView>

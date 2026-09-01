@@ -16,9 +16,12 @@ import {
   History,
   TrendingUp,
   Lock,
+  Settings,
 } from 'lucide-react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import { useSavingsPlans, FREQUENCY_META } from '../context/SavingsPlansContext';
+import { isAdminAccount } from '../lib/adminSecurity';
+import { useAuth } from '../context/AuthContext';
 
 const fmt = n =>
   '₦' + Number(n || 0).toLocaleString('en-NG', {
@@ -45,6 +48,7 @@ export default function CoopTargetDetailsScreen({ navigation: rawNav, route }) {
   const { colors, isDark } = useTheme();
   const styles = makeStyles(colors, isDark);
   const { plans } = useSavingsPlans();
+  const { userEmail } = useAuth();
 
   const params = route?.params || {};
   const planId = params.planId;
@@ -75,6 +79,7 @@ export default function CoopTargetDetailsScreen({ navigation: rawNav, route }) {
   const pctRounded = Math.round(pct);
   const outstanding = Math.max(0, (plan.targetAmount || 0) - (plan.currentProgress || 0));
   const remainingCycles = Math.max(0, (plan.totalCycles || 0) - (plan.currentCycle || 0));
+  const isAdmin = isAdminAccount(userEmail);
 
   // Sample payment-schedule history derived from the plan's cycle data.
   const schedule = Array.from({ length: Math.min((plan.totalCycles || 0), 6) }, (_, i) => {
@@ -149,7 +154,7 @@ return (
             Cycle {plan.currentCycle} of {plan.totalCycles}
           </Text>
           <Text style={[styles.cycleSub, { color: colors.textSecondary }]}>
-            {remainingCycles} {remainingCycles === 1 ? 'cycle' : 'cycles'} remaining · {fmt(plan.contributionPerCycle)}{meta.cycle} contribution
+            {remainingCycles} {remainingCycles === 1 ? 'cycle' : 'cycles'} remaining · {fmt(plan.contributionPerCycle)}{plan.totalCycles === 12 ? '/ month' : meta.cycle} contribution
           </Text>
 
           {plan.totalCycles > 0 ? (
@@ -170,11 +175,20 @@ return (
           ) : null}
         </View>
 
-        {/* Next deduction */}
+        {/* Next deduction — read-only status for users */}
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={styles.cardRowHeader}>
             <Calendar size={18} color={colors.primary} />
             <Text style={styles.cardTitle}>Next Deduction</Text>
+            {isAdmin && (
+              <TouchableOpacity
+                style={styles.adminLink}
+                onPress={() => navigation.navigate('AdminSavingsControl', { planId: plan.id || plan.planId })}
+              >
+                <Settings size={14} color={colors.primary} />
+                <Text style={styles.adminLinkText}>Manage</Text>
+              </TouchableOpacity>
+            )}
           </View>
           <Text style={styles.infoValue}>{plan.nextDeduction}</Text>
           {plan.autoDebit ? (
@@ -325,6 +339,21 @@ const makeStyles = (c, dk) => StyleSheet.create({
   scheduleAmount: { fontSize: 13, fontWeight: '600' },
   lockStatusText: { fontSize: 15, fontWeight: '700', marginTop: 8 },
   lockUntil: { fontSize: 12, marginTop: 3 },
+  adminLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginLeft: 'auto',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: c.primary + '15',
+  },
+  adminLinkText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: c.primary,
+  },
   primaryBtn: {
     marginHorizontal: 20,
     marginTop: 6,
