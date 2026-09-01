@@ -20,7 +20,7 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
   const navigation = useSafeNavigation(rawNav);
   const { colors, isDark } = useTheme();
   const styles = makeStyles(colors, isDark);
-  const { userEmail } = useAuth();
+  const { userEmail, displayName: authDisplayName } = useAuth();
 
   const params = route?.params ?? {};
   const schedule = params.date || '1st Sunday of next month';
@@ -82,18 +82,18 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
   const startMeeting = () => {
     if (isAdmin && params.isLoanReview) {
       navigation.navigate('VirtualMeetingRoom', {
-        roomId: 'loan-review-' + (params.meetingId || schedule),
+        roomId: 'loan-review-monthly-general-meeting',
         roomTitle: 'Loan Disbursement Review',
-        hostName: params.hostName || 'Admin Host',
+        hostName: authDisplayName || 'Admin Host',
         isVideoEnabled: true,
         isAudioEnabled: true,
       });
       return;
     }
     navigation.navigate('VirtualMeetingRoom', {
-      roomId: 'mgm-' + (params.meetingId || schedule),
+      roomId: 'mgm-monthly-general-meeting',
       roomTitle: 'Monthly General Meeting',
-      hostName: params.hostName || 'Meeting Host',
+      hostName: authDisplayName || 'Meeting Host',
       isVideoEnabled: true,
       isAudioEnabled: true,
     });
