@@ -86,7 +86,18 @@ export default function ChatBubble({
 
         <View style={styles.metaRow}>
           {edited ? <Text style={styles.editedTag}>edited</Text> : null}
-          <Text style={styles.time}>{timestamp}</Text>
+          <Text
+            style={[
+              styles.time,
+              // Timestamps inside my own (accent/green) bubbles need extra
+              // contrast: translucent white on dark bubbles, textSecondary on
+              // light surfaces.
+              isMine && isDark && { color: 'rgba(255,255,255,0.7)' },
+              isMine && !isDark && { color: 'rgba(15,23,42,0.65)' },
+            ]}
+          >
+            {timestamp}
+          </Text>
           {renderStatus()}
         </View>
 

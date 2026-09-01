@@ -43,12 +43,9 @@ import { themes } from '../theme/colors';
 import { getAllSettings, saveSettings, supabase, isServerConfigured } from '../lib/supabase';
 import { fetchPendingPayments } from '../lib/ledger';
 import { useBankDetails } from '../context/BankContext';
-import { useAppTheme } from '../context/ThemeContext';
 import { resetAllAccounts } from '../auth/authService';
 import {
   readAdminSecurity,
-  // Aliased: the component also declares a local useState setter named
-  // `setAdminPasscode`, which would shadow the plain import.
   setAdminPasscode as persistAdminPasscode,
   setAdminBiometricEnabled,
   setAdminRequireStartup,
@@ -59,8 +56,47 @@ import {
 const ADMIN_SETTINGS_CACHE_KEY = '@admin_app_settings';
 
 /** Currency formatter for the admin overview metrics. */
-const naira = n =>
+const naira = (n) =>
   '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** Dual-storage safe writer: SecureStore native, AsyncStorage web/fallback. */
+const saveSecurely = async (key, value) => {
+  try {
+    const stringVal = String(value);
+    if (Platform.OS === 'web') {
+      await AsyncStorage.setItem(key, stringVal);
+    } else {
+      await SecureStore.setItemAsync(key, stringVal);
+    }
+    return true;
+  } catch (err) {
+    console.warn(`SecureStore failed for ${key}, falling back to AsyncStorage`, err);
+    try {
+      await AsyncStorage.setItem(key, String(value));
+      return true;
+    } catch (e2) {
+      console.warn(`AsyncStorage fallback also failed for ${key}`, e2);
+      return false;
+    }
+  }
+};
+
+/** Dual-storage safe reader: prefers SecureStore on native, falls back to AsyncStorage. */
+const getSecurely = async (key) => {
+  try {
+    if (Platform.OS === 'web') {
+      return await AsyncStorage.getItem(key);
+    }
+    const val = await SecureStore.getItemAsync(key);
+    return val !== null && val !== undefined ? val : await AsyncStorage.getItem(key);
+  } catch (err) {
+    try {
+      return await AsyncStorage.getItem(key);
+    } catch (e2) {
+      return null;
+    }
+  }
+};
 
 export default function AdminSettingsScreen({ navigation: rawNav }) {
   const { colors, isDark } = useTheme();
@@ -80,19 +116,19 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
   const [bankNameInput, setBankNameInput] = useState('');
   const [accountNumberInput, setAccountNumberInput] = useState('');
   const [accountNameInput, setAccountNameInput] = useState('');
-  // Loan eligibility (admin-controlled): fixed limit OR % of savings (default 200%).
+
+  // Loan eligibility (admin-controlled)
   const [loanLimitMode, setLoanLimitMode] = useState('percent'); // 'percent' | 'fixed'
   const [loanLimitPercent, setLoanLimitPercent] = useState('200');
   const [loanLimitFixed, setLoanLimitFixed] = useState('');
-  // Security & Access Control (admin master passcode + biometric + startup lock)
+
+  // Security & Access Control
   const [adminPasscode, setAdminPasscode] = useState('');
   const [showAdminPasscode, setShowAdminPasscode] = useState(false);
   const [secBiometric, setSecBiometric] = useState(false);
   const [secRequireStartup, setSecRequireStartup] = useState(false);
 
-  // ---- Admin Overview metrics — every figure is read from the backend ----
-  // (profiles / ledger_entries / loans / pending_payments). No hardcoded or
-  // client-invented totals: sums are reductions over rows returned by RLS.
+  // Admin Overview metrics
   const [metrics, setMetrics] = useState(null);
   const [metricsLoading, setMetricsLoading] = useState(true);
 
@@ -124,19 +160,20 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
       const loans = loansRes.data || [];
       const pending = pendingRes || [];
 
-      const sum = rows => rows.reduce((s, r) => s + Number(r.amount || 0), 0);
-      const credits = types => sum(ledger.filter(l => types.includes(l.entry_type) && l.direction === 'credit'));
+      const sum = (rows) => rows.reduce((s, r) => s + Number(r.amount || 0), 0);
+      const credits = (types) =>
+        sum(ledger.filter((l) => types.includes(l.entry_type) && l.direction === 'credit'));
 
       const totalSavings =
         credits(['contribution', 'deposit']) -
-        sum(ledger.filter(l => l.entry_type === 'withdrawal' && l.direction === 'debit'));
+        sum(ledger.filter((l) => l.entry_type === 'withdrawal' && l.direction === 'debit'));
 
       const outstandingLoans = loans
-        .filter(l => l.status === 'disbursed')
+        .filter((l) => l.status === 'disbursed')
         .reduce((s, l) => s + Math.max(0, Number(l.total_repayable || 0) - Number(l.amount_repaid || 0)), 0);
 
       const overdueLoans = loans.filter(
-        l => l.status === 'disbursed' && l.due_date && new Date(l.due_date) < new Date(),
+        (l) => l.status === 'disbursed' && l.due_date && new Date(l.due_date) < new Date()
       ).length;
 
       setMetrics({
@@ -146,12 +183,12 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         outstandingLoans,
         todayContributions: sum(
           ledger.filter(
-            l => l.entry_type === 'contribution' && new Date(l.created_at) >= startOfToday,
-          ),
+            (l) => l.entry_type === 'contribution' && new Date(l.created_at) >= startOfToday
+          )
         ),
         pendingPayments: pending.length,
-        pendingLoans: loans.filter(l => l.status === 'pending').length,
-        pendingWithdrawals: pending.filter(p => p.tx_type === 'withdrawal').length,
+        pendingLoans: loans.filter((l) => l.status === 'pending').length,
+        pendingWithdrawals: pending.filter((p) => p.tx_type === 'withdrawal').length,
         overdueLoans,
       });
     } catch (e) {
@@ -162,14 +199,65 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     }
   };
 
+  const loadSettings = async () => {
+    setLoading(true);
+    let loadedData = {};
+
+    try {
+      const cached = await AsyncStorage.getItem(ADMIN_SETTINGS_CACHE_KEY);
+      if (cached) {
+        loadedData = JSON.parse(cached);
+      }
+    } catch (e) {
+      console.warn('AsyncStorage read error:', e);
+    }
+
+    try {
+      const s = await getAllSettings();
+      if (s && Object.keys(s).length > 0) {
+        loadedData = { ...loadedData, ...s };
+      }
+    } catch (e) {
+      console.warn('Supabase fetch failed, falling back to local storage:', e);
+    }
+
+    setFlwPublicKey(loadedData.flutterwave_public_key || '');
+    setFlwSecretKey(loadedData.flutterwave_secret_key || '');
+    setFlwSecretHash(loadedData.flutterwave_secret_hash || '');
+    setPassFeesToUser(loadedData.pass_fees_to_user === 'true');
+    setBankNameInput(loadedData.coop_bank_name || '');
+    setAccountNumberInput(loadedData.coop_account_number || '');
+    setAccountNameInput(loadedData.coop_account_name || '');
+    setLoanLimitMode(loadedData.loan_limit_mode || 'percent');
+    setLoanLimitPercent(loadedData.loan_limit_percent || '200');
+    setLoanLimitFixed(loadedData.loan_limit_fixed || '');
+
+    try {
+      const sec = await readAdminSecurity();
+      setSecBiometric(Boolean(sec.biometricEnabled));
+      setSecRequireStartup(Boolean(sec.requireOnStartup));
+
+      let savedPin = await getAdminMasterPasscode();
+      if (!savedPin && Platform.OS !== 'web') {
+        try {
+          savedPin = await SecureStore.getItemAsync(MASTER_PIN_KEY);
+        } catch (e) {
+          /* noop */
+        }
+      }
+      setAdminPasscode(savedPin || '');
+    } catch (e) {
+      console.warn('Admin security load failed:', e);
+    }
+
+    setLoading(false);
+  };
 
   useEffect(() => {
     loadSettings();
     loadAdminMetrics();
   }, []);
 
-  // Mount-time security binding: read the contract keys via the safe
-  // dual-storage getter (SecureStore native → AsyncStorage fallback/web).
   useEffect(() => {
     const loadSecuritySettings = async () => {
       try {
@@ -186,60 +274,6 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     };
     loadSecuritySettings();
   }, []);
-
-  const loadSettings = async () => {
-    setLoading(true);
-    let loadedData = {};
-
-    // 1. Try loading cached settings first (Fast & offline fallback)
-    try {
-      const cached = await AsyncStorage.getItem(ADMIN_SETTINGS_CACHE_KEY);
-      if (cached) {
-        loadedData = JSON.parse(cached);
-      }
-    } catch (e) {
-      console.warn('AsyncStorage read error:', e);
-    }
-
-    // 2. Try fetching latest settings from Supabase
-    try {
-      const s = await getAllSettings();
-      if (s && Object.keys(s).length > 0) {
-        loadedData = { ...loadedData, ...s };
-      }
-    } catch (e) {
-      console.warn('Supabase fetch failed, falling back to local storage:', e);
-    }
-
-    // 3. Populate component state
-    setFlwPublicKey(loadedData.flutterwave_public_key || '');
-    setFlwSecretKey(loadedData.flutterwave_secret_key || '');
-    setFlwSecretHash(loadedData.flutterwave_secret_hash || '');
-    setPassFeesToUser(loadedData.pass_fees_to_user === 'true');
-    setBankNameInput(loadedData.coop_bank_name || '');
-    setAccountNumberInput(loadedData.coop_account_number || '');
-    setAccountNameInput(loadedData.coop_account_name || '');
-    setLoanLimitMode(loadedData.loan_limit_mode || 'percent');
-        setLoanLimitPercent(loadedData.loan_limit_percent || '200');
-    setLoanLimitFixed(loadedData.loan_limit_fixed || '');
-    // Security & Access Control (persisted via adminSecurity/SecureStore)
-    try {
-      const sec = await readAdminSecurity();
-      setSecBiometric(Boolean(sec.biometricEnabled));
-      setSecRequireStartup(Boolean(sec.requireOnStartup));
-      // Bind the stored master PIN to the input so the UI reflects what is
-      // actually persisted in SecureStore ('admin_master_passcode').
-      let savedPin = await getAdminMasterPasscode();
-      if (!savedPin && Platform.OS !== 'web') {
-        try { savedPin = await SecureStore.getItemAsync(MASTER_PIN_KEY); } catch (e) { /* noop */ }
-      }
-      setAdminPasscode(savedPin || '');
-    } catch (e) {
-      console.warn('Admin security load failed:', e);
-    }
-
-    setLoading(false);
-  };
 
   const saveSettingsHandler = async () => {
     if (!bankNameInput.trim() || !accountNumberInput.trim() || !accountNameInput.trim()) {
@@ -267,7 +301,6 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 
     let saveSuccess = false;
 
-    // 1. Save locally to AsyncStorage (Guarantees app never fails to save)
     try {
       await AsyncStorage.setItem(ADMIN_SETTINGS_CACHE_KEY, JSON.stringify(payload));
       saveSuccess = true;
@@ -275,7 +308,6 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
       console.warn('Local save failed:', e);
     }
 
-    // 2. Attempt saving remotely to Supabase
     try {
       await saveSettings(payload);
       saveSuccess = true;
@@ -286,8 +318,6 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     setSaving(false);
 
     if (saveSuccess) {
-      // Push the cooperative bank details into the global BankContext so
-      // member screens (Fund Wallet, Repay Loan) update immediately.
       await setBankDetails({
         bankName: bankNameInput,
         accountNumber: accountNumberInput,
@@ -300,65 +330,17 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     }
   };
 
-    /* ===== Security & Access Control handlers ===== */
-
-  /** Dual-storage safe writer: SecureStore native, AsyncStorage web/fallback. */
-  const saveSecurely = async (key, value) => {
-    try {
-      const stringVal = String(value);
-      if (Platform.OS === 'web') {
-        await AsyncStorage.setItem(key, stringVal);
-      } else {
-        await SecureStore.setItemAsync(key, stringVal);
-      }
-      return true;
-    } catch (err) {
-      console.warn(`SecureStore failed for ${key}, falling back to AsyncStorage`, err);
-      try {
-        await AsyncStorage.setItem(key, String(value));
-        return true;
-      } catch (e2) {
-        console.warn(`AsyncStorage fallback also failed for ${key}`, e2);
-        return false;
-      }
-    }
-  };
-
-  /** Dual-storage safe reader: prefers SecureStore on native, falls back to AsyncStorage. */
-  const getSecurely = async (key) => {
-    try {
-      if (Platform.OS === 'web') {
-        return await AsyncStorage.getItem(key);
-      }
-      const val = await SecureStore.getItemAsync(key);
-      return val !== null && val !== undefined ? val : await AsyncStorage.getItem(key);
-    } catch (err) {
-      try {
-        return await AsyncStorage.getItem(key);
-      } catch (e2) {
-        return null;
-      }
-    }
-  };
-
-  /**
-   * Explicit async save handler for the "Save Passcode" button.
-   * Writes via the safe dual-storage wrapper so saving succeeds on Expo Go,
-   * web, and physical device builds without unhandled rejections.
-   */
   const handleSavePasscode = async () => {
     if (!adminPasscode || (adminPasscode.length !== 4 && adminPasscode.length !== 6)) {
       Alert.alert('Invalid PIN', 'Passcode must be exactly 4 or 6 digits.');
       return;
     }
     try {
-      // Persist the salted-hash record first so legacy verification keeps working.
       const res = await persistAdminPasscode(adminPasscode);
       if (!res.ok) {
         Alert.alert('Error', res.error || 'Failed to save admin passcode securely.');
         return;
       }
-      // Contract-key writes through the safe wrapper.
       await saveSecurely('admin_master_passcode', adminPasscode);
       await saveSecurely('biometrics_enabled', JSON.stringify(secBiometric));
       await saveSecurely('require_passcode_startup', JSON.stringify(secRequireStartup));
@@ -370,30 +352,6 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     }
   };
 
-  // Save / update the master 6-digit admin passcode (hashed before storage).
-  const saveAdminPasscode = async () => {
-    if (!/^\d{4}$|^\d{6}$/.test(adminPasscode)) {
-      Alert.alert('Invalid Passcode', 'The master passcode must be exactly 4 or 6 digits.');
-      return;
-    }
-    const res = await persistAdminPasscode(adminPasscode);
-    if (!res.ok) {
-      Alert.alert('Error', res.error || 'Could not save the admin passcode.');
-      return;
-    }
-    // Explicit encrypted write of the master PIN mirror (contract key).
-    try {
-      if (Platform.OS !== 'web') {
-        await SecureStore.setItemAsync(MASTER_PIN_KEY, adminPasscode);
-      }
-    } catch (e) {
-      console.warn('SecureStore master PIN write failed (AsyncStorage mirror kept):', e);
-    }
-    setAdminPasscode('');
-    Alert.alert('Passcode Updated', 'The master admin passcode has been saved.');
-  };
-
-  // Enable/disable fingerprint / FaceID with native verification first.
   const toggleBiometric = async (enabled) => {
     if (!enabled) {
       setSecBiometric(false);
@@ -415,7 +373,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
       const res = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Confirm to enable biometric access',
       });
-      if (!res.success) return; // keep toggle OFF on failure/cancel
+      if (!res.success) return;
       setSecBiometric(true);
       await setAdminBiometricEnabled(true);
       Alert.alert('Biometric Enabled', 'Fingerprint / FaceID can now unlock admin access.');
@@ -425,13 +383,11 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
     }
   };
 
-  // Enforce passcode checks at app startup.
   const toggleRequireStartup = async (enabled) => {
     setSecRequireStartup(enabled);
     await setAdminRequireStartup(enabled);
   };
 
-  // Developer reset â€” wipes ALL local accounts/auth data with explicit confirm.
   const handleClearAllData = () => {
     Alert.alert(
       'Clear All Data (Dev)',
@@ -451,21 +407,21 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             }
           },
         },
-      ],
+      ]
     );
   };
 
   return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-          <StatusBar
-            barStyle={isDark ? 'light-content' : 'dark-content'}
-            backgroundColor={colors.background}
-          />
-          <ScreenHeader
-            title="Admin Settings"
-            subtitle="Gateway credentials & cooperative bank account"
-            onBack={() => navigation.goBack()}
-          />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+      />
+      <ScreenHeader
+        title="Admin Settings"
+        subtitle="Gateway credentials & cooperative bank account"
+        onBack={() => navigation.goBack()}
+      />
 
       <ScrollView
         style={{ flex: 1 }}
@@ -473,7 +429,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
         showsVerticalScrollIndicator={true}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Control Panel â€” full admin menu */}
+        {/* Control Panel */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <ShieldCheck size={18} color={colors.success} />
@@ -552,13 +508,13 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.controlTitle, { color: '#F87171' }]}>Clear All Data (Dev)</Text>
-              <Text style={styles.controlSub}>Developer reset â€” wipes local accounts</Text>
+              <Text style={styles.controlSub}>Developer reset — wipes local accounts</Text>
             </View>
             <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
-        {/* ADMIN OVERVIEW — figures read live from the backend tables */}
+        {/* ADMIN OVERVIEW */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <Landmark size={18} color={colors.success} />
@@ -612,7 +568,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           )}
         </View>
 
-        {/* NEEDS ATTENTION — actionable counters that open the right screen */}
+        {/* NEEDS ATTENTION */}
         {metrics ? (
           <View style={styles.sectionCard}>
             <View style={styles.sectionHeaderRow}>
@@ -634,6 +590,9 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             <TouchableOpacity
               style={styles.attentionRow}
               onPress={() => navigation.navigate('AdminLoans', { status: 'pending' })}
+            >
+              <HandCoins size={16} color="#F59E0B" />
+              <Text style={styles.attentionText}>Pending loans</Text>
               <View style={styles.countBadge}>
                 <Text style={styles.countText}>{metrics.pendingLoans}</Text>
               </View>
@@ -654,6 +613,8 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               <TouchableOpacity
                 style={styles.attentionRow}
                 onPress={() => navigation.navigate('AdminLoans', { status: 'disbursed' })}
+              >
+                <AlertTriangle size={16} color="#F87171" />
                 <Text style={styles.attentionText}>Overdue loans</Text>
                 <View style={[styles.countBadge, { backgroundColor: '#F87171' }]}>
                   <Text style={styles.countText}>{metrics.overdueLoans}</Text>
@@ -675,7 +636,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           </View>
         ) : null}
 
-        {/* QUICK ACTIONS — all point at existing screens */}
+        {/* QUICK ACTIONS */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <ShieldCheck size={18} color={colors.success} />
@@ -710,7 +671,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           </View>
         </View>
 
-        {/* FINANCIAL MANAGEMENT — routes into the existing screens/RPCs */}
+        {/* FINANCIAL MANAGEMENT */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <Wallet size={18} color={colors.success} />
@@ -762,7 +723,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           </TouchableOpacity>
         </View>
 
-        {/* LOAN MANAGEMENT — status-filtered routing into AdminLoans */}
+        {/* LOAN MANAGEMENT */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <HandCoins size={18} color={colors.success} />
@@ -803,7 +764,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           </TouchableOpacity>
         </View>
 
-                {/* AI Config — edge-function auth with direct Gemini fallback */}
+        {/* AI Config */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
             <Bot size={18} color={colors.success} />
@@ -827,10 +788,6 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
-
-        {/* Appearance — themes are managed in Profile Settings (single
-            canonical 4-option ThemeSelector). The duplicated scheme grid was
-            removed; setColorScheme remains aliased to the canonical setTheme. */}
 
         {/* Flutterwave credentials */}
         <View style={styles.sectionCard}>
@@ -880,7 +837,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               value={passFeesToUser}
               onValueChange={setPassFeesToUser}
               trackColor={{ false: '#D1FAE5', true: '#10B981' }}
-              thumbColor='#FFFFFF'
+              thumbColor="#FFFFFF"
             />
           </View>
         </View>
@@ -925,7 +882,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           />
         </View>
 
-        {/* Loan Eligibility â€” admin-controlled limit (Nigerian coop rule) */}
+        {/* Loan Eligibility */}
         <View style={styles.loanSection}>
           <View style={styles.loanHeader}>
             <Landmark size={18} color={colors.success} />
@@ -1029,7 +986,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               value={secBiometric}
               onValueChange={toggleBiometric}
               trackColor={{ false: '#D1FAE5', true: '#10B981' }}
-              thumbColor='#FFFFFF'
+              thumbColor="#FFFFFF"
             />
           </View>
 
@@ -1042,7 +999,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
               value={secRequireStartup}
               onValueChange={toggleRequireStartup}
               trackColor={{ false: '#D1FAE5', true: '#10B981' }}
-              thumbColor='#FFFFFF'
+              thumbColor="#FFFFFF"
             />
           </View>
 
@@ -1058,307 +1015,270 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           disabled={loading || saving}
         >
           <CheckCircle2 size={18} color={colors.text} />
-          <Text style={styles.saveBtnText}>{saving ? 'Saving\u2026' : 'Save Settings'}</Text>
+          <Text style={styles.saveBtnText}>{saving ? 'Saving…' : 'Save Settings'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-const makeStyles = (colors, isDark) => StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: colors.background 
-  },
-  scrollView: { 
-    flex: 1 
-  },
-  content: { 
-    padding: 16, 
-    paddingBottom: Platform.OS === 'web' ? 100 : 50,
-    flexGrow: 1,
-  },
-  sectionCard: {
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 16,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  sectionHint: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    marginBottom: 10,
-  },
-  // ---- Admin Overview / Quick Actions / Needs Attention ----
-  refreshText: { color: colors.success, fontSize: 12, fontWeight: '700' },
-  metricsLoading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 8,
-  },
-  metricsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  metricCell: {
-    flexGrow: 1,
-    minWidth: '47%',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 12,
-  },
-  metricLabel: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '600',
-  },
-  metricValue: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-  metricFootnote: {
-    color: colors.textSecondary,
-    fontSize: 10,
-    marginTop: 10,
-    lineHeight: 14,
-  },
-  attentionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  attentionText: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '600',
-    flex: 1,
-  },
-  attentionSub: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  countBadge: {
-    minWidth: 26,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 13,
-    backgroundColor: colors.success,
-    alignItems: 'center',
-  },
-  countText: { color: colors.background, fontSize: 12, fontWeight: 'bold' },
-  qaGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  qaCell: {
-    flexGrow: 1,
-    minWidth: '30%',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: 14,
-    paddingHorizontal: 6,
-  },
-  qaText: {
-    color: colors.text,
-    fontSize: 11,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  label: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: colors.inputBackground,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    color: colors.text,
-    fontSize: 14,
-    marginBottom: 14,
-  },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  switchTextGroup: {
-    flex: 1,
-    marginRight: 10,
-  },
-  switchTitle: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  switchSub: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  passcodeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 14,
-  },
-  passcodeInput: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    marginBottom: 0,
-    color: colors.text,
-  },
-  eyeToggleBtn: { paddingHorizontal: 12 },
-  saveBtn: {
-    backgroundColor: colors.success,
-    borderRadius: 12,
-    paddingVertical: 15,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 8,
-    marginBottom: 20,
-  },
-  saveBtnDisabled: {
-    opacity: 0.6,
-  },
-  saveBtnText: {
-    color: colors.background,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  loanSection: {
-    backgroundColor: colors.card,
-    borderRadius: 14,
-    padding: 14,
-    marginTop: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  loanHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  modeRow: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: 10,
-    padding: 4,
-    marginVertical: 10,
-  },
-  modeBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
-  modeBtnActive: { backgroundColor: colors.success },
-  modeBtnText: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
-  modeBtnTextActive: { color: colors.text },
-  bannerLink: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: colors.card, borderRadius: 12, padding: 14,
-    borderWidth: 1, borderColor: colors.border, marginBottom: 16,
-  },
-  themePreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1.5,
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 10,
-    alignSelf: 'flex-start',
-  },
-  themePreviewDot: { width: 12, height: 12, borderRadius: 6 },
-  themePreviewLabel: { fontSize: 12, fontWeight: '700' },
-  bannerLinkTitle: { color: colors.text, fontSize: 14, fontWeight: '600' },
+const makeStyles = (colors, isDark) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    sectionCard: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 16,
+    },
+    sectionHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    sectionHint: {
+      color: colors.textSecondary,
+      fontSize: 11,
+      marginBottom: 10,
+    },
+    refreshText: { color: colors.success, fontSize: 12, fontWeight: '700' },
+    metricsLoading: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 8,
+    },
+    metricsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    metricCell: {
+      flexGrow: 1,
+      minWidth: '47%',
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 12,
+    },
+    metricLabel: {
+      color: colors.textSecondary,
+      fontSize: 11,
+      fontWeight: '600',
+    },
+    metricValue: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginTop: 4,
+    },
+    metricFootnote: {
+      color: colors.textSecondary,
+      fontSize: 10,
+      marginTop: 10,
+      lineHeight: 14,
+    },
+    attentionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    attentionText: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '600',
+      flex: 1,
+    },
+    attentionSub: {
+      color: colors.textSecondary,
+      fontSize: 11,
+      marginTop: 2,
+    },
+    countBadge: {
+      minWidth: 26,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 13,
+      backgroundColor: colors.success,
+      alignItems: 'center',
+    },
+    countText: { color: colors.background, fontSize: 12, fontWeight: 'bold' },
+    qaGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    qaCell: {
+      flexGrow: 1,
+      minWidth: '30%',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.surface,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: 14,
+      paddingHorizontal: 6,
+    },
+    qaText: {
+      color: colors.text,
+      fontSize: 11,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    label: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '600',
+      marginBottom: 6,
+    },
+    input: {
+      backgroundColor: colors.inputBackground,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      color: colors.text,
+      fontSize: 14,
+      marginBottom: 14,
+    },
+    switchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    switchTextGroup: {
+      flex: 1,
+      marginRight: 10,
+    },
+    switchTitle: {
+      color: colors.text,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    switchSub: {
+      color: colors.textSecondary,
+      fontSize: 11,
+      marginTop: 2,
+    },
+    passcodeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 14,
+    },
+    passcodeInput: {
+      flex: 1,
+      backgroundColor: 'transparent',
+      borderWidth: 0,
+      marginBottom: 0,
+      color: colors.text,
+    },
+    eyeToggleBtn: { paddingHorizontal: 12 },
+    saveBtn: {
+      backgroundColor: colors.success,
+      borderRadius: 12,
+      paddingVertical: 15,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 8,
+      marginBottom: 20,
+    },
+    saveBtnDisabled: {
+      opacity: 0.6,
+    },
+    saveBtnText: {
+      color: colors.background,
+      fontWeight: 'bold',
+      fontSize: 14,
+    },
+    loanSection: {
+      backgroundColor: colors.card,
+      borderRadius: 14,
+      padding: 14,
+      marginTop: 16,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    loanHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 8,
+    },
+    modeRow: {
+      flexDirection: 'row',
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+      padding: 4,
+      marginVertical: 10,
+    },
+    modeBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 8 },
+    modeBtnActive: { backgroundColor: colors.success },
+    modeBtnText: { color: colors.textSecondary, fontSize: 12, fontWeight: '600' },
+    modeBtnTextActive: { color: colors.text },
+    bannerLink: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 16,
+    },
+    bannerLinkTitle: { color: colors.text, fontSize: 14, fontWeight: '600' },
     bannerLinkSub: { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
-  themeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  themeSwatch: {
-    flex: 1,
-    minWidth: 90,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  themeSwatchActive: {
-    borderWidth: 2,
-    borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  themeSwatchLabel: { color: colors.text, fontSize: 12, fontWeight: '700' },
-  controlRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 10,
-  },
-  controlIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  controlTitle: { color: colors.text, fontSize: 14, fontWeight: '600' },
-  controlSub: { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
-  controlPill: {
-    color: colors.success,
-    fontSize: 11,
-    fontWeight: '700',
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-});
-
-const styles = makeStyles(themes.darkEmerald, true);
-
+    controlRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 10,
+    },
+    controlIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    controlTitle: { color: colors.text, fontSize: 14, fontWeight: '600' },
+    controlSub: { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
+    controlPill: {
+      color: colors.success,
+      fontSize: 11,
+      fontWeight: '700',
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+    },
+  });

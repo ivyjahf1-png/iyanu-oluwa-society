@@ -1,13 +1,17 @@
 import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
-import { Users, Shield, Award, ChevronRight } from 'lucide-react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Users, Shield, Award, ChevronRight, Lock } from 'lucide-react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
 import { useTheme } from '../theme/ThemeContext';
 import { themes } from '../theme/colors';
+import { isAdminAccount } from '../lib/adminSecurity';
+import { useAuth } from '../context/AuthContext';
 
 export default function SocietyScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const styles = makeStyles(colors, isDark);
+  const { userEmail } = useAuth();
+  const isAdmin = isAdminAccount(userEmail);
 
   // Dynamic styles so every surface follows the active theme.
   const s = {
@@ -24,6 +28,43 @@ export default function SocietyScreen({ navigation }) {
     title: [styles.title, { color: colors.text }],
     sub: [styles.sub, { color: colors.textSecondary }],
     sectionTitle: [styles.sectionTitle, { color: colors.text }],
+    lockedCard: [
+      styles.card,
+      {
+        backgroundColor: colors.card,
+        borderColor: colors.border,
+        opacity: isAdmin ? 1 : 0.72,
+      },
+    ],
+    lockBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      alignSelf: 'flex-start',
+      backgroundColor: colors.warning + '20',
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      marginBottom: 4,
+    },
+    lockBadgeText: {
+      color: colors.warning,
+      fontSize: 10,
+      fontWeight: '700',
+    },
+  };
+
+  /** Dividend is gated: admins may open, members see a locked alert. */
+  const openDividend = () => {
+    if (isAdmin) {
+      navigation?.navigate?.('DividendDistribution', { year: '2026' });
+      return;
+    }
+    Alert.alert(
+      'Dividend Distribution',
+      'Dividend distribution is locked until the end of the financial cycle.',
+      [{ text: 'OK' }],
+    );
   };
 
   return (
@@ -64,9 +105,9 @@ export default function SocietyScreen({ navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={s.card}
+          style={s.lockedCard}
           activeOpacity={0.8}
-          onPress={() => navigation?.navigate?.('DividendDistribution', { year: '2026' })}
+          onPress={openDividend}
         >
           <View style={s.row}>
             <View style={s.iconCircle}>
@@ -75,6 +116,10 @@ export default function SocietyScreen({ navigation }) {
             <View style={s.textGroup}>
               <Text style={s.title}>Dividend Distribution</Text>
               <Text style={s.sub}>Annual financial ledger report</Text>
+              <View style={s.lockBadge}>
+                <Lock size={11} color={colors.warning} />
+                <Text style={s.lockBadgeText}>{isAdmin ? 'ADMIN ACCESS' : 'LOCKED'}</Text>
+              </View>
             </View>
             <ChevronRight size={18} color={colors.textSecondary} />
           </View>

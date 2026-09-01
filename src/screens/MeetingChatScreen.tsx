@@ -45,6 +45,7 @@ import {
 import * as DocumentPicker from 'expo-document-picker';
 import * as Sharing from 'expo-sharing';
 import * as Clipboard from 'expo-clipboard';
+import { Audio } from 'expo-av';
 import { storage } from '../lib/storage';
 import { toast } from '../lib/safe';
 import { onMeetingMessage, broadcastMeetingMessage, MeetingMessage } from '../lib/meetingChat';
@@ -219,6 +220,8 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  /** Native (expo-av) recorder fallback for devices without MediaRecorder. */
+  const nativeRecorderRef = useRef<Audio.Recording | null>(null);
 
   const senderName = 'Me';
   const senderPhone = '+234 803 000 0000';
@@ -610,6 +613,10 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     try { streamRef.current?.getTracks().forEach((t) => t.stop()); } catch { /* noop */ }
     streamRef.current = null;
     recorderRef.current = null;
+    if (nativeRecorderRef.current) {
+      try { nativeRecorderRef.current.stopAndUnloadAsync().catch(() => {}); } catch { /* noop */ }
+      nativeRecorderRef.current = null;
+    }
     chunksRef.current = [];
     gestureRef.current = { recording: false, locked: false, seconds: 0 };
     setVoiceState({ pressing: false, recording: false, locked: false, seconds: 0 });
@@ -617,9 +624,9 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
 
   /** Route a finished take through the chat's EXISTING message pipeline. */
   const commitVoiceMessage = (blob: Blob | null, secs: number): void => {
-    if (secs <= 0) return;
+    if (secs <= 0 || !blob) return;
     const msgId = `v-${Date.now()}`;
-    const uri = blob ? URL.createObjectURL(blob) : null;
+    const uri = URL.createObjectURL(blob);
     pushMessage({
       id: msgId, type: 'voice', senderId, senderName, senderPhone, avatarUrl: null,
       mediaUrl: uri, duration: fmtDuration(secs), time: clock, isMe: true,
@@ -627,12 +634,46 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     if (uri) broadcast({ id: msgId, text: '', mediaUrl: uri, type: 'text' });
   };
 
+  /** Message pipeline runner for native recordings (keeps a file:// URI). */
+  const commitVoiceUri = (uri: string | null, secs: number): void => {
+    if (secs <= 0 || !uri) return;
+    const msgId = `v-${Date.now()}`;
+    pushMessage({
+      id: msgId, type: 'voice', senderId, senderName, senderPhone, avatarUrl: null,
+      mediaUrl: uri, duration: fmtDuration(secs), time: clock, isMe: true,
+    });
+    broadcast({ id: msgId, text: '', mediaUrl: uri, type: 'text' });
+  };
+
   /**
-   * Stop the MediaRecorder and deliver its blob to `send` or discard it.
-   * The finalisation happens inside `onstop`, once the last chunk lands.
+   * Stop the active recorder (MediaRecorder on web, expo-av on native) and
+   * deliver its output to `send` or discard it.
+   * The MediaRecorder finalisation happens inside `onstop`, once the last
+   * chunk lands.
    */
   const stopRecording = (action: 'send' | 'discard'): void => {
     const secs = gestureRef.current.seconds;
+
+    // Native (expo-av) path — recording provides a file URI on stop.
+    const nativeRec = nativeRecorderRef.current;
+    if (nativeRec) {
+      (async () => {
+        try {
+          await nativeRec.stopAndUnloadAsync();
+          nativeRecorderRef.current = null;
+          const uri = nativeRec.getURI();
+          if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+          gestureRef.current = { recording: false, locked: false, seconds: 0 };
+          setVoiceState({ pressing: false, recording: false, locked: false, seconds: 0 });
+          if (action === 'send') commitVoiceUri(uri, secs);
+        } catch (e) {
+          console.warn('[voice] native stop failed:', e);
+          teardownRecording();
+        }
+      })();
+      return;
+    }
+
     const recorder = recorderRef.current;
     if (!recorder || recorder.state === 'inactive') {
       teardownRecording();
@@ -652,33 +693,72 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
     try { recorder.stop(); } catch { teardownRecording(); }
   };
 
-  /** Open the microphone and start capturing through the MediaRecorder API. */
+  /**
+   * Open the microphone and start capturing.
+   * Explicitly requests audio-recording permission (via Expo Audio) BEFORE
+   * any capture starts, then uses the browser MediaRecorder API on web and
+   * falls back to an expo-av Recording on native devices that lack it.
+   */
   const beginHoldRecording = async (): Promise<void> => {
+    // --- 1. Request microphone permission (native + web prompts). ---
+    try {
+      const perm = await Audio.requestPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Microphone permission required', 'Allow microphone access to record voice notes.');
+        teardownRecording();
+        return;
+      }
+    } catch (e) {
+      console.warn('[voice] requestPermissionsAsync failed, continuing:', e);
+    }
+
     const canRecord =
       typeof navigator !== 'undefined' &&
       !!navigator.mediaDevices?.getUserMedia &&
       typeof MediaRecorder !== 'undefined';
-    if (!canRecord) {
-      Alert.alert('Voice notes unavailable', 'Audio recording is not supported on this device.');
-      teardownRecording();
-      return;
+
+    // --- 2. Web / browser: MediaRecorder API. ---
+    if (canRecord) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
+        const recorder = new MediaRecorder(stream);
+        recorderRef.current = recorder;
+        chunksRef.current = [];
+        recorder.ondataavailable = (e: any) => {
+          if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+        };
+        recorder.onerror = () => stopRecording('discard');
+        recorder.start();
+        gestureRef.current.recording = true;
+        setVoiceState((v) => ({ ...v, recording: true }));
+        return;
+      } catch (e) {
+        console.warn('[voice] MediaRecorder start failed:', e);
+        teardownRecording();
+        try { streamRef.current?.getTracks().forEach((t) => t.stop()); } catch { /* noop */ }
+        streamRef.current = null;
+        Alert.alert('Microphone unavailable', 'Allow microphone access to record voice notes.');
+        return;
+      }
     }
+
+    // --- 3. Native (expo-av) fallback. ---
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      const recorder = new MediaRecorder(stream);
-      recorderRef.current = recorder;
-      chunksRef.current = [];
-      recorder.ondataavailable = (e: any) => {
-        if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
-      };
-      recorder.onerror = () => stopRecording('discard');
-      recorder.start();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY,
+      );
+      nativeRecorderRef.current = recording;
       gestureRef.current.recording = true;
       setVoiceState((v) => ({ ...v, recording: true }));
     } catch (e) {
-      Alert.alert('Microphone unavailable', 'Allow microphone access to record voice notes.');
+      console.warn('[voice] native recording unsupported:', e);
       teardownRecording();
+      Alert.alert('Voice notes unavailable', 'Audio recording is not supported on this device.');
     }
   };
 
@@ -1186,7 +1266,7 @@ const makeStyles = (c: any, dk: boolean) => StyleSheet.create({
   outSubtext: { color: c.background, fontSize: 11, marginTop: 2 },
   outImage: { width: 200, height: 140, borderRadius: 10, marginBottom: 4 },
   outMetaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 4 },
-  outTime: { color: c.background, fontSize: 10, fontWeight: '600' },
+  outTime: { color: 'rgba(255,255,255,0.9)', fontSize: 10, fontWeight: '600' },
 
   // Shared media / download
   downloadBadge: {
