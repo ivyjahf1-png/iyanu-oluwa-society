@@ -77,6 +77,36 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
   ];
 
   const goToMinutes = m =>
+    navigation.navigate('MeetingMinutesDetail', {
+      meetingId: m.id,
+      title: m.title,
+      date: m.date,
+      agendaItems: m.agendaItems,
+      attendanceCount: m.attendanceCount,
+      documentUrl: m.documentUrl ?? undefined,
+    });
+
+  const startMeeting = () => {
+    // Loan review meetings require admin access
+    if (isAdmin && params.isLoanReview) {
+      navigation.navigate('VirtualMeetingRoom', {
+        roomId: 'loan-review-' + (params.meetingId || schedule),
+        roomTitle: 'Loan Disbursement Review',
+        hostName: params.hostName || 'Admin Host',
+        isVideoEnabled: true,
+        isAudioEnabled: true,
+      });
+      return;
+    }
+    navigation.navigate('VirtualMeetingRoom', {
+      roomId: 'mgm-' + (params.meetingId || schedule),
+      roomTitle: 'Monthly General Meeting',
+      hostName: params.hostName || 'Meeting Host',
+      isVideoEnabled: true,
+      isAudioEnabled: true,
+    });
+  };
+
   // Theme-aware style overrides so every surface follows the active theme.
   const s = {
     card: [styles.card, { backgroundColor: colors.card, borderColor: colors.border }],
