@@ -46,6 +46,15 @@ export interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+/** Safely extract a human-readable message from an unknown caught error. */
+function getErrorMessage(e: unknown): string {
+  if (e && typeof e === 'object' && 'message' in e) {
+    const msg = (e as { message?: unknown }).message;
+    return typeof msg === 'string' ? msg : String(msg ?? '');
+  }
+  return typeof e === 'string' ? e : '';
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(true);
@@ -153,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return { ok: true };
         }
       } catch (e) {
-        console.warn('[auth] supabase signIn failed, falling back to local:', e?.message);
+        console.warn('[auth] supabase signIn failed, falling back to local:', getErrorMessage(e));
       }
     }
 
@@ -196,11 +205,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               { onConflict: 'id' },
             );
           } catch (e) {
-            console.warn('[auth] profile upsert failed:', e?.message);
+            console.warn('[auth] profile upsert failed:', getErrorMessage(e));
           }
         }
       } catch (e) {
-        console.warn('[auth] supabase signUp failed, falling back to local:', e?.message);
+        console.warn('[auth] supabase signUp failed, falling back to local:', getErrorMessage(e));
       }
     }
 
