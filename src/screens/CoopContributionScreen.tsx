@@ -240,7 +240,7 @@ await submitPayment({
   );
 }
 
-const makeStyles = (colors: Record<string, string>) => StyleSheet.create({
+const makeStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

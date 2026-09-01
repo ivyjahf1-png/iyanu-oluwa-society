@@ -783,7 +783,6 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
             </View>
           ) : (
             <ChatBubble
-              id={msg.id}
               text={msg.text || ''}
               isMine
               status={msg.status}
@@ -848,7 +847,6 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
             </View>
           ) : (
             <ChatBubble
-              id={msg.id}
               text={msg.text || ''}
               isMine={false}
               timestamp={msg.time}
@@ -1114,7 +1112,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
 }
 
 
-const makeStyles = (c: Record<string, string>, dk: boolean) => StyleSheet.create({
+const makeStyles = (c: any, dk: boolean) => StyleSheet.create({
   container: { flex: 1, backgroundColor: c.background, overflow: 'hidden', width: '100%', maxWidth: '100%', ...(({ touchAction: 'pan-y' } as any)) },
   keyboardWrap: { flex: 1 },
   header: {
@@ -1188,6 +1186,31 @@ const makeStyles = (c: Record<string, string>, dk: boolean) => StyleSheet.create
   voiceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   waveBar: { width: 3, borderRadius: 2, backgroundColor: c.primary },
   voiceDuration: { color: c.primary, fontSize: 12, marginLeft: 6 },
+
+  // Bottom input dock
+  inputDock: {
+    backgroundColor: c.card,
+    borderTopWidth: 1,
+    borderTopColor: c.border,
+    paddingHorizontal: 8,
+    paddingTop: 6,
+  },
+
+  // Editing indicator above the composer
+  editingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: dk ? '#1E293B' : '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginHorizontal: 8,
+    marginTop: 4,
+    borderRadius: 8,
+  },
+  editingIndicatorTextWrap: { flex: 1 },
+  editingIndicatorLabel: { color: c.primary, fontSize: 11, fontWeight: '700' },
+  editingIndicatorPreview: { color: c.textSecondary, fontSize: 11 },
 
   // Recording bar
   recordingBar: {
