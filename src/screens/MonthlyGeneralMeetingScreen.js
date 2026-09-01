@@ -16,11 +16,6 @@ import { themes } from '../theme/colors';
 import { isAdminAccount } from '../lib/adminSecurity';
 import { useAuth } from '../context/AuthContext';
 
-// ---------------------------------------------------------------------------
-// Monthly General Meeting — detail page.
-// Presentational only: agenda, schedule, join link and past minutes.
-// Params: { meetingId?: string, date?: string } via route.params.
-// ---------------------------------------------------------------------------
 export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route }) {
   const navigation = useSafeNavigation(rawNav);
   const { colors, isDark } = useTheme();
@@ -30,7 +25,6 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
   const params = route?.params ?? {};
   const schedule = params.date || '1st Sunday of next month';
 
-  // Regular members see a clean agenda without admin-only items
   const agenda = [
     'Opening prayer & welcome address',
     "Reading of last meeting minutes",
@@ -39,7 +33,6 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
     'Closing remarks & next meeting date',
   ];
 
-  // Admin-only agenda includes loan disbursement review
   const adminAgenda = [
     ...agenda.slice(0, 3),
     'Loan disbursement review',
@@ -87,7 +80,6 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
     });
 
   const startMeeting = () => {
-    // Loan review meetings require admin access
     if (isAdmin && params.isLoanReview) {
       navigation.navigate('VirtualMeetingRoom', {
         roomId: 'loan-review-' + (params.meetingId || schedule),
@@ -107,7 +99,6 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
     });
   };
 
-  // Theme-aware style overrides so every surface follows the active theme.
   const s = {
     card: [styles.card, { backgroundColor: colors.card, borderColor: colors.border }],
     sectionTitle: [styles.sectionTitle, { color: colors.text }],
@@ -156,7 +147,6 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
           </View>
         </View>
 
-        {/* Agenda */}
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
           <Text style={s.sectionTitle}>Meeting Agenda</Text>
           {isAdmin && (
@@ -175,20 +165,29 @@ export default function MonthlyGeneralMeetingScreen({ navigation: rawNav, route 
           ))}
         </View>
 
-        {/* Join button — protected for loan review meetings */}
         <TouchableOpacity style={s.joinBtn} activeOpacity={0.85} onPress={startMeeting}>
           <Video size={17} color={s.joinBtnText[1].color} />
           <Text style={s.joinBtnText}>Join Virtual Meeting</Text>
         </TouchableOpacity>
 
-        {/* Past minutes */}
         <Text style={s.sectionTitle}>Past Meeting Minutes</Text>
         {pastMinutes.map(m => (
           <TouchableOpacity key={m.id} style={s.card} activeOpacity={0.8} onPress={() => goToMinutes(m)}>
             <View style={s.iconCircle}>
               <FileText size={18} color={colors.primary} />
+            </View>
+            <View style={styles.textGroup}>
+              <Text style={s.rowTitle}>{m.title}</Text>
+              <Text style={s.rowSub}>{m.date}</Text>
+            </View>
+            <ChevronRight size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
 
-// Layout skeleton; all colors are applied dynamically in the component body.
 const makeStyles = () => StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 16, paddingBottom: 40 },
@@ -237,44 +236,3 @@ const makeStyles = () => StyleSheet.create({
 });
 
 const styles = makeStyles(themes.darkEmerald, true);
-            </View>
-            <View style={styles.textGroup}>
-              <Text style={s.rowTitle}>{m.title}</Text>
-              <Text style={s.rowSub}>{m.date}</Text>
-            </View>
-            <ChevronRight size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-    navigation.navigate('MeetingMinutesDetail', {
-      meetingId: m.id,
-      title: m.title,
-      date: m.date,
-      agendaItems: m.agendaItems,
-      attendanceCount: m.attendanceCount,
-      documentUrl: m.documentUrl ?? undefined,
-    });
-
-  const startMeeting = () => {
-    // Loan review meetings require admin access
-    if (isAdmin && params.isLoanReview) {
-      navigation.navigate('VirtualMeetingRoom', {
-        roomId: 'loan-review-' + (params.meetingId || schedule),
-        roomTitle: 'Loan Disbursement Review',
-        hostName: params.hostName || 'Admin Host',
-        isVideoEnabled: true,
-        isAudioEnabled: true,
-      });
-      return;
-    }
-    navigation.navigate('VirtualMeetingRoom', {
-      roomId: 'mgm-' + (params.meetingId || schedule),
-      roomTitle: 'Monthly General Meeting',
-      hostName: params.hostName || 'Meeting Host',
-      isVideoEnabled: true,
-      isAudioEnabled: true,
-    });
-  };
