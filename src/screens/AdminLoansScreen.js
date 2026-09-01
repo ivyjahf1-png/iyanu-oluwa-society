@@ -29,15 +29,18 @@ const GROUPS = [
 const fmt = n =>
   '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export default function AdminLoansScreen({ navigation: rawNav }) {
+export default function AdminLoansScreen({ navigation: rawNav, route }) {
   const navigation = useSafeNavigation(rawNav);
   const { colors, isDark } = useTheme();
   const styles = makeStyles(colors);
 
+  const params = route?.params || {};
+  const initialStatus = params.status || null;
+
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [group, setGroup] = useState('review');
+  const [group, setGroup] = useState(initialStatus === 'pending' ? 'review' : initialStatus === 'approved' ? 'approved' : initialStatus === 'rejected' ? 'rejected' : initialStatus === 'disbursed' ? 'active' : 'review');
   const [busyId, setBusyId] = useState(null);
 
   const load = useCallback(async () => {

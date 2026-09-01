@@ -633,10 +633,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
 
             <TouchableOpacity
               style={styles.attentionRow}
-              onPress={() => navigation.navigate('AdminLoans')}
-            >
-              <HandCoins size={16} color={colors.success} />
-              <Text style={styles.attentionText}>Pending loan applications</Text>
+              onPress={() => navigation.navigate('AdminLoans', { status: 'pending' })}
               <View style={styles.countBadge}>
                 <Text style={styles.countText}>{metrics.pendingLoans}</Text>
               </View>
@@ -656,9 +653,7 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             {metrics.overdueLoans > 0 ? (
               <TouchableOpacity
                 style={styles.attentionRow}
-                onPress={() => navigation.navigate('AdminLoans')}
-              >
-                <AlertTriangle size={16} color={colors.danger} />
+                onPress={() => navigation.navigate('AdminLoans', { status: 'disbursed' })}
                 <Text style={styles.attentionText}>Overdue loans</Text>
                 <View style={[styles.countBadge, { backgroundColor: '#F87171' }]}>
                   <Text style={styles.countText}>{metrics.overdueLoans}</Text>
@@ -762,6 +757,47 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
             <View style={{ flex: 1 }}>
               <Text style={styles.controlTitle}>Statements & Reports</Text>
               <Text style={styles.controlSub}>Statement periods with PDF / share export</Text>
+            </View>
+            <ChevronRight size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* LOAN MANAGEMENT — status-filtered routing into AdminLoans */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <HandCoins size={18} color={colors.success} />
+            <Text style={styles.sectionTitle}>Loan Management</Text>
+          </View>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminLoans', { status: 'pending' })}>
+            <View style={[styles.controlIcon, { backgroundColor: '#6B4A00' }]}>
+              <HandCoins size={18} color="#FBBF24" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Pending Approvals</Text>
+              <Text style={styles.controlSub}>Review, approve or reject new applications</Text>
+            </View>
+            <ChevronRight size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminLoans', { status: 'approved' })}>
+            <View style={[styles.controlIcon, { backgroundColor: '#0F4C38' }]}>
+              <HandCoins size={18} color={colors.success} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Approved Loans</Text>
+              <Text style={styles.controlSub}>Ready to disburse (credit member wallets)</Text>
+            </View>
+            <ChevronRight size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('AdminLoans', { status: 'rejected' })}>
+            <View style={[styles.controlIcon, { backgroundColor: '#4A1520' }]}>
+              <HandCoins size={18} color="#F87171" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Rejected Loans</Text>
+              <Text style={styles.controlSub}>Previously declined applications</Text>
             </View>
             <ChevronRight size={18} color={colors.textSecondary} />
           </TouchableOpacity>

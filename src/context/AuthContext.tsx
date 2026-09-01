@@ -6,6 +6,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { AppState, Platform } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as authService from '../auth/authService';
+import { supabase, SUPABASE_UNCONFIGURED } from '../lib/supabase';
 
 export interface AuthState {
   userEmail: string | null;
@@ -29,7 +30,7 @@ export interface AuthState {
     biometricAvailable: boolean;
   };
   loginWithPassword: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
-  registerAccount: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
+  registerAccount: (email: string, password: string, fullName?: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   loginWithPasscode: (passcode: string) => Promise<boolean>;
   loginWithBiometric: () => Promise<boolean>;
@@ -137,9 +138,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const loginWithPassword = async (email: string, password: string) => {
-    const res = await authService.loginWithPassword(email, password);
+    const trimmed = email.trim().toLowerCase();
+
+    // Try Supabase Auth first so credentials persist server-side for future logins.
+    if (!SUPABASE_UNCONFIGURED && supabase) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: trimmed,
+          password,
+        });
+        if (!error && data?.session) {
+          setUserEmail((data.user?.email || trimmed).toLowerCase());
+          setIsLocked(false);
+          return { ok: true };
+        }
+      } catch (e) {
+        console.warn('[auth] supabase signIn failed, falling back to local:', e?.message);
+      }
+    }
+
+    // Local (offline / unconfigured) fallback.
+    const res = await authService.loginWithPassword(trimmed, password);
     if (res.ok) {
-      setUserEmail(email.trim().toLowerCase());
+      setUserEmail(trimmed);
       // Successful sign-in always clears the lock so the user goes straight
       // to the dashboard (fixes forced "Sign In Required" loop).
       setIsLocked(false);
@@ -147,10 +168,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res;
   };
 
-  const registerAccount = async (email: string, password: string) => {
-    const res = await authService.registerAccount(email, password);
+  const registerAccount = async (email: string, password: string, fullName?: string) => {
+    const trimmed = email.trim().toLowerCase();
+
+    // Persist the account in Supabase Auth + create a public.profiles entry.
+    if (!SUPABASE_UNCONFIGURED && supabase) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: trimmed,
+          password,
+          options: fullName ? { data: { full_name: fullName } } : undefined,
+        });
+        if (error && error.message && !/already registered|already been registered/i.test(error.message)) {
+          // Surface real auth errors (but allow local fallback for pre-existing local users)
+          console.warn('[auth] supabase signUp error:', error.message);
+        } else if (data?.user) {
+          // Create / upsert the public.profiles row so member management sees them.
+          try {
+            await supabase.from('profiles').upsert(
+              {
+                id: data.user.id,
+                email: data.user.email,
+                full_name: fullName || data.user.email?.split('@')[0] || '',
+                role: 'member',
+                status: 'active',
+              },
+              { onConflict: 'id' },
+            );
+          } catch (e) {
+            console.warn('[auth] profile upsert failed:', e?.message);
+          }
+        }
+      } catch (e) {
+        console.warn('[auth] supabase signUp failed, falling back to local:', e?.message);
+      }
+    }
+
+    const res = await authService.registerAccount(trimmed, password);
     if (res.ok) {
-      setUserEmail(email.trim().toLowerCase());
+      setUserEmail(trimmed);
       setIsLocked(false);
     }
     return res;

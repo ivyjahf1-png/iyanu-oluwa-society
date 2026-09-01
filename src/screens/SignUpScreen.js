@@ -96,7 +96,7 @@ export default function SignUpScreen({ navigation }) {
     if (!validate()) return;
     setSubmitting(true);
     try {
-      const res = await registerAccount(email.trim(), password);
+      const res = await registerAccount(email.trim(), password, fullName.trim());
       if (!res.ok) {
         Alert.alert('Sign Up Failed', res.error || 'Could not create your account.');
         return;
