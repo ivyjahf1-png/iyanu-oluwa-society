@@ -1,6 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { Users, Shield, Award, ChevronRight, Lock } from 'lucide-react-native';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
+import { Shield } from 'lucide-react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
 import { useTheme } from '../theme/ThemeContext';
 import { themes } from '../theme/colors';
@@ -23,40 +23,6 @@ export default function SocietyScreen({ navigation }) {
     textGroup: styles.textGroup,
     title: [styles.title, { color: colors.text }],
     sub: [styles.sub, { color: colors.textSecondary }],
-    sectionTitle: [styles.sectionTitle, { color: colors.text }],
-    lockedCard: [
-      styles.card,
-      {
-        backgroundColor: colors.card,
-        borderColor: colors.border,
-        opacity: 0.72,
-      },
-    ],
-    lockBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 3,
-      alignSelf: 'flex-start',
-      backgroundColor: colors.warning + '20',
-      borderRadius: 8,
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      marginBottom: 4,
-    },
-    lockBadgeText: {
-      color: colors.warning,
-      fontSize: 10,
-      fontWeight: '700',
-    },
-  };
-
-  /** Dividend is not yet available — show a "coming soon" notice. */
-  const openDividend = () => {
-    Alert.alert(
-      'Dividend Distribution',
-      'Dividend Distribution feature is coming soon.',
-      [{ text: 'OK' }],
-    );
   };
 
   return (
@@ -77,45 +43,8 @@ export default function SocietyScreen({ navigation }) {
           </View>
         </View>
 
-        <Text style={s.sectionTitle}>Community Activities</Text>
-
-        <TouchableOpacity
-          style={s.card}
-          activeOpacity={0.8}
-          onPress={() => navigation?.navigate?.('MonthlyGeneralMeeting', { date: '1st Sunday of next month' })}
-        >
-          <View style={s.row}>
-            <View style={s.iconCircle}>
-              <Users size={20} color={colors.text} />
-            </View>
-            <View style={s.textGroup}>
-              <Text style={s.title}>Monthly General Meeting</Text>
-              <Text style={s.sub}>Scheduled for 1st Sunday of next month</Text>
-            </View>
-            <ChevronRight size={18} color={colors.textSecondary} />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={s.lockedCard}
-          activeOpacity={0.8}
-          onPress={openDividend}
-        >
-          <View style={s.row}>
-            <View style={s.iconCircle}>
-              <Award size={20} color={colors.text} />
-            </View>
-            <View style={s.textGroup}>
-              <Text style={s.title}>Dividend Distribution</Text>
-              <Text style={s.sub}>Annual financial ledger report</Text>
-              <View style={s.lockBadge}>
-                <Lock size={11} color={colors.warning} />
-                <Text style={s.lockBadgeText}>LOCKED</Text>
-              </View>
-            </View>
-            <ChevronRight size={18} color={colors.textSecondary} />
-          </View>
-        </TouchableOpacity>
+        {/* Monthly General Meeting and Dividend Distribution have been
+            relocated to the Admin Dashboard (Community Management section). */}
       </ScrollView>
     </ScreenWrapper>
   );
@@ -143,7 +72,6 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
   textGroup: { flex: 1 },
   title: { fontSize: 14, fontWeight: '600' },
   sub: { fontSize: 11, marginTop: 2 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', marginVertical: 12 },
 });
 
 const styles = makeStyles(themes.darkEmerald, true);

@@ -764,6 +764,37 @@ export default function AdminSettingsScreen({ navigation: rawNav }) {
           </TouchableOpacity>
         </View>
 
+        {/* COMMUNITY MANAGEMENT */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeaderRow}>
+            <Users size={18} color={colors.success} />
+            <Text style={styles.sectionTitle}>Community Management</Text>
+          </View>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('MonthlyGeneralMeeting', { date: '1st Sunday of next month' })}>
+            <View style={[styles.controlIcon, { backgroundColor: '#1E3A5F' }]}>
+              <Users size={18} color="#60A5FA" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Monthly General Meeting</Text>
+              <Text style={styles.controlSub}>Agenda, minutes &amp; virtual meeting room</Text>
+            </View>
+            <ChevronRight size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.controlRow} onPress={() => navigation.navigate('DividendDistribution')}>
+            <View style={[styles.controlIcon, { backgroundColor: '#0F4C38' }]}>
+              <Wallet size={18} color={colors.success} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.controlTitle}>Dividend Distribution</Text>
+              <Text style={styles.controlSub}>Annual financial ledger &amp; payouts</Text>
+            </View>
+            <ChevronRight size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+
         {/* AI Config */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeaderRow}>
