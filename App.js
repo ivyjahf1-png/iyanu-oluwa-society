@@ -5,6 +5,7 @@ import { BankProvider } from './src/context/BankContext';
 import { UserProvider } from './src/context/UserContext';
 import { MarketItemsProvider } from './src/context/MarketItemsContext';
 import { AnnouncementsProvider } from './src/context/AnnouncementsContext';
+import { SettingsProvider } from './src/context/SettingsContext';
 import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { navigationRef } from './src/navigation/navigationRef';
@@ -106,8 +107,9 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <TransactionsProvider>
-          <BannerProvider>
+        <SettingsProvider>
+          <TransactionsProvider>
+            <BannerProvider>
             <AuthGate>
           <UserProvider>
             <AnnouncementsProvider>
@@ -129,6 +131,7 @@ export default function App() {
           </AuthGate>
           </BannerProvider>
         </TransactionsProvider>
+        </SettingsProvider>
       </AuthProvider>
     </ErrorBoundary>
   );
