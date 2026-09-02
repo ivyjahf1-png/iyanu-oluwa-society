@@ -167,8 +167,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsLocked(false);
           return { ok: true };
         }
+        if (error) {
+          // Real auth rejection (bad credentials, unconfirmed email, etc.):
+          // surface it instead of masking it with the local fallback.
+          return { ok: false, error: error.message };
+        }
       } catch (e) {
-        console.warn('[auth] supabase signIn failed, falling back to local:', getErrorMessage(e));
+        // Network / SDK failure only — fall back to local auth below.
+        console.warn('[auth] supabase signIn network failure, falling back to local:', getErrorMessage(e));
       }
     }
 
@@ -194,9 +200,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password,
           options: fullName ? { data: { full_name: fullName } } : undefined,
         });
-        if (error && error.message && !/already registered|already been registered/i.test(error.message)) {
-          // Surface real auth errors (but allow local fallback for pre-existing local users)
-          console.warn('[auth] supabase signUp error:', error.message);
+        if (error && /already registered|already been registered/i.test(error.message)) {
+          // Pre-existing Supabase account — fall through to local login attempt.
+          console.warn('[auth] supabase signUp: account already registered, trying local');
+        } else if (error) {
+          // Real signup rejection (weak password, invalid email, rate limit...):
+          // surface it so the user actually knows registration failed.
+          return { ok: false, error: error.message };
         } else if (data?.user) {
           // Create / upsert the public.profiles row so member management sees them.
           try {

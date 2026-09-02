@@ -388,9 +388,10 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
     borderWidth: 1.5,
     borderColor: AUTH_COLORS.secondaryBorder,
     backgroundColor: 'rgba(212, 175, 55, 0.08)',
+    overflow: 'hidden',
     marginBottom: 8,
   },
-  logo: { width: 80, height: 80 },
+  logo: { width: 80, height: 80, resizeMode: 'contain' },
   brandTitle: {
     color: AUTH_COLORS.textPrimary,
     fontSize: 15,
