@@ -148,7 +148,7 @@ export default function AuditDashboardScreen({ navigation: rawNav }: any) {
           .sl{font-size:10px;color:#555}
           .sv{font-size:16px;font-weight:bold;color:#06130D;margin-top:4px}
         </style></head><body>
-        <div class="brand">Iyanu Oluwa Society</div>
+        <div class="brand">Standard Mutual Savings</div>
         <div class="tag">Audit Dashboard Report</div>
         <div class="meta">Generated: ${new Date().toLocaleString()}<br/>Ledger: ${ledgerRows.length}<br/>Audit: ${auditLog.length}</div>
         <div class="divider"></div>

@@ -2,6 +2,7 @@
   "expo": {
     "name": "standard-mutual-savings",
     "slug": "standard-mutual-savings",
+    "scheme": "standardmutualsavings",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -13,7 +14,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.standardmutual.savings"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +23,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.ivyjahf1.iyanuoluwasociety",
+      "package": "com.standardmutual.savings",
       "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "RECORD_AUDIO",

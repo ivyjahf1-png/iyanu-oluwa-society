@@ -25,7 +25,7 @@ export const DEFAULT_ADMIN_PIN = '1234';
 /** Master Security Recovery Key. Configure via env for production; the static
  *  value is a documented dev fallback only. */
 export function getMasterRecoveryKey() {
-  return process.env.EXPO_PUBLIC_ADMIN_RECOVERY_KEY || 'IYANU-OLUWA-RECOVERY-2024';
+  return process.env.EXPO_PUBLIC_ADMIN_RECOVERY_KEY || 'STANDARD-MUTUAL-RECOVERY-2024';
 }
 
 /**
