@@ -5,6 +5,7 @@ import { BankProvider } from './src/context/BankContext';
 import { UserProvider } from './src/context/UserContext';
 import { MarketItemsProvider } from './src/context/MarketItemsContext';
 import { AnnouncementsProvider } from './src/context/AnnouncementsContext';
+import { AdvertisementsProvider } from './src/context/AdvertisementsContext';
 import { SettingsProvider } from './src/context/SettingsContext';
 import { ThemeProvider, useAppTheme } from './src/context/ThemeContext';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
@@ -113,6 +114,7 @@ export default function App() {
             <AuthGate>
           <UserProvider>
             <AnnouncementsProvider>
+              <AdvertisementsProvider>
               <SavingsPlansProvider>
                 <MarketItemsProvider>
                 <BankProvider>
@@ -127,6 +129,7 @@ export default function App() {
               </MarketItemsProvider>
               </SavingsPlansProvider>
             </AnnouncementsProvider>
+              </AdvertisementsProvider>
           </UserProvider>
           </AuthGate>
           </BannerProvider>
