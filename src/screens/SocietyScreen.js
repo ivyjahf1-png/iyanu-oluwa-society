@@ -11,6 +11,7 @@ import {
   ScrollText,
   Shield,
   Sprout,
+  TrendingUp,
   Tractor,
 } from 'lucide-react-native';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -30,8 +31,10 @@ function getNextMeeting(now = new Date()) {
   return null;
 }
 
-/** A meeting is "live" between 10:00 and 14:00 on the meeting day. */
-function isMeetingLive(now = new Date()) {
+/** A meeting is "live" between 10:00 and 14:00 on the meeting day, OR whenever
+ *  an admin has broadcast a live-session announcement in the last 4 hours. */
+function isMeetingLive(now = new Date(), adminLive = false) {
+  if (adminLive) return true;
   const next = getNextMeeting(now);
   if (!next) return false;
   const dayStart = new Date(next);
@@ -42,15 +45,19 @@ function isMeetingLive(now = new Date()) {
   return sameDay && now.getHours() >= 10 && now.getHours() < 14;
 }
 
+const LIVE_ANNOUNCEMENT_RE = /(assembly|meeting|session)[^.]*\blive\b|\blive\b[^.]*\b(assembly|meeting|session)\b/i;
+const LIVE_WINDOW_MS = 4 * 60 * 60 * 1000;
+
 const PROMOS = [
-  { id: 'land', icon: Landmark, title: 'Land Acquisition Co-op', sub: 'Pool savings toward communal land purchase with verified titles.', tint: '#2E7D32' },
+  { id: 'land', icon: Landmark, title: 'Land & Property', sub: 'Pool savings toward communal land purchase with verified titles.', tint: '#2E7D32' },
   { id: 'commodity', icon: Sprout, title: 'Commodity Savings', sub: 'Buy farm inputs in bulk at cooperative prices — pay monthly.', tint: '#6A9A2D' },
+  { id: 'invest', icon: TrendingUp, title: 'Investment Projects', sub: 'Join vetted group ventures and earn dividend-backed returns.', tint: '#14532D' },
   { id: 'asset', icon: Tractor, title: 'Asset Financing', sub: 'Spread equipment & asset costs over flexible member cycles.', tint: '#1B6C8C' },
 ];
 
 const DOCUMENTS = [
   { id: 'bylaws', icon: ScrollText, title: 'Society Bye-Laws', url: `${SITE}/bye-laws` },
-  { id: 'finance', icon: FileText, title: 'Financial Guidelines', url: `${SITE}/financial-guidelines` },
+  { id: 'finance', icon: FileText, title: 'Financial Reports', url: `${SITE}/financial-reports` },
   { id: 'execs', icon: BookOpen, title: 'Executive Directory', url: `${SITE}/executive-directory` },
 ];
 
@@ -65,7 +72,20 @@ export default function SocietyScreen({ navigation }) {
     return () => clearInterval(t);
   }, []);
 
-  const live = useMemo(() => isMeetingLive(now), [now]);
+  // Admin-initiated live session: an active announcement about a live
+  // assembly/meeting broadcast by an admin within the last 4 hours.
+  const adminLive = useMemo(() => {
+    const nowMs = now.getTime();
+    return announcements.some(
+      (a) =>
+        a.active &&
+        (a.author === 'Admin' || /admin/i.test(a.author || '')) &&
+        nowMs - a.createdAt < LIVE_WINDOW_MS &&
+        LIVE_ANNOUNCEMENT_RE.test(`${a.title} ${a.message}`),
+    );
+  }, [announcements, now]);
+
+  const live = useMemo(() => isMeetingLive(now, adminLive), [now, adminLive]);
   const nextMeeting = useMemo(() => getNextMeeting(now), [now]);
 
   const latestAnnouncements = useMemo(
@@ -148,17 +168,17 @@ export default function SocietyScreen({ navigation }) {
           )}
         </TouchableOpacity>
 
-        {/* Latest announcements feed (Supabase-backed via AnnouncementsContext) */}
-        {latestAnnouncements.length > 0 && (
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <Megaphone size={16} color={colors.primary} />
-              <Text style={styles.sectionTitle}>Latest Announcements</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Announcements')} hitSlop={8}>
-                <Text style={styles.sectionLink}>View all</Text>
-              </TouchableOpacity>
-            </View>
-            {latestAnnouncements.map((a) => (
+        {/* Announcements & News (Supabase-backed via AnnouncementsContext) */}
+        <View style={styles.section}>
+          <View style={styles.sectionHead}>
+            <Megaphone size={16} color={colors.primary} />
+            <Text style={styles.sectionTitle}>Announcements & News</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Announcements')} hitSlop={8}>
+              <Text style={styles.sectionLink}>View all</Text>
+            </TouchableOpacity>
+          </View>
+          {latestAnnouncements.length > 0 ? (
+            latestAnnouncements.map((a) => (
               <TouchableOpacity
                 key={a.id}
                 style={styles.card}
@@ -171,15 +191,23 @@ export default function SocietyScreen({ navigation }) {
                   {a.author} • {new Date(a.createdAt).toLocaleDateString()}
                 </Text>
               </TouchableOpacity>
-            ))}
-          </View>
-        )}
+            ))
+          ) : (
+            <View style={styles.card}>
+              <Text style={styles.annTitle}>Next General Meeting</Text>
+              <Text style={styles.annBody}>
+                {nextMeeting ? fmtDate(nextMeeting) : 'Schedule to be announced'} — all members are expected to attend.
+              </Text>
+              <Text style={styles.annMeta}>Official cooperative update</Text>
+            </View>
+          )}
+        </View>
 
         {/* Co-op documents & resources */}
         <View style={styles.section}>
           <View style={styles.sectionHead}>
             <FileText size={16} color={colors.primary} />
-            <Text style={styles.sectionTitle}>Co-op Documents & Resources</Text>
+            <Text style={styles.sectionTitle}>Governance & Resources</Text>
           </View>
           <View style={styles.docGrid}>
             {DOCUMENTS.map(({ id, icon: Icon, title, url }) => (
@@ -200,7 +228,7 @@ export default function SocietyScreen({ navigation }) {
         <View style={styles.section}>
           <View style={styles.sectionHead}>
             <Landmark size={16} color={colors.primary} />
-            <Text style={styles.sectionTitle}>Opportunities for Members</Text>
+            <Text style={styles.sectionTitle}>Internal Opportunities</Text>
           </View>
           <ScrollView
             ref={promoScroll}
