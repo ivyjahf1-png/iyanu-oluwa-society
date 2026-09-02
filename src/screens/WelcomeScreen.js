@@ -69,7 +69,7 @@ export default function WelcomeScreen({ navigation }) {
             <TouchableOpacity activeOpacity={0.8} onPress={handleLogoTap} style={styles.logoWrap}>
               <Image
                 resizeMode="contain"
-                source={require('../../assets/logo.png')}
+                source={require('../../assets/images/icon.png')}
                 style={styles.welcomeLogo}
               />
             </TouchableOpacity>

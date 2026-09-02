@@ -122,7 +122,7 @@ export default function SignUpScreen({ navigation }) {
           <Text style={styles.stepLabel}>Step 1 of 2 - Account Details</Text>
 
           <View style={styles.logoWrapper}>
-            <Image resizeMode="contain" source={require('../../assets/logo.png')} style={styles.logo} />
+            <Image resizeMode="contain" source={require('../../assets/images/icon.png')} style={styles.logo} />
           </View>
 
           <Text style={styles.heading}>Create Your Account</Text>

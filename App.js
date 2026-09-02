@@ -76,7 +76,7 @@ function AuthGate({ children }) {
       <RNView style={splashStyles.container}>
         <Image
           resizeMode="contain"
-          source={require('./assets/logo.png')}
+          source={require('./assets/images/icon.png')}
           style={splashStyles.logo}
         />
         <ActivityIndicator size="small" color="#10B981" style={{ marginTop: 24 }} />

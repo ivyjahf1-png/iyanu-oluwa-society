@@ -205,7 +205,7 @@ export function AdminLockProvider({ children }) {
               <View style={styles.logoWrap}>
                 <Image
                   resizeMode="contain"
-                  source={require('../../assets/logo.png')}
+                  source={require('../../assets/images/icon.png')}
                   style={styles.logo}
                 />
               </View>

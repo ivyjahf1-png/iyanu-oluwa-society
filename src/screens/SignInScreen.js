@@ -176,7 +176,7 @@ export default function SignInScreen({ navigation, route }) {
           </View>
 
           <View style={styles.logoWrapper}>
-            <Image resizeMode="contain" source={require('../../assets/logo.png')} style={styles.logo} />
+            <Image resizeMode="contain" source={require('../../assets/images/icon.png')} style={styles.logo} />
           </View>
 
           <Text style={styles.brandTitle}>Sign in to Standard Mutual Savings</Text>
