@@ -359,6 +359,8 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
         <FlatList
           style={styles.scrollView}
           ref={scrollRef}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           data={messages}
           keyExtractor={(item) => item.id}
           extraData={{ editingId, editingText, loading, messages }}
@@ -469,7 +471,7 @@ export default function AIAssistantScreen({ navigation: rawNav }) {
             hidden so the bar stays elevated above home gestures. */}
         <View style={[styles.inputDock, {
           paddingBottom: keyboardHeight > 0
-            ? (Platform.OS === 'ios' ? 8 : keyboardHeight)
+            ? (Platform.OS === 'ios' ? 8 : 0)
             : Math.max(insets.bottom, 8),
         }]}>
           {/* WhatsApp-style composer: rounded text bar on the left (emoji,

@@ -1010,6 +1010,8 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
       <FlatList
         style={styles.scrollView}
         ref={scrollRef}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         data={visibleMessages}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => renderMessage(item)}
@@ -1069,7 +1071,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
           hidden so the bar stays elevated above home gestures. */}
       <View style={[styles.inputDock, {
         paddingBottom: keyboardHeight > 0
-          ? (Platform.OS === 'ios' ? 8 : keyboardHeight)
+          ? (Platform.OS === 'ios' ? 8 : 0)
           : Math.max(insets.bottom, 8),
       }]}>
         {/* WhatsApp-style editing indicator above the composer */}
