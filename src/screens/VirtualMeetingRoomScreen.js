@@ -69,58 +69,6 @@ export default function VirtualMeetingRoomScreen({ navigation: rawNav, route }) 
   const roomUrl = `https://${JITSI_DOMAIN}/${roomId}`;
   const jitsiHtml = useMemo(() => {
     const hash = `#userInfo.displayName=${encodeURIComponent(memberName)}`;
-    return [
-      '<!DOCTYPE html>',
-      '<html>',
-      '  <head>',
-      '    <meta name="viewport" content="width=device-width, initial-scale=1" />',
-      '    <style>',
-      '      html, body { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; }',
-      '      iframe { width: 100%; height: 100%; border: 0; }',
-      '    </style>',
-      '  </head>',
-      '  <body>',
-      `    <iframe src="${roomUrl}${hash}"`,
-      '      allow="camera; microphone; fullscreen; display-capture; autoplay"',
-      '      allowfullscreen="true"',
-      '      webkitallowfullscreen="true"',
-      '      mozallowfullscreen="true"></iframe>',
-      '  </body>',
-      '</html>',
-    ].join('\\n');
-  }, [roomUrl, memberName]);
-
-  // Native fallback: an inline HTML page that embeds the Jitsi room in an
-  // iframe with camera + microphone permissions granted to the frame.
-  const roomUrl = `https://${JITSI_DOMAIN}/${roomId}`;
-  const jitsiHtml = useMemo(() => {
-    const hash = `#userInfo.displayName=${encodeURIComponent(memberName)}`;
-    return `<!DOCTYPE html>
-<html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      html, body { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; }
-      iframe { width: 100%; height: 100%; border: 0; }
-    </style>
-  </head>
-  <body>
-    <iframe
-      src="${roomUrl}${hash}"
-      allow="camera; microphone; fullscreen; display-capture; autoplay"
-      allowfullscreen="true"
-      webkitallowfullscreen="true"
-      mozallowfullscreen="true"
-    ></iframe>
-  </body>
-</html>`;
-  }, [roomUrl, memberName]);
-
-  // Native fallback: an inline HTML page that embeds the Jitsi room in an
-  // iframe with camera + microphone permissions granted to the frame.
-  const roomUrl = `https://${JITSI_DOMAIN}/${roomId}`;
-  const jitsiHtml = useMemo(() => {
-    const hash = `#userInfo.displayName=${encodeURIComponent(memberName)}`;
     return `<!DOCTYPE html>
 <html>
   <head>
