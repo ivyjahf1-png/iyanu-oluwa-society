@@ -69,7 +69,9 @@ export default function AuditDashboardScreen({ navigation: _rawNav }: any) {
   const [summary, setSummary] = useState<SummaryState>(STUB_SUMMARY);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<FilterTab>('All');  const loadData = useCallback(async () => {
+  const [activeFilter, setActiveFilter] = useState<FilterTab>('All');
+
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [audit, ledger, finSummary] = await Promise.all([
@@ -137,7 +139,7 @@ export default function AuditDashboardScreen({ navigation: _rawNav }: any) {
           const action = l?.action || l?.event || '';
           const details = (l?.details || l?.description || '').replace(/"'/g, '""');
           const reference = l?.reference || '';
-          return "${ts}","${entity}","${action}","${details}","${reference}";
+          return `"${ts}","${entity}","${action}","${details}","${reference}"`;
         })
         .join('\n');
 
