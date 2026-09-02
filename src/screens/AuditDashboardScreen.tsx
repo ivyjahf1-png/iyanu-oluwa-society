@@ -23,8 +23,6 @@ import {
   BarChart3,
   PieChart,
   ShieldCheck,
-  FileInput,
-  FileOutput,
   Lock,
   Download,
   FileSpreadsheet,
@@ -88,18 +86,37 @@ export default function AuditDashboardScreen({ navigation: rawNav }: any) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const filteredLogs = auditLog.filter((entry) => {
     if (activeFilter === 'All') return true;
     const cat = (entry.category || entry.action || entry.type || '').toLowerCase();
     switch (activeFilter) {
       case 'Transactions':
-        return cat.includes('trans') || cat.includes('payment') || cat.includes('ledger') || cat.includes('deposit') || cat.includes('withdraw');
+        return (
+          cat.includes('trans') ||
+          cat.includes('payment') ||
+          cat.includes('ledger') ||
+          cat.includes('deposit') ||
+          cat.includes('withdraw')
+        );
       case 'User Auth':
-        return cat.includes('auth') || cat.includes('login') || cat.includes('sign') || cat.includes('session') || cat.includes('password');
+        return (
+          cat.includes('auth') ||
+          cat.includes('login') ||
+          cat.includes('sign') ||
+          cat.includes('session') ||
+          cat.includes('password')
+        );
       case 'Admin Actions':
-        return cat.includes('admin') || cat.includes('approve') || cat.includes('verify') || cat.includes('override');
+        return (
+          cat.includes('admin') ||
+          cat.includes('approve') ||
+          cat.includes('verify') ||
+          cat.includes('override')
+        );
       default:
         return true;
     }
@@ -109,19 +126,26 @@ export default function AuditDashboardScreen({ navigation: rawNav }: any) {
     setExporting(true);
     try {
       const header = 'Timestamp,Entity,Action,Details,Reference\n';
-      const rows = filteredLogs.map((l) => {
-        const ts = l.created_at ? new Date(l.created_at).toISOString().slice(0, 19).replace('T', ' ') : '';
-        const entity = l.entity || l.entity_type || '';
-        const action = l.action || l.event || '';
-        const details = (l.details || l.description || '').replace(/"/g, '""');
-        const reference = l.reference || '';
-        return `"${ts}","${entity}","${action}","${details}","${reference}"`;
-      }).join('\n');
+      const rows = filteredLogs
+        .map((l) => {
+          const ts = l.created_at
+            ? new Date(l.created_at).toISOString().slice(0, 19).replace('T', ' ')
+            : '';
+          const entity = l.entity || l.entity_type || '';
+          const action = l.action || l.event || '';
+          const details = (l.details || l.description || '').replace(/"/g, '""');
+          const reference = l.reference || '';
+          return `${ts},${entity},${action},${details},${reference}`;
+        })
+        .join('\n');
       const csvContent = header + rows;
       const html = `<html><body><pre>${csvContent}</pre></body></html>`;
       const { uri } = await Print.printToFileAsync({ html });
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: 'text/csv', dialogTitle: 'Audit Report CSV' });
+        await Sharing.shareAsync(uri, {
+          mimeType: 'text/csv',
+          dialogTitle: 'Audit Report CSV',
+        });
       }
     } catch (e) {
       Alert.alert('Export Failed', 'Unable to generate CSV report.');
@@ -160,14 +184,27 @@ export default function AuditDashboardScreen({ navigation: rawNav }: any) {
         <div class="divider"></div>
         <h3>Audit Trail Summary</h3>
         <table><tr><th>Action</th><th>Entity</th><th>Date</th></tr>
-        ${auditLog.slice(0, 50).map((a) => `<tr><td>${a.action || '-'}</td><td>${a.entity || '-'} ${a.entity_id ? '#' + a.entity_id : ''}</td><td>${new Date(a.created_at).toLocaleDateString()}</td></tr>`).join('')}
+        ${auditLog
+          .slice(0, 50)
+          .map(
+            (a: any) =>
+              `<tr><td>${a.action || '-'}</td><td>${a.entity || '-'} ${a.entity_id ? '#' + a.entity_id : ''}</td><td>${new Date(a.created_at).toLocaleDateString()}</td></tr>`
+          )
+          .join('')}
         </table>
-        <div class="meta" style="margin-top:24px"><strong>Reconciliation:</strong> ${summary.variance === 0 ? 'ZERO-VARIANCE' : 'REVIEW REQUIRED'}<br/><strong>Ledger:</strong> ${summary.ledgerVerified ? 'VERIFIED' : 'FLAGGED'}</div>
+        <div class="meta" style="margin-top:24px"><strong>Reconciliation:</strong> ${
+          summary.variance === 0 ? 'ZERO-VARIANCE' : 'REVIEW REQUIRED'
+        }<br/><strong>Ledger:</strong> ${
+        summary.ledgerVerified ? 'VERIFIED' : 'FLAGGED'
+      }</div>
         </body></html>
       `;
       const { uri } = await Print.printToFileAsync({ html });
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Audit Report PDF' });
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/pdf',
+          dialogTitle: 'Audit Report PDF',
+        });
       }
     } catch (e) {
       Alert.alert('Export Failed', 'Unable to generate PDF report.');
@@ -175,8 +212,19 @@ export default function AuditDashboardScreen({ navigation: rawNav }: any) {
     setExporting(false);
   };
 
-  const renderStatCard = (icon, label, value, sub, accent) => (
-    <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+  const renderStatCard = (
+    icon: React.ReactNode,
+    label: string,
+    value: string,
+    sub: string,
+    accent: string
+  ) => (
+    <View
+      style={[
+        styles.statCard,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
+    >
       <View style={[styles.statIcon, { backgroundColor: colors.surface }]}>{icon}</View>
       <Text style={[styles.statValue, { color: accent }]}>{value}</Text>
       <Text style={[styles.statLabel, { color: colors.text }]}>{label}</Text>
@@ -184,126 +232,252 @@ export default function AuditDashboardScreen({ navigation: rawNav }: any) {
     </View>
   );
 
-  const renderFilterTab = (tab) => {
+  const renderFilterTab = (tab: FilterTab) => {
     const isActive = activeFilter === tab;
     return (
       <TouchableOpacity
         key={tab}
-        style={[styles.filterTab, { borderColor: colors.border }, isActive && { backgroundColor: colors.primary + '20', borderColor: colors.primary }]}
+        style={[
+          styles.filterTab,
+          { borderColor: colors.border },
+          isActive && {
+            backgroundColor: colors.primary + '20',
+            borderColor: colors.primary,
+          },
+        ]}
         onPress={() => setActiveFilter(tab)}
         activeOpacity={0.7}
       >
-        <Text style={[styles.filterTabText, { color: colors.textSecondary }, isActive && { color: colors.primary, fontWeight: '700' }]}>{tab}</Text>
+        <Text
+          style={[
+            styles.filterTabText,
+            { color: colors.textSecondary },
+            isActive && { color: colors.primary, fontWeight: '700' },
+          ]}
+        >
+          {tab}
+        </Text>
       </TouchableOpacity>
     );
   };
 
-  const renderAuditRow = (entry, index) => {
+  const renderAuditRow = (entry: any, index: number) => {
     const ts = entry.created_at ? new Date(entry.created_at).toLocaleString() : '';
     const entity = entry.entity || entry.entity_type || 'System';
     const action = entry.action || entry.event || 'Event';
     const details = entry.details || entry.description || '';
     const cat = (entry.category || entry.action || '').toLowerCase();
-    const iconMap = {
+    const iconMap: Record<string, React.ReactNode> = {
       transaction: <BarChart3 size={16} color={colors.primary} />,
       auth: <FileText size={16} color={colors.warning} />,
       admin: <ShieldCheck size={16} color={colors.danger} />,
     };
     const iconKey = Object.keys(iconMap).find((k) => cat.includes(k));
     const icon = iconKey ? iconMap[iconKey] : <History size={16} color={colors.textSecondary} />;
+
     return (
-      <View key={entry.id || index} style={[styles.auditRow, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <View
+        key={entry.id || index}
+        style={[
+          styles.auditRow,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
+      >
         <View style={[styles.auditIcon, { backgroundColor: colors.card }]}>{icon}</View>
         <View style={styles.auditContent}>
           <Text style={[styles.auditTitle, { color: colors.text }]}>{action}</Text>
-          <Text style={[styles.auditSub, { color: colors.textSecondary }]}>{entity} · {details}</Text>
+          <Text style={[styles.auditSub, { color: colors.textSecondary }]}>
+            {entity} · {details}
+          </Text>
         </View>
         <View style={styles.auditTime}>
           <Text style={[styles.auditTimeText, { color: colors.textSecondary }]}>{ts}</Text>
           {entry.status && (
             <View style={[styles.statusPill, { backgroundColor: colors.card }]}>
-              <Text style={[styles.statusPillText, { color: colors.textSecondary }]}>{entry.status}</Text>
+              <Text style={[styles.statusPillText, { color: colors.textSecondary }]}>
+                {entry.status}
+              </Text>
             </View>
           )}
         </View>
       </View>
     );
   };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+      />
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <ClipboardList size={28} color={colors.primary} />
           <View>
             <Text style={[styles.headerTitle, { color: colors.text }]}>Audit Dashboard</Text>
-            <Text style={[styles.headerSub, { color: colors.textSecondary }]}>Compliance & Financial Oversight</Text>
+            <Text style={[styles.headerSub, { color: colors.textSecondary }]}>
+              Compliance & Financial Oversight
+            </Text>
           </View>
         </View>
         <TouchableOpacity style={styles.refreshWrap} onPress={loadData} activeOpacity={0.7}>
           <RefreshCw size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={[styles.readOnlyBanner, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View
+          style={[
+            styles.readOnlyBanner,
+            { backgroundColor: colors.surface, borderColor: colors.border },
+          ]}
+        >
           <Lock size={14} color={colors.primary} />
-          <Text style={[styles.readOnlyText, { color: colors.primary }]}>Read-Only Compliance View — No edits permitted</Text>
+          <Text style={[styles.readOnlyText, { color: colors.primary }]}>
+            Read-Only Compliance View — No edits permitted
+          </Text>
         </View>
+
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Key Financial Metrics</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Key Financial Metrics
+          </Text>
           <View style={styles.statsGrid}>
-            {renderStatCard(<Banknote size={20} color={colors.primary} />, 'Total Vault Reserves', fmt(summary.totalVaultReserves), 'All-time reserves', colors.success)}
-            {renderStatCard(<TrendingUp size={20} color={colors.primary} />, 'Active Loan Portfolio', fmt(summary.activeLoanPortfolio), 'Outstanding loans', colors.primary)}
-            {renderStatCard(<PieChart size={20} color={colors.warning} />, 'Accrued Dividends', fmt(summary.accruedDividends), 'Pending distribution', colors.warning)}
             {renderStatCard(
-              summary.ledgerVerified ? <CheckCircle2 size={20} color={colors.success} /> : <AlertTriangle size={20} color={colors.danger} />,
+              <Banknote size={20} color={colors.primary} />,
+              'Total Vault Reserves',
+              fmt(summary.totalVaultReserves),
+              'All-time reserves',
+              colors.success
+            )}
+            {renderStatCard(
+              <TrendingUp size={20} color={colors.primary} />,
+              'Active Loan Portfolio',
+              fmt(summary.activeLoanPortfolio),
+              'Outstanding loans',
+              colors.primary
+            )}
+            {renderStatCard(
+              <PieChart size={20} color={colors.warning} />,
+              'Accrued Dividends',
+              fmt(summary.accruedDividends),
+              'Pending distribution',
+              colors.warning
+            )}
+            {renderStatCard(
+              summary.ledgerVerified ? (
+                <CheckCircle2 size={20} color={colors.success} />
+              ) : (
+                <AlertTriangle size={20} color={colors.danger} />
+              ),
               'Ledger Balance Status',
               summary.ledgerVerified ? 'VERIFIED' : 'FLAGGED',
-              summary.variance !== 0 ? 'Variance: ' + fmt(summary.variance) : 'Zero-variance sync',
-              summary.ledgerVerified ? colors.success : colors.danger,
+              summary.variance !== 0
+                ? 'Variance: ' + fmt(summary.variance)
+                : 'Zero-variance sync',
+              summary.ledgerVerified ? colors.success : colors.danger
             )}
           </View>
         </View>
-        <View style={[styles.section, styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+
+        <View
+          style={[
+            styles.section,
+            styles.sectionCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <View style={styles.sectionHeaderRow}>
             <Database size={16} color={colors.primary} />
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Discrepancy & Reconciliation</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Discrepancy & Reconciliation
+            </Text>
           </View>
           <View style={styles.reconciliationRow}>
             <View style={styles.reconciliationItem}>
-              <Text style={[styles.reconciliationLabel, { color: colors.textSecondary }]}>Total Credits</Text>
-              <Text style={[styles.reconciliationValue, { color: colors.success }]}>{fmt(ledgerRows.reduce((s, l) => s + Number(l.amount || 0), 0))}</Text>
+              <Text style={[styles.reconciliationLabel, { color: colors.textSecondary }]}>
+                Total Credits
+              </Text>
+              <Text style={[styles.reconciliationValue, { color: colors.success }]}>
+                {fmt(ledgerRows.reduce((s, l) => s + Number(l.amount || 0), 0))}
+              </Text>
             </View>
             <View style={styles.reconciliationItem}>
-              <Text style={[styles.reconciliationLabel, { color: colors.textSecondary }]}>Ledger Balance</Text>
-              <Text style={[styles.reconciliationValue, { color: colors.text }]}>{fmt(summary.totalVaultReserves - summary.activeLoanPortfolio)}</Text>
+              <Text style={[styles.reconciliationLabel, { color: colors.textSecondary }]}>
+                Ledger Balance
+              </Text>
+              <Text style={[styles.reconciliationValue, { color: colors.text }]}>
+                {fmt(summary.totalVaultReserves - summary.activeLoanPortfolio)}
+              </Text>
             </View>
             <View style={styles.reconciliationItem}>
-              <Text style={[styles.reconciliationLabel, { color: colors.textSecondary }]}>Variance</Text>
-              <Text style={[styles.reconciliationValue, { color: summary.variance === 0 ? colors.success : colors.danger }]}>{fmt(summary.variance)}</Text>
+              <Text style={[styles.reconciliationLabel, { color: colors.textSecondary }]}>
+                Variance
+              </Text>
+              <Text
+                style={[
+                  styles.reconciliationValue,
+                  { color: summary.variance === 0 ? colors.success : colors.danger },
+                ]}
+              >
+                {fmt(summary.variance)}
+              </Text>
             </View>
           </View>
-          <View style={[styles.syncStatusBadge, { backgroundColor: summary.ledgerVerified ? colors.success + '20' : colors.danger + '20' }]}>
-            {summary.ledgerVerified ? <CheckCircle2 size={14} color={colors.success} /> : <AlertTriangle size={14} color={colors.danger} />}
-            <Text style={[styles.syncStatusText, { color: summary.ledgerVerified ? colors.success : colors.danger }]}>
-              {summary.variance === 0 ? 'Zero-Variance Ledger Sync — All Records Aligned' : 'Variance Detected — Review Required'}
+          <View
+            style={[
+              styles.syncStatusBadge,
+              {
+                backgroundColor: summary.ledgerVerified
+                  ? colors.success + '20'
+                  : colors.danger + '20',
+              },
+            ]}
+          >
+            {summary.ledgerVerified ? (
+              <CheckCircle2 size={14} color={colors.success} />
+            ) : (
+              <AlertTriangle size={14} color={colors.danger} />
+            )}
+            <Text
+              style={[
+                styles.syncStatusText,
+                { color: summary.ledgerVerified ? colors.success : colors.danger },
+              ]}
+            >
+              {summary.variance === 0
+                ? 'Zero-Variance Ledger Sync — All Records Aligned'
+                : 'Variance Detected — Review Required'}
             </Text>
           </View>
         </View>
+
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
             <History size={16} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Audit Trails Feed</Text>
-            <Text style={[styles.resultCount, { color: colors.textSecondary }]}>{filteredLogs.length} entries</Text>
+            <Text style={[styles.resultCount, { color: colors.textSecondary }]}>
+              {filteredLogs.length} entries
+            </Text>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filterRow}
+          >
             {FILTER_TABS.map((tab) => renderFilterTab(tab))}
           </ScrollView>
           {filteredLogs.length === 0 && !loading ? (
             <View style={[styles.emptyCard, { borderColor: colors.border }]}>
               <FileText size={24} color={colors.textSecondary} />
               <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                {activeFilter === 'All' ? 'No audit entries found.' : `No ${activeFilter.toLowerCase()} entries found.`}
+                {activeFilter === 'All'
+                  ? 'No audit entries found.'
+                  : No ${activeFilter.toLowerCase()} entries found.}
               </Text>
             </View>
           ) : (
@@ -311,14 +485,24 @@ export default function AuditDashboardScreen({ navigation: rawNav }: any) {
           )}
           {loading ? <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} /> : null}
         </View>
-        <View style={[styles.section, styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+
+        <View
+          style={[
+            styles.section,
+            styles.sectionCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <View style={styles.sectionHeaderRow}>
             <Download size={16} color={colors.primary} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Export Ledger</Text>
           </View>
           <View style={styles.exportRow}>
             <TouchableOpacity
-              style={[styles.exportBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              style={[
+                styles.exportBtn,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
               onPress={exportCSV}
               disabled={exporting}
             >
@@ -326,7 +510,10 @@ export default function AuditDashboardScreen({ navigation: rawNav }: any) {
               <Text style={[styles.exportBtnText, { color: colors.text }]}>Export CSV</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.exportBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              style={[
+                styles.exportBtn,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
               onPress={exportPDF}
               disabled={exporting}
             >
@@ -334,13 +521,18 @@ export default function AuditDashboardScreen({ navigation: rawNav }: any) {
               <Text style={[styles.exportBtnText, { color: colors.text }]}>Export PDF</Text>
             </TouchableOpacity>
           </View>
-          {exporting ? <Text style={[styles.generatingText, { color: colors.textSecondary }]}>Generating report...</Text> : null}
+          {exporting ? (
+            <Text style={[styles.generatingText, { color: colors.textSecondary }]}>
+              Generating report...
+            </Text>
+          ) : null}
         </View>
+
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
-};
+}
 
 const makeStyles = (colors: any, isDark: boolean) =>
   StyleSheet.create({

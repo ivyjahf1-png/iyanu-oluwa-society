@@ -166,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserEmail((data.user?.email || trimmed).toLowerCase());
           setIsLocked(false);
           // Stamp lastLogin so the admin member directory can surface active members.
-          try { supabase.rpc('touch_last_login').catch(() => {}); } catch { /* noop */ }
+          try { await supabase.rpc('touch_last_login'); } catch { /* noop */ }
           return { ok: true };
         }
         if (error) {

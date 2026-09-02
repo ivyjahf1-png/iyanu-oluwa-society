@@ -19,7 +19,13 @@ export interface Advertisement {
   createdAt?: number | string;
 }
 
-const AdvertisementsContext = createContext(null);
+export interface AdvertisementsContextType {
+  ads: Advertisement[];
+  allAds: Advertisement[];
+  hydrated: boolean;
+}
+
+const AdvertisementsContext = createContext<AdvertisementsContextType | null>(null);
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 

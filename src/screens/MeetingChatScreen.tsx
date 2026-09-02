@@ -370,7 +370,7 @@ export default function MeetingChatScreen({ navigation }: { navigation: any }) {
         if (data && !cancelled) {
           const remote = data.map((r: any) => mapMeetingRowToChat(r, selfId));
           setMessages(prev => {
-            const seen = new Set(prev.map(m => m.id));
+            const seen = new Set(prev.map((m: any) => m.id));
             return [...prev, ...remote.filter(m => !seen.has(m.id))];
           });
         }
