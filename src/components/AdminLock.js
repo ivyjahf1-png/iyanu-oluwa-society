@@ -212,11 +212,7 @@ export function AdminLockProvider({ children }) {
             </TouchableOpacity>
 
             <Text style={styles.title}>Admin Access Required</Text>
-            <Text style={styles.subtitle}>
-              {configured
-                ? `Enter your ${pinLength}-digit passcode to continue`
-                : `No passcode set yet — enter the default PIN (${DEFAULT_ADMIN_PIN}) to configure access`}
-            </Text>
+            <Text style={styles.subtitle}>Enter Access Passcode</Text>
 
             {/* Pin dots */}
             <View style={styles.dotsRow}>
