@@ -7,7 +7,7 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
-import { Mic, MicOff, VideoOff, Phone } from 'lucide-react-native';
+import { Mic, MicOff, VideoOff, Phone, Lock, Video, CalendarClock, Clock } from 'lucide-react-native';
 import { useSafeNavigation } from '../hooks/useSafeNavigation';
 import ScreenHeader from '../components/ScreenHeader';
 import { useTheme } from '../theme/ThemeContext';
@@ -45,6 +45,10 @@ export default function VirtualMeetingRoomScreen({ navigation: rawNav, route }) 
     hostName = 'Host',
     isVideoEnabled: initialVideo = true,
     isAudioEnabled: initialAudio = true,
+    // Member time-lock params:
+    meetingDate = null,      // ISO timestamp — room stays locked until then
+    agenda = null,           // string or array of agenda items set by admin
+    forceUnlocked = false,   // admin can open the room early
   } = typeof params === 'object' && params ? params : {};
 
   const [videoOn, setVideoOn] = useState(!!initialVideo);
@@ -52,6 +56,38 @@ export default function VirtualMeetingRoomScreen({ navigation: rawNav, route }) 
   const [joining, setJoining] = useState(true);
   const containerRef = useRef(null);
   const apiRef = useRef(null);
+
+  // Pre-join gate: members first see the meeting details; the Join button is
+  // time-locked until the scheduled meetingDate (or an admin early-open).
+  const [stage, setStage] = useState('detail'); // 'detail' | 'room'
+  const meetingTs = useMemo(
+    () => (meetingDate ? new Date(meetingDate).getTime() : null),
+    [meetingDate],
+  );
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const isLocked = !!meetingTs && !forceUnlocked && now < meetingTs;
+  const countdown = useMemo(() => {
+    if (!isLocked) return null;
+    const ms = meetingTs - now;
+    const d = Math.floor(ms / 86400000);
+    const h = Math.floor((ms % 86400000) / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    if (d > 0) return `${d}d ${h}h ${m}m`;
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  }, [isLocked, meetingTs, now]);
+  const agendaItems = useMemo(() => {
+    if (Array.isArray(agenda)) return agenda.filter(Boolean);
+    if (typeof agenda === 'string' && agenda.trim())
+      return agenda.split(/[•\n;]|,(?=\s*[A-Z])/).map((x) => x.trim()).filter(Boolean);
+    return [];
+  }, [agenda]);
 
   const isWeb = Platform.OS === 'web';
 
@@ -111,7 +147,7 @@ export default function VirtualMeetingRoomScreen({ navigation: rawNav, route }) 
   };
 // Embed the live Jitsi Meet iframe on web via the IFrame API.
   useEffect(() => {
-    if (!isWeb) { setJoining(false); return; }
+    if (!isWeb || stage !== 'room') { setJoining(false); return; }
     let cancelled = false;
     (async () => {
       // Load the external API script once.
@@ -179,7 +215,7 @@ export default function VirtualMeetingRoomScreen({ navigation: rawNav, route }) 
       apiRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isWeb, roomId, memberName]);
+  }, [isWeb, roomId, memberName, stage]);
 
   // Keep remote Jitsi toggle in sync with local state.
   useEffect(() => {
@@ -209,6 +245,75 @@ const participants = [
     { id: 'p1', name: 'You' },
     { id: 'p2', name: 'Member' },
   ];
+
+  // ---- Pre-join detail stage: meeting info + time-locked join button ----
+  if (stage === 'detail') {
+    const scheduled = meetingTs ? new Date(meetingTs) : null;
+    return (
+      <SafeAreaView style={s.container}>
+        <ScreenHeader title={roomTitle} subtitle="Member Meeting Room" onBack={() => navigation?.goBack?.()} />
+        <ScrollView contentContainerStyle={styles.detailContent} showsVerticalScrollIndicator={false}>
+          <View style={[styles.detailCard, { backgroundColor: colors.card, borderColor: isLocked ? colors.border : colors.success }]}>
+            <View style={styles.detailRow}>
+              <View style={[styles.detailIcon, { backgroundColor: colors.surface }]}>
+                <CalendarClock size={20} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.roomTitle}>{roomTitle}</Text>
+                <Text style={s.roomMeta}>
+                  {scheduled
+                    ? `Scheduled: ${scheduled.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} • ${scheduled.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`
+                    : 'Schedule to be announced'}
+                </Text>
+              </View>
+            </View>
+
+            {agendaItems.length > 0 && (
+              <View style={{ marginTop: 14 }}>
+                <Text style={s.roomMeta}>Agenda</Text>
+                {agendaItems.map((item, i) => (
+                  <Text key={i} style={styles.agendaItem}>• {item}</Text>
+                ))}
+              </View>
+            )}
+
+            {/* Time-locked join button */}
+            <TouchableOpacity
+              style={[styles.joinRoomBtn, { backgroundColor: isLocked ? colors.surface : colors.success }, isLocked && styles.joinRoomLocked]}
+              disabled={isLocked}
+              activeOpacity={0.85}
+              onPress={() => setStage('room')}
+            >
+              {isLocked ? (
+                <>
+                  <Lock size={18} color={colors.textSecondary} />
+                  <Text style={[styles.joinRoomTxt, { color: colors.textSecondary }]}>
+                    {scheduled
+                      ? `Meeting Room Opens on ${scheduled.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at ${scheduled.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`
+                      : 'Meeting Room Locked'}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Video size={18} color='#FFFFFF' />
+                  <Text style={styles.joinRoomTxt}>Join Virtual Meeting</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            {isLocked && countdown && (
+              <View style={styles.countdownRow}>
+                <Clock size={14} color={colors.textSecondary} />
+                <Text style={[styles.countdownTxt, { color: colors.textSecondary }]}>
+                  Opens in {countdown}
+                </Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={s.container}>

@@ -176,9 +176,11 @@ export default function PastMeetingsScreen({ navigation: rawNav }) {
         style={[styles.upcomingCard, isLive && styles.liveCard]}
         activeOpacity={0.85}
         onPress={() =>
-          isLive
-            ? navigation.navigate('VirtualMeetingRoom', { roomId: ROOM_ID })
-            : navigation.navigate('MonthlyGeneralMeeting')
+          navigation.navigate('VirtualMeetingRoom', {
+            roomId: ROOM_ID,
+            meetingDate: nextMeeting ? nextMeeting.toISOString() : null,
+            title: isLive ? 'Monthly General Meeting (Live)' : 'Upcoming General Meeting',
+          })
         }
       >
         <View style={[styles.iconCircle, isLive && styles.liveIconCircle]}>
@@ -205,7 +207,12 @@ export default function PastMeetingsScreen({ navigation: rawNav }) {
         <TouchableOpacity
           style={styles.joinBtn}
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('VirtualMeetingRoom', { roomId: ROOM_ID })}
+          onPress={() =>
+            navigation.navigate('VirtualMeetingRoom', {
+              roomId: ROOM_ID,
+              title: 'Monthly General Meeting (Live)',
+            })
+          }
         >
           <Text style={styles.joinBtnTxt}>Join Live Assembly</Text>
         </TouchableOpacity>
