@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Animated, LayoutAnimation, UIManager, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PiggyBank, Plus, ArrowUpRight, ShieldCheck, Lock, ChevronDown } from 'lucide-react-native';
@@ -63,7 +63,9 @@ export default function SavingsHubScreen({ navigation: rawNav }) {
   };
 return (
     <ScreenWrapper>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.root}>
+        {/* ===== FIXED TOP: header + total savings + frequency shortcuts ===== */}
+        <View style={styles.fixedTop}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Savings Hub</Text>
         <Text style={[styles.headerSub, { color: colors.textSecondary }]}>Manage your target and cooperative plans</Text>
 

@@ -116,22 +116,27 @@ export default function SocietyScreen({ navigation }) {
 
   return (
     <ScreenWrapper>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.headerTitle}>Society Hub</Text>
-        <Text style={styles.headerSub}>Standard Mutual Cooperative Community</Text>
+      <View style={styles.root}>
+        {/* ===== FIXED TOP: header + membership status (never scroll) ===== */}
+        <View style={styles.fixedTop}>
+          <Text style={styles.headerTitle}>Society Hub</Text>
+          <Text style={styles.headerSub}>Standard Mutual Cooperative Community</Text>
 
-        {/* Membership status */}
-        <View style={styles.card}>
-          <View style={styles.row}>
-            <View style={styles.iconCircle}>
-              <Shield size={22} color={colors.primary} />
-            </View>
-            <View style={styles.textGroup}>
-              <Text style={styles.title}>Membership Status</Text>
-              <Text style={styles.sub}>Verified Member • ID: #IOS-8842</Text>
+          <View style={styles.card}>
+            <View style={styles.row}>
+              <View style={styles.iconCircle}>
+                <Shield size={22} color={colors.primary} />
+              </View>
+              <View style={styles.textGroup}>
+                <Text style={styles.title}>Membership Status</Text>
+                <Text style={styles.sub}>Verified Member • ID: #IOS-8842</Text>
+              </View>
             </View>
           </View>
         </View>
+
+        {/* ===== SCROLLABLE BELOW: announcements, governance, promos ===== */}
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
         {/* Upcoming meeting / live assembly banner */}
         <TouchableOpacity
@@ -260,7 +265,7 @@ export default function SocietyScreen({ navigation }) {
             ))}
           </ScrollView>
         </View>
-      </ScrollView>
+      </View>
     </ScreenWrapper>
   );
 }
@@ -268,7 +273,9 @@ export default function SocietyScreen({ navigation }) {
 // All colors are theme-dynamic (styles built per render from useTheme()).
 const makeStyles = (colors, isDark) =>
   StyleSheet.create({
-    scrollContent: { padding: 16, paddingBottom: 90 },
+    root: { flex: 1 },
+    fixedTop: { padding: 16, paddingBottom: 0 },
+    scrollContent: { padding: 16, paddingTop: 12, paddingBottom: 90 },
     headerTitle: { fontSize: 24, fontWeight: '700', color: colors.text },
     headerSub: { fontSize: 13, marginBottom: 16, color: colors.textSecondary },
     card: {
