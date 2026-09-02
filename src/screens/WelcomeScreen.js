@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     height: 152,
     marginBottom: 24,
   },
-  welcomeLogo: { width: 128, height: 128 },
+  welcomeLogo: { width: 120, height: 120, resizeMode: 'contain' },
   title: {
     color: AUTH_COLORS.textPrimary,
     fontSize: 24,
