@@ -195,13 +195,6 @@ export default function HomeScreen({ navigation }) {
             >
               <Ionicons name="person-outline" size={20} color='#06130D' />
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.iconCircle}
-              onPress={handleTopMenuPress}
-            >
-              <Ionicons name="ellipsis-horizontal" size={20} color='#FFFFFF' />
-            </TouchableOpacity>
           </View>
         </View>
 
