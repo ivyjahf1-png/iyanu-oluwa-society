@@ -9,11 +9,21 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { SUPABASE_UNCONFIGURED, supabase } from '../lib/supabase';
 
+export interface Advertisement {
+  id: string;
+  title?: any;
+  body?: any;
+  imageUrl?: any;
+  category?: any;
+  isActive?: boolean;
+  createdAt?: number | string;
+}
+
 const AdvertisementsContext = createContext(null);
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
-function mapRow(row: any) {
+function mapRow(row: any): Advertisement {
   return {
     id: String(row.id),
     title: row.title || '',
@@ -26,7 +36,7 @@ function mapRow(row: any) {
 }
 
 export function AdvertisementsProvider({ children }: { children: React.ReactNode }) {
-  const [ads, setAds] = useState([]);
+  const [ads, setAds] = useState<Advertisement[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
