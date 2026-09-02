@@ -13,7 +13,7 @@ const AdvertisementsContext = createContext(null);
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
-function mapRow(row) {
+function mapRow(row: any) {
   return {
     id: String(row.id),
     title: row.title || '',
@@ -25,13 +25,13 @@ function mapRow(row) {
   };
 }
 
-export function AdvertisementsProvider({ children }) {
+export function AdvertisementsProvider({ children }: { children: React.ReactNode }) {
   const [ads, setAds] = useState([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    let channel;
+    let channel: any;
 
     // 1. Pull current active ads (within 90-day window).
     (async () => {
