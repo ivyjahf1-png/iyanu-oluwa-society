@@ -31,6 +31,12 @@ export interface AuthState {
   };
   loginWithPassword: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   registerAccount: (email: string, password: string, fullName?: string) => Promise<{ ok: boolean; error?: string }>;
+  /**
+   * Launch a Supabase OAuth flow for a social provider (e.g. 'facebook', 'apple').
+   * On web the browser redirects automatically; on native the provider URL is
+   * opened via Linking and the session is picked up by onAuthStateChange.
+   */
+  signInWithOAuth: (provider: 'facebook' | 'apple') => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   loginWithPasscode: (passcode: string) => Promise<boolean>;
   loginWithBiometric: () => Promise<boolean>;
@@ -320,6 +326,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setBiometricEnabled(false);
   };
 
+  const signInWithOAuth = async (provider: 'facebook' | 'apple') => {
+    if (SUPABASE_UNCONFIGURED || !supabase) {
+      return { ok: false, error: 'Social sign-in is unavailable — Supabase is not configured.' };
+    }
+    try {
+      const redirectTo = Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.location.origin
+        : undefined;
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        ...(redirectTo ? { options: { redirectTo } } : {}),
+      });
+      if (error) return { ok: false, error: error.message };
+      // On native, supabase-js hands back the consent URL instead of redirecting.
+      if (data?.url) {
+        const Linking = require('react-native').Linking;
+        await Linking.openURL(data.url);
+      }
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: getErrorMessage(e) || 'Could not start social sign-in.' };
+    }
+  };
+
   const value: AuthState = {
     userEmail,
     // Live email-prefix display name (additive — see AuthState docs).
@@ -338,6 +368,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     loginWithPassword,
     registerAccount,
+    signInWithOAuth,
     logout,
     loginWithPasscode,
     loginWithBiometric,

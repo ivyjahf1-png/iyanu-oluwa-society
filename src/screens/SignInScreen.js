@@ -32,6 +32,7 @@ import { Fingerprint, Delete, ChevronLeft, Eye, EyeOff } from 'lucide-react-nati
 import * as LocalAuthentication from 'expo-local-authentication';
 import { AUTH_COLORS, AUTH_GRADIENTS } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
+import SocialAuthButtons from '../components/SocialAuthButtons';
 
 export default function SignInScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
@@ -333,6 +334,13 @@ export default function SignInScreen({ navigation, route }) {
               </TouchableOpacity>
             </>
           )}
+
+          {/* Social sign-in: Email / Facebook / Apple (Supabase OAuth) */}
+          <SocialAuthButtons
+            navigation={navigation}
+            onEmail={() => setMode('password')}
+          />
+
 
           <View style={styles.footer}>
             <TouchableOpacity onPress={forgotPassword} hitSlop={{ top: 10, bottom: 10 }}>

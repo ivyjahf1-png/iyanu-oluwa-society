@@ -28,6 +28,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AUTH_COLORS, AUTH_GRADIENTS } from '../constants/theme';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import SocialAuthButtons from '../components/SocialAuthButtons';
 import { useTheme } from '../theme/ThemeContext';
 import { themes } from '../theme/colors';
 
@@ -223,6 +224,10 @@ export default function SignUpScreen({ navigation }) {
               <Text style={styles.primaryBtnTxt}>Continue</Text>
             )}
           </TouchableOpacity>
+
+          {/* Social sign-up: Email / Facebook / Apple (Supabase OAuth) */}
+          <SocialAuthButtons navigation={navigation} />
+
 
           <View style={styles.footer}>
             <Text style={styles.footerTxt}>Already have an account? </Text>
