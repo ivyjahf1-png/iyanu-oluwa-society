@@ -35,7 +35,7 @@ import { themes } from '../theme/colors';
  * colours here so syncStaticTheme() (which swaps GRADIENTS.metallicDashboard
  * between modes) can never change this card's look.
  */
-const AVAILABLE_BALANCE_GRADIENT = ['#1A3327', '#132A20', '#0E211A', '#0A1A13'];
+const AVAILABLE_BALANCE_GRADIENT = ['#064e3b', '#04503a', '#035c40', '#022c22'];
 
 export default function HomeScreen({ navigation }) {
   const { colors, isDark } = useTheme();
@@ -521,12 +521,17 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
     justifyContent: 'center',
   },
   metallicCard: {
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: 'rgba(16, 185, 129, 0.4)',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
     marginBottom: 16,
   },
   cardLeft: { justifyContent: 'space-between' },
@@ -551,8 +556,8 @@ const makeStyles = (colors, isDark) => StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  watermarkTitle: { color: '#E2E8F0', fontSize: 10, fontWeight: '600', marginTop: 4 },
-  watermarkSub: { color: '#94A3B8', fontSize: 9 },
+  watermarkTitle: { color: '#ECFDF5', fontSize: 10, fontWeight: '600', marginTop: 4 },
+  watermarkSub: { color: '#A7F3D0', fontSize: 9 },
   showBalanceBtn: {
     backgroundColor: 'rgba(0, 0, 0, 0.35)',
     flexDirection: 'row',
