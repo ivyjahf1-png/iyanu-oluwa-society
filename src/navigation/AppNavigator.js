@@ -38,6 +38,7 @@ import MonthlyGeneralMeetingScreen from '../screens/MonthlyGeneralMeetingScreen'
 import MeetingMinutesDetailScreen from '../screens/MeetingMinutesDetailScreen';
 import VirtualMeetingRoomScreen from '../screens/VirtualMeetingRoomScreen';
 import DividendDistributionScreen from '../screens/DividendDistributionScreen';
+import AdminLoanDetailScreen from '../screens/AdminLoanDetailScreen';
 import ProfileSettingsScreen from '../screens/ProfileSettingsScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import SignInScreen from '../screens/SignInScreen';
@@ -170,6 +171,7 @@ export default function AppNavigator() {
           <Stack.Screen name="AdminMarketplace" component={AdminMarketplaceScreen} />
           <Stack.Screen name="AdminLedger" component={AdminLedgerScreen} />
           <Stack.Screen name="AdminLoans" component={AdminLoansScreen} />
+<Stack.Screen name="AdminLoanDetail" component={AdminLoanDetailScreen} />
           <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
           <Stack.Screen name="AccountStatement" component={AccountStatementScreen} />
           <Stack.Screen name="Announcements" component={AnnouncementsScreen} />

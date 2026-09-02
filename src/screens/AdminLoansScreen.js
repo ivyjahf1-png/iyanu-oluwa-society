@@ -65,6 +65,20 @@ export default function AdminLoansScreen({ navigation: rawNav, route }) {
     load();
   }, [load]);
 
+  // Re-sync the filter group when Admin Settings navigates here with a new
+  // status param while this screen is already mounted in the stack.
+  useEffect(() => {
+    const s = route?.params?.status;
+    if (!s) return;
+    setGroup(
+      s === 'pending' ? 'review'
+        : s === 'approved' ? 'approved'
+        : s === 'rejected' ? 'rejected'
+        : s === 'disbursed' ? 'active'
+        : 'review',
+    );
+  }, [route?.params?.status]);
+
   const active = GROUPS.find(g => g.key === group) || GROUPS[0];
   const grouped = loans.filter(l => active.statuses.includes(l.status));
 
@@ -171,6 +185,7 @@ export default function AdminLoansScreen({ navigation: rawNav, route }) {
               busy={busyId === l.id}
               colors={colors}
               styles={styles}
+              onOpen={() => navigation.navigate('AdminLoanDetail', { loan: l })}
               onApprove={() => review(l, true)}
               onReject={() => review(l, false)}
               onDisburse={() => disburse(l)}
@@ -183,13 +198,13 @@ export default function AdminLoansScreen({ navigation: rawNav, route }) {
 }
 
 /** One loan card — figures come straight from the authoritative DB columns. */
-function LoanCard({ loan: l, busy, colors, styles, onApprove, onReject, onDisburse }) {
+function LoanCard({ loan: l, busy, colors, styles, onOpen, onApprove, onReject, onDisburse }) {
   const outstanding = Math.max(
     0,
     Number(l.total_repayable || 0) - Number(l.amount_repaid || 0),
   );
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={onOpen}>
       <View style={styles.cardHead}>
         <Landmark size={16} color={colors.primary} />
         <Text style={styles.member} numberOfLines={1}>
@@ -269,7 +284,7 @@ function LoanCard({ loan: l, busy, colors, styles, onApprove, onReject, onDisbur
           <ActivityIndicator size="small" color={colors.primary} style={{ marginLeft: 8 }} />
         ) : null}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
