@@ -265,6 +265,7 @@ export default function SocietyScreen({ navigation }) {
             ))}
           </ScrollView>
         </View>
+      </ScrollView>
       </View>
     </ScreenWrapper>
   );
