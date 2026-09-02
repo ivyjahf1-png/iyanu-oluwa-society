@@ -30,6 +30,8 @@ import AdminLoansScreen from '../screens/AdminLoansScreen';
 import AIAssistantScreen from '../screens/AIAssistantScreen';
 import AccountStatementScreen from '../screens/AccountStatementScreen';
 import AnnouncementsScreen from '../screens/AnnouncementsScreen';
+import AnnouncementsFeedScreen from '../screens/AnnouncementsFeedScreen';
+import PastMeetingsScreen from '../screens/PastMeetingsScreen';
 import AdminUserManagementScreen from '../screens/AdminUserManagementScreen';
 import BannerManagerScreen from '../screens/BannerManagerScreen';
 import CoopCreditScreen from '../screens/CoopCreditScreen';
@@ -175,6 +177,8 @@ export default function AppNavigator() {
           <Stack.Screen name="AIAssistant" component={AIAssistantScreen} />
           <Stack.Screen name="AccountStatement" component={AccountStatementScreen} />
           <Stack.Screen name="Announcements" component={AnnouncementsScreen} />
+          <Stack.Screen name="AnnouncementsFeed" component={AnnouncementsFeedScreen} />
+          <Stack.Screen name="PastMeetings" component={PastMeetingsScreen} />
           <Stack.Screen name="AdminUserManagement" component={AdminUserManagementScreen} />
           <Stack.Screen name="PromotionalBanners" component={BannerManagerScreen} />
           <Stack.Screen name="CoopCredit" component={CoopCreditScreen} />

@@ -88,10 +88,13 @@ export default function SocietyScreen({ navigation }) {
   const live = useMemo(() => isMeetingLive(now, adminLive), [now, adminLive]);
   const nextMeeting = useMemo(() => getNextMeeting(now), [now]);
 
-  const latestAnnouncements = useMemo(
-    () => announcements.filter((a) => a.active).slice(0, 3),
-    [announcements],
-  );
+  const latestAnnouncements = useMemo(() => {
+    const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000; // 3-month expiration
+    return announcements
+      .filter((a) => a.active)
+      .filter((a) => a.createdAt >= cutoff)
+      .slice(0, 3);
+  }, [announcements]);
 
   // --- Promo carousel (auto-slide every 4s) ---
   const promoScroll = useRef(null);
@@ -134,7 +137,7 @@ export default function SocietyScreen({ navigation }) {
         <TouchableOpacity
           style={[styles.card, live && styles.liveCard]}
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('MonthlyGeneralMeeting')}
+          onPress={() => navigation.navigate('PastMeetings')}
         >
           <View style={styles.row}>
             <View style={[styles.iconCircle, live && styles.liveIconCircle]}>
@@ -173,7 +176,7 @@ export default function SocietyScreen({ navigation }) {
           <View style={styles.sectionHead}>
             <Megaphone size={16} color={colors.primary} />
             <Text style={styles.sectionTitle}>Announcements & News</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Announcements')} hitSlop={8}>
+            <TouchableOpacity onPress={() => navigation.navigate('AnnouncementsFeed')} hitSlop={8}>
               <Text style={styles.sectionLink}>View all</Text>
             </TouchableOpacity>
           </View>
@@ -183,7 +186,7 @@ export default function SocietyScreen({ navigation }) {
                 key={a.id}
                 style={styles.card}
                 activeOpacity={0.85}
-                onPress={() => navigation.navigate('Announcements')}
+                onPress={() => navigation.navigate('AnnouncementsFeed')}
               >
                 <Text style={styles.annTitle} numberOfLines={1}>{a.title}</Text>
                 {!!a.message && <Text style={styles.annBody} numberOfLines={2}>{a.message}</Text>}
