@@ -7,9 +7,20 @@
  */
 import React from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Apple, Facebook, Mail } from 'lucide-react-native';
+import { Apple, Mail } from 'lucide-react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+
+// lucide-react-native (v1.x) no longer ships brand icons, so the Facebook
+// glyph is rendered inline to keep the "Element type is invalid" crash away.
+function FacebookIcon({ size = 18, color = '#4267B2' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <Path d="M13.5 21v-7.2h2.42l.36-2.8H13.5V9.2c0-.81.22-1.36 1.39-1.36h1.48V5.35c-.26-.03-1.14-.11-2.16-.11-2.14 0-3.61 1.3-3.61 3.7V11H8.2v2.8h2.4V21h2.9z" />
+    </Svg>
+  );
+}
 
 export default function SocialAuthButtons({ navigation, onEmail }) {
   const { colors } = useTheme();
@@ -64,7 +75,7 @@ export default function SocialAuthButtons({ navigation, onEmail }) {
           {busy === 'facebook' ? (
             <ActivityIndicator size="small" color={colors.success} />
           ) : (
-            <Facebook size={18} color="#4267B2" />
+            <FacebookIcon size={18} color="#4267B2" />
           )}
         </View>
         <Text style={styles.socialBtnTxt}>Continue with Facebook</Text>
